@@ -1,0 +1,8 @@
+.vscode
+api/node_modules
+api/package-lock.json
+editor/.angular
+editor/node_modules
+editor/package-lock.json
+postgres-data
+backups

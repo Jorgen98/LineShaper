@@ -1,0 +1,9 @@
+#map {
+    width: 100vw;
+    height: calc(100vh);
+}
+
+.dirIcon {
+    transform-origin: center;
+    transform: rotate(90deg);
+}

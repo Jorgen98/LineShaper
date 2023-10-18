@@ -1,0 +1,103 @@
+:root {
+    --mark: #52b69a;
+    --white: #f8f9fa;
+    --black: #212529;
+    --grey: #343a40;
+    --border: #495057;
+    --warning: #e63946;
+}
+
+body {
+    margin: 0;
+}
+
+button {
+    z-index: 1000;
+    margin: 0.5rem;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border-radius: 0.5rem;
+    border: 0;
+    background: none;
+    color: var(--white);
+}
+
+button:hover, .selBtn {
+    background-color: var(--black);
+    border: solid var(--mark) 0.2rem;
+}
+
+button:disabled {
+    opacity: 0.5;
+    background-color: transparent !important;
+    border: none !important;
+    color: var(--white) !important;
+}
+
+.verticalSpace {
+    margin: auto 0;
+}
+
+.horizontalSpace {
+    margin: 0 auto;
+}
+
+.content {
+    position: relative;
+    z-index: 1000;
+    background-color: var(--grey);
+    margin: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    width: 20rem;
+    height: 100%;
+    overflow: scroll;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 2rem 0.1rem var(--border);
+}
+
+.option {
+    width: calc(100% - 1rem);
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem;
+}
+
+p {
+    color: var(--white);
+    margin: 0.5rem auto auto auto;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+    background: var(--grey);
+    border-radius: 0.5rem;
+    box-shadow: 0 0 2rem 0.1rem var(--border);
+}
+
+.custom-popup .leaflet-popup-tip {
+    background: var(--grey);
+}
+
+.custom-popup .leaflet-popup-content {
+    display: flex;
+    flex-direction: row;
+    margin: auto;
+}
+
+.leaflet-popup-content {
+    width: auto !important;
+}
+
+.mapBtn {
+    margin: 0 !important;
+}
+
+.mapBtnIn {
+    width: 2.5rem;
+    filter: invert();
+}
+
+.mapBtnDiv {
+    display: flex;
+}

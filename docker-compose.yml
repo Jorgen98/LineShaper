@@ -1,0 +1,62 @@
+version: '3.9'
+services:
+  api:
+    container_name: kordis_db_api
+    build:
+      context: ./api/
+      dockerfile: Dockerfile
+    expose:
+      - ${API_PORT}
+    depends_on:
+      postgis:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  postgis:
+    image: postgis/postgis
+    volumes:
+      - ./api/:/docker-entrypoint-initdb.d/
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.3
+    expose:
+      - ${DB_PORT}
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      PGPORT: ${DB_PORT}
+      TZ: "Europe/Bratislava"
+    deploy:
+      restart_policy:
+        condition: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+networks:
+  app-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.182.1/24

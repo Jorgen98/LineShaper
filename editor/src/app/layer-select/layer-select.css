@@ -1,0 +1,9 @@
+.layerBtn {
+    width: calc(100% - 1rem);
+}
+
+.layerBtnSel {
+    width: calc(100% - 1rem);
+    background-color: var(--black);
+    border: solid var(--mark) 0.2rem;
+}
