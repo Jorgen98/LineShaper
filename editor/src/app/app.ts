@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
     constructor(private mapService: MapService, private dataService: DataService) {}
     @ViewChild(AppDirective, { static: true}) mapTiles!: AppDirective;
     menuIndexBtn = ["", "", "", "", ""];
+    newItems = false;
 
     ngOnInit(): void {
         this.openMenuItem(2);
@@ -57,5 +58,20 @@ export class AppComponent implements OnInit {
     closeMenuItem(): void {
         const viewContainerRef = this.mapTiles.viewContainerRef;
         viewContainerRef.clear();
+    }
+
+    createNewItems() {
+        this.mapService.onNewItemAdd('start');
+        this.newItems = true;
+    }
+
+    saveNewItems() {
+        this.mapService.onNewItemAdd('save');
+        this.newItems = false;
+    }
+
+    cancelCreate() {
+        this.mapService.onNewItemAdd('cancel');
+        this.newItems = false;
     }
 }

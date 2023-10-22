@@ -53,7 +53,7 @@ export class DataService {
           );
     }
 
-    queryPostPutPoint(gid: number, reqType:string, geom?: [number, number], conns?: [number] | []) {
+    queryPostPutPoint(gid: number, reqType:string, geom?: number[], conns?: number[]) {
         if (reqType === 'post') {
             return this.httpClient.post("http://172.25.182.2:8087/mapPoint?layer=" + this.getCurLayer() +
                 "&geom=" + JSON.stringify(geom) + "&conns=" + JSON.stringify(conns), {})
@@ -66,9 +66,6 @@ export class DataService {
                 params += "&geom=" + JSON.stringify(geom);
             }
             if (conns !== undefined) {
-                if (geom !== undefined) {
-                    params += "&";
-                }
                 params += "&conns=" + JSON.stringify(conns);
             }
 
@@ -166,7 +163,7 @@ export class DataService {
         });
     }
 
-    createPoint(geom: [number, number], conns: [number] | []): Promise<any> {
+    createPoint(geom: [number, number], conns: number[]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostPutPoint(0, 'post', geom, conns).subscribe(response => {
                 if (response) {
@@ -190,7 +187,7 @@ export class DataService {
         });
     }
 
-    updatePoint(gid: number, geom?: [number, number], conns?: [number]): Promise<any> {
+    updatePoint(gid: number, geom?: number[], conns?: number[]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostPutPoint(gid, 'put', geom, conns).subscribe(response => {
                 if (response) {

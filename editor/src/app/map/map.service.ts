@@ -8,6 +8,7 @@ import { Observable, Subject } from 'rxjs';
 export class MapService {
     private zoomInObj = new Subject<any>();
     private zoomOutObj = new Subject<any>();
+    private onNewItemAddObj = new Subject<any>();
     private changeBaseMapObj = new Subject<any>();
     
     zoomIn() {
@@ -16,6 +17,10 @@ export class MapService {
 
     zoomOut() {
         this.zoomOutObj.next(0);
+    }
+
+    onNewItemAdd(command: string) {
+        this.onNewItemAddObj.next(command);
     }
 
     changeBaseMap(id: number) {
@@ -28,6 +33,10 @@ export class MapService {
 
     zoomOutEvent(): Observable<any>{
         return this.zoomOutObj.asObservable();
+    }
+
+    onNewItemAddEvent(): Observable<any>{
+        return this.onNewItemAddObj.asObservable();
     }
 
     changeBaseMapEvent(): Observable<any>{
