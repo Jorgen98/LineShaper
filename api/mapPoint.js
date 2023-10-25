@@ -217,10 +217,9 @@ async function getPointsByGID(db, params) {
 
     try {
         let result = await db.query("SELECT *, ST_AsGeoJSON(geom) FROM " + tables[params.layer] +
-        " WHERE gid > " + params.gid + " LIMIT 1000");
+        " WHERE gid > " + parseInt(params.gid) + " ORDER BY gid LIMIT (1000)");
 
         for (let i = 0; i < result.rows.length; i++) {
-            result.rows[i] = result.rows[i];
             result.rows[i]['geom'] = JSON.parse(result.rows[i]['st_asgeojson']).coordinates;
             delete result.rows[i]['st_asgeojson'];
         }
@@ -248,4 +247,148 @@ async function getStats(db) {
     return stats;
 }
 
-module.exports = { getPoint, createPoint, updatePoint, deletePoint, getPointsInRad, getStats, deleteLayer, getPointsByGID, createPoints };
+async function changeDirection(db, params) {
+    if (tables[params.layer] === undefined) {
+        return false;
+    }
+
+    if (params.gidA === undefined || params.gidB === undefined) {
+        return false;
+    }
+
+    if (params.mode === undefined) {
+        params.mode = 1;
+    }
+
+    let result = [];
+    params.gidA = parseInt(params.gidA);
+    params.gidB = parseInt(params.gidB);
+    result.push(params.gidA);
+    result.push(params.gidB);
+
+    let connected = false;
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + params.gidA + "'")).rows[0].conns.indexOf(params.gidB) !== -1) {
+        connected = true;
+    }
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + params.gidB + "'")).rows[0].conns.indexOf(params.gidA) !== -1) {
+        connected = true;
+    }
+
+    if (!connected) {
+        return false;
+    }
+
+    await next(db, params.layer, params.gidA, result);
+    await next(db, params.layer, params.gidB, result);
+
+    for (let i = 0; i < result.length; i++) {
+        let point = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[i] + "'")).rows[0];
+
+        if (i > 0 && point.conns.indexOf(result[i - 1]) !== -1) {
+            point.conns.splice(point.conns.indexOf(result[i - 1]), 1);
+        }
+        if (i > 0 && params.mode == 0) {
+            point.conns.push(result[i - 1]);
+        }
+
+        if (i < (result.length - 1) && point.conns.indexOf(result[i + 1]) !== -1) {
+            point.conns.splice(point.conns.indexOf(result[i + 1]), 1);
+        }
+        if (i < (result.length - 1)) {
+            point.conns.push(result[i + 1]);
+        }
+
+        try {
+            await db.query("UPDATE " + tables[params.layer] + " SET conns=ARRAY " + JSON.stringify(point.conns) + "::integer[] WHERE gid='" + point.gid + "'");
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+    }
+
+    connected = false;
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[0] + "'")).rows[0]
+        .conns.indexOf(result[result.length - 1]) !== -1) {
+        connected = true;
+    }
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[result.length - 1] + "'")).rows[0]
+        .conns.indexOf(result[0]) !== -1) {
+        connected = true;
+    }
+
+    if (connected && result.length > 2) {
+        let pointA = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[0] + "'")).rows[0];
+        let pointB = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[result.length - 1] + "'")).rows[0];
+
+        if (pointA.conns.indexOf(result[result.length - 1]) !== -1) {
+            pointA.conns.splice(pointA.conns.indexOf(result[result.length - 1]), 1);
+        }
+        if (pointB.conns.indexOf(result[0]) !== -1) {
+            pointB.conns.splice(pointB.conns.indexOf(result[0]), 1);
+        }
+
+        if (params.mode == 0) {
+            pointA.conns.push(result[result.length - 1]);
+        }
+        pointB.conns.push(result[0]);
+
+        try {
+            await db.query("UPDATE " + tables[params.layer] + " SET conns=ARRAY " + JSON.stringify(pointA.conns) +
+                "::integer[] WHERE gid='" + pointA.gid + "'");
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+
+        try {
+            await db.query("UPDATE " + tables[params.layer] + " SET conns=ARRAY " + JSON.stringify(pointB.conns) +
+                "::integer[] WHERE gid='" + pointB.gid + "'");
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+async function next(db, layer, gid, result) {
+    let conns = [];
+    let forwardPoint = (await db.query("SELECT gid, conns FROM " + tables[layer] + " WHERE gid='" + gid + "'")).rows[0];
+    if (forwardPoint === undefined) {
+        return;
+    }
+    conns = conns.concat(forwardPoint.conns);
+
+    let backwardPoint = await db.query("SELECT gid, conns FROM " + tables[layer] + " WHERE '" + gid + "'= ANY (conns)");
+    for (let i = 0; i < backwardPoint.rows.length; i++) {
+        if (conns.indexOf(backwardPoint.rows[i].gid) === -1) {
+            conns.push(backwardPoint.rows[i].gid);
+        }
+    }
+
+    let runs = 0;
+    for (let i = 0; i < conns.length;) {
+        if (result.indexOf(conns[i]) !== -1) {
+            conns.splice(i, 1);
+            runs += 1;
+        } else {
+            i++
+        }
+    }
+
+    if (runs > 1) {
+        return;
+    }
+
+    if (conns.length === 1) {
+        if (result.indexOf(gid) === (result.length - 1)) {
+            result.push(conns[0]);
+        } else {
+            result.unshift(conns[0]);
+        }
+        await next(db, layer, conns[0], result);
+    }
+}
+
+module.exports = { getPoint, createPoint, updatePoint, deletePoint, getPointsInRad, getStats, deleteLayer, getPointsByGID, createPoints, changeDirection };

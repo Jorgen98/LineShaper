@@ -112,6 +112,14 @@ export class DataService {
           );
     }
 
+    querySetLineDirection(gidA: number, gidB: number, mode: number) {
+        return this.httpClient.put("http://172.25.182.2:8087/changeDirection?layer=" + this.getCurLayer() + "&gidA=" + gidA
+            + "&gidB=" + gidB + "&mode=" + mode, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     isDBConnected(attempt: number): void {
         if (attempt > 5) {
             console.log("Can not connect to DB. Please try to restart client.")
@@ -238,6 +246,18 @@ export class DataService {
     getPointsByGid(gid: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetPointsByGid(gid).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    setLineDirection(gidA: number, gidB: number, mode: number) {
+        return new Promise((resolve, reject) => {
+            this.querySetLineDirection(gidA, gidB, mode).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

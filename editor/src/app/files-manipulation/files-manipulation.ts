@@ -122,8 +122,6 @@ export class FilesManipulationComponent {
             }
         }
 
-        console.log(this.acFileContent.hubs.length)
-
         let upIndex = 150;
         for (let i = 0; i < this.acFileContent.hubs.length; i+=150) {
             if (upIndex > (this.acFileContent.hubs.length - 1)) {
@@ -178,7 +176,7 @@ export class FilesManipulationComponent {
 
             delete result[i].gid;
             delete result[i].conns;
-            result[i].p = result[i].geom;
+            result[i].p = JSON.parse(JSON.stringify(result[i].geom));
             delete result[i].geom;
         }
 

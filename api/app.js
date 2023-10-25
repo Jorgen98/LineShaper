@@ -54,6 +54,10 @@ app.get('/pointsByGid', async (req, res) => {
         res.send(await dbPoint.getPointsByGID(db, req.query));
     })
 
+app.put('/changeDirection', async (req, res) => {
+        res.send(await dbPoint.changeDirection(db, req.query));
+    })
+
 // Running API itself
 app.listen(process.env.API_PORT, async () => {
     // Try to connect

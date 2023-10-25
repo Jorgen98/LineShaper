@@ -347,7 +347,6 @@ export class MapComponent {
             this.onOnePointAction();
         } else if (this.acPoint !== undefined && this.editMode === 'point') {
             if (this.acPoint.gid !== gid) {
-                console.log(this.acPoint.gid.toString() + '_' + gid.toString())
                 if (this.curConns[this.acPoint.gid.toString() + '_' + gid.toString()] === undefined &&
                     this.curConns[gid.toString() + '_' + this.acPoint.gid.toString()] === undefined) {
                         this.onTwoPointAction(gid);
@@ -527,6 +526,22 @@ export class MapComponent {
             }
             div.appendChild(btnAdd);
 
+            let btnTwoDir = document.createElement("button");
+            btnTwoDir.innerHTML = '<img src="assets/icons/both.svg" class="mapBtnIn"/>';
+            btnTwoDir.className = "mapBtn";
+            btnTwoDir.onclick = function() {
+                t.makeLineBothWay();
+            }
+            div.appendChild(btnTwoDir);
+
+            let btnOneDir = document.createElement("button");
+            btnOneDir.innerHTML = '<img src="assets/icons/turn.svg" class="mapBtnIn"/>';
+            btnOneDir.className = "mapBtn";
+            btnOneDir.onclick = function() {
+                t.makeLineOneWay();
+            }
+            div.appendChild(btnOneDir);
+
             this.acPopUp = L.popup(this.popupStyle)
             .setContent(div)
             .setLatLng(this.acLine.line.getCenter())
@@ -572,6 +587,16 @@ export class MapComponent {
             await this.dataService.updatePoint(this.acLine.b, undefined, newConns);
         }
 
+        this.setDefault();
+    }
+
+    async makeLineBothWay() {
+        await this.dataService.setLineDirection(this.acLine.a, this.acLine.b, 0);
+        this.setDefault();
+    }
+
+    async makeLineOneWay() {
+        await this.dataService.setLineDirection(this.acLine.b, this.acLine.a, 1);
         this.setDefault();
     }
 
