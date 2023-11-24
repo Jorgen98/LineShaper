@@ -180,11 +180,16 @@ export class FilesManipulationComponent {
             delete result[i].geom;
         }
 
-        let a = document.createElement('a');
         let filename = this.curLayer + "_" + formatDate(new Date(), 'yyyy-MM-dd', 'en') + ".geojson";
-        a.setAttribute('href', 'data:json; charset=utf-u,' + encodeURIComponent(JSON.stringify({"type": this.curLayer,
-                        "valid": formatDate(new Date(), 'yyyy-MM-dd', 'en'), "hubs": result})));
+        let blob = new Blob([JSON.stringify({"type": this.curLayer,
+            "valid": formatDate(new Date(), 'yyyy-MM-dd', 'en'), "hubs": result})], { type: 'text/json' });
+
+        let a = document.createElement("a");
+        document.body.appendChild(a);
         a.setAttribute('download', filename);
+        a.style.display = 'none';
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
         a.click();
 
         this.dataService.setCurLayer(layer);

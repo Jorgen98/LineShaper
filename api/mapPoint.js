@@ -284,6 +284,10 @@ async function changeDirection(db, params) {
     for (let i = 0; i < result.length; i++) {
         let point = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[i] + "'")).rows[0];
 
+        if (point === undefined) {
+            continue;
+        }
+
         if (i > 0 && point.conns.indexOf(result[i - 1]) !== -1) {
             point.conns.splice(point.conns.indexOf(result[i - 1]), 1);
         }
