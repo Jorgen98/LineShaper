@@ -17,6 +17,7 @@ export class DataService {
         this.isDBConnected(0);
     }
 
+    // Inner functions
     setTitleIndex(id: number) {
         this.curTitleIndex = id;
     }
@@ -39,6 +40,7 @@ export class DataService {
         this.layerChangeObj.next(1);
     }
 
+    // Query functions
     queryIsDbAlive() {
         return this.httpClient.get("http://172.25.182.2:8087/mapStats")
         .pipe(
@@ -98,8 +100,8 @@ export class DataService {
           );
     }
 
-    queryGetPointsInRad(latLng: [number, number]) {
-        return this.httpClient.get("http://172.25.182.2:8087/pointsInRad?layer=" + this.getCurLayer() + "&geom=" + JSON.stringify(latLng), {})
+    queryGetPointsInRad(latLng: [number, number], layer: string) {
+        return this.httpClient.get("http://172.25.182.2:8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
@@ -120,6 +122,8 @@ export class DataService {
           );
     }
 
+    // Callable functions
+    // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
         if (attempt > 5) {
             console.log("Can not connect to DB. Please try to restart client.")
@@ -139,14 +143,17 @@ export class DataService {
         });
     }
 
+    // Get map tiles layer
     getCurLayer(): string {
         return this.curLayer;
     }
 
+    // Change map tiles layer
     layerChange(): Observable<any>{
         return this.layerChangeObj.asObservable();
     }
 
+    // Get DB stats
     getStats(): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryIsDbAlive().subscribe(response => {
@@ -159,6 +166,7 @@ export class DataService {
         });
     }
 
+    // Get 1 point by GID
     getPoint(gid: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetPoint(gid).subscribe(response => {
@@ -171,6 +179,7 @@ export class DataService {
         });
     }
 
+    // Create point, return new GID
     createPoint(geom: [number, number], conns: number[]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostPutPoint(0, 'post', geom, conns).subscribe(response => {
@@ -183,6 +192,7 @@ export class DataService {
         });
     }
 
+    // Create more points, used in import user case
     createPoints(hubs: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostPoints(hubs).subscribe(response => {
@@ -195,6 +205,7 @@ export class DataService {
         });
     }
 
+    // Update 1 point props
     updatePoint(gid: number, geom?: number[], conns?: number[]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostPutPoint(gid, 'put', geom, conns).subscribe(response => {
@@ -207,6 +218,7 @@ export class DataService {
         });
     }
 
+    // Delete 1 point
     deletePoint(gid: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryDeletePoint(gid).subscribe(response => {
@@ -219,6 +231,7 @@ export class DataService {
         });
     }
 
+    // Delete whole point layer(trams, trains, roads), used in import user case
     deleteAcLayer(): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryDeleteLayer().subscribe(response => {
@@ -231,9 +244,10 @@ export class DataService {
         });
     }
 
-    getPointsInRad(latLng: [number, number]): Promise<any> {
+    // Get points and its connections around some point
+    getPointsInRad(latLng: [number, number], layer: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryGetPointsInRad(latLng).subscribe(response => {
+            this.queryGetPointsInRad(latLng, layer).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
@@ -243,6 +257,7 @@ export class DataService {
         });
     }
 
+    // Get points by GID, used in export user case
     getPointsByGid(gid: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetPointsByGid(gid).subscribe(response => {
@@ -255,6 +270,7 @@ export class DataService {
         });
     }
 
+    // Set line direction
     setLineDirection(gidA: number, gidB: number, mode: number) {
         return new Promise((resolve, reject) => {
             this.querySetLineDirection(gidA, gidB, mode).subscribe(response => {

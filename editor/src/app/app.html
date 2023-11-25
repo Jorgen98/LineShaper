@@ -7,15 +7,15 @@
             <button [class]="menuIndexBtn[0]" (click)="openMenuItem(0)"><mat-icon>layers</mat-icon></button>
             <button [class]="menuIndexBtn[1]" (click)="openMenuItem(1)"><mat-icon>map</mat-icon></button>
             <button [class]="menuIndexBtn[2]" (click)="openMenuItem(2)"><mat-icon>import_export</mat-icon></button>
-            <button [class]="menuIndexBtn[2]" (click)="createNewItems()"><mat-icon>add</mat-icon></button>
+            <button [class]="menuIndexBtn[3]" (click)="createNewItems()"><mat-icon>add</mat-icon></button>
             <div class="verticalSpace"></div>
         </div>
         <div id="leftControl" *ngIf="newItems">
             <button (click)="zoomIn()"><mat-icon>zoom_in</mat-icon></button>
             <button (click)="zoomOut()"><mat-icon>zoom_out</mat-icon></button>
-            <button [class]="menuIndexBtn[0]" (click)="saveNewItems()"><mat-icon>save</mat-icon></button>
-            <button [class]="menuIndexBtn[1]" (click)="cancelCreate()"><mat-icon>cancel</mat-icon></button>
             <div class="verticalSpace"></div>
+            <button [class]="menuIndexBtn[4]" (click)="saveNewItems()"><mat-icon>save</mat-icon></button>
+            <button [class]="menuIndexBtn[5]" (click)="cancelCreate()"><mat-icon>cancel</mat-icon></button>
         </div>
         <div id="middleControl"><ng-template mapTiles></ng-template></div>
         <div id="rigthControl"></div>

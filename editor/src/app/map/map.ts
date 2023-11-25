@@ -16,16 +16,16 @@ export class MapComponent {
         "max_zoom": 19,
         "tiles": [
         {
-            "layer": 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            "attribution": '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            "layer": 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            "attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         },
         {
             "layer": 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
             "attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         },
         {
-            "layer": 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-            "attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            "layer": 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            "attribution": '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         },
         ]
     };
@@ -34,6 +34,11 @@ export class MapComponent {
     private layers: any = {
         'points': undefined,
         'lines': undefined
+    }
+    private backgroundLayers: {[name: string]: boolean} = {
+        'rail': true,
+        'road': true,
+        'tram': true
     }
 
     private editMode = "mouse";
@@ -241,6 +246,12 @@ export class MapComponent {
     }
 
     async loadContext(latLng: L.LatLng) {
+        if (this.layers['background'] !== undefined) {
+            this.map.removeLayer(this.layers['background']);
+        }
+        this.layers['background'] = L.layerGroup();
+        this.layers['background'].addTo(this.map);
+
         if (this.layers['lines'] !== undefined) {
             this.map.removeLayer(this.layers['lines']);
         }
@@ -256,7 +267,8 @@ export class MapComponent {
         this.curObjects = {};
         this.curConns = {};
 
-        let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng]);
+        // Editable layer
+        let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng], this.dataService.getCurLayer());
         for (let i = 0; i < response.length; i++) {
             this.curObjects[response[i].gid] = null;
         }
@@ -284,12 +296,47 @@ export class MapComponent {
                 conns.push(key);
             }
             this.curObjects[response[i].gid] = {"gid": response[i].gid, "conns": conns, "point": undefined};
-            this.createPoint(response[i].geom, response[i].gid);
+            //this.createPoint(response[i].geom, response[i].gid);
         }
 
         let keys = Object.keys(this.curConns);
         for (let i = 0; i < keys.length; i++) {
-            this.createLine(keys[i]);
+            //this.createLine(keys[i]);
+        }
+
+        // Non editable layers
+        keys = Object.keys(this.backgroundLayers);
+
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] === this.dataService.getCurLayer() || !this.backgroundLayers[keys[i]]) {
+                continue;
+            }
+            let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng], keys[i]);
+            let conns: any = {};
+            let geoms: any = {};
+            for (let j = 0; j < response.length; j++) {
+                for (let k = 0; k < response[j].conns.length; k++) {
+                    if (conns[response[j].gid.toString() + '_' + response[j].conns[k].toString()] === undefined &&
+                        conns[response[j].conns[k].toString() + '_' + response[j].gid.toString()] === undefined) {
+                        conns[response[j].gid.toString() + '_' + response[j].conns[k].toString()] = 0;
+                    } else {
+                        conns[response[j].conns[k].toString() + '_' + response[j].gid.toString()] = 1;
+                    }
+                }
+                geoms[response[j].gid] = response[j].geom;
+                L.circle(response[j].geom, this.defaultObjStyle)
+                    .addTo(this.layers['background'])
+            }
+            let innerKeys = Object.keys(conns);
+            for (let j = 0; j < innerKeys.length; j++) {
+                let pointA = geoms[innerKeys[j].split('_')[0]];
+                let pointB = geoms[innerKeys[j].split('_')[1]];
+                if (pointA === undefined || pointB === undefined) {
+                    continue;
+                }
+                L.polyline([pointA, pointB], this.defaultObjStyle)
+                    .addTo(this.layers['background'])
+            }
         }
     }
 
