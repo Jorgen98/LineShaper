@@ -1,22 +1,40 @@
 <div class="content">
-    <div class="option">
-        <div class="img" [class]="imgStyles[0]">
-            <img src="assets/VoyagerIcon.png" (click)="changeTiles(0)">
+    <div class="optionsGroup">
+        <div class="option">
+            <div class="img" [class]="tileIndx[0]">
+                <img src="assets/VoyagerIcon.png" (click)="changeTiles(0)">
+            </div>
         </div>
-        <p>Základní mapa</p>
+    
+        <div class="option">
+            <div class="img" [class]="tileIndx[1]">
+                <img src="assets/CartoIcon.png" (click)="changeTiles(1)">
+            </div>
+        </div>
+    
+        <div class="option">
+            <div class="img" [class]="tileIndx[2]">
+                <img src="assets/OpenSMIcon.png" (click)="changeTiles(2)">
+            </div>
+        </div>
     </div>
-
-    <div class="option">
-        <div class="img" [class]="imgStyles[1]">
-            <img src="assets/CartoIcon.png" (click)="changeTiles(1)">
+    <div class="optionsGroup">
+        <div class="option">
+            <div class="img" [class]="netLayers[0]">
+                <img src="assets/VoyagerIcon.png" (click)="changeLayerVisibility(0)">
+            </div>
         </div>
-        <p>Mapa bez popisů</p>
-    </div>
-
-    <div class="option">
-        <div class="img" [class]="imgStyles[2]">
-            <img src="assets/OpenSMIcon.png" (click)="changeTiles(2)">
+    
+        <div class="option">
+            <div class="img" [class]="netLayers[1]">
+                <img src="assets/CartoIcon.png" (click)="changeLayerVisibility(1)">
+            </div>
         </div>
-        <p>Detailní mapa</p>
+    
+        <div class="option">
+            <div class="img" [class]="netLayers[2]">
+                <img src="assets/OpenSMIcon.png" (click)="changeLayerVisibility(2)">
+            </div>
+        </div>
     </div>
 </div>

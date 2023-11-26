@@ -18,7 +18,7 @@ export class DataService {
     }
 
     // Inner functions
-    setTitleIndex(id: number) {
+    setTileIndex(id: number) {
         this.curTitleIndex = id;
     }
 
@@ -31,7 +31,7 @@ export class DataService {
         }
     }
 
-    getTitleIndex(): number {
+    getTileIndex(): number {
         return this.curTitleIndex;
     }
 

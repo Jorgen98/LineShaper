@@ -1,6 +1,6 @@
 .img {
-    width: 8rem;
-    height: 8rem;
+    width: 4rem;
+    height: 4rem;
     border: solid transparent 0.2rem;
     border-radius: 0.5rem;
     margin: auto;
@@ -13,7 +13,7 @@ img {
     border-radius: 0.5rem;
 }
 
-.img:hover, .img_selected {
+.img:hover, .opt_selected {
     border: solid var(--mark) 0.2rem;
     background-color: var(--mark);
     opacity: 1;

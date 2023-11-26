@@ -5,6 +5,10 @@
     --grey: #343a40;
     --border: #495057;
     --warning: #e63946;
+
+    --rail: #f2b701;
+    --road: #3969ac;
+    --tram: #11a579;
 }
 
 body {
@@ -55,6 +59,11 @@ button:disabled {
     overflow: scroll;
     border-radius: 0.5rem;
     box-shadow: 0 0 2rem 0.1rem var(--border);
+}
+
+.optionsGroup {
+    display: flex;
+    flex-direction: row;
 }
 
 .option {

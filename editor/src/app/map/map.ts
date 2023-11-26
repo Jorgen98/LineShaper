@@ -33,12 +33,8 @@ export class MapComponent {
     private curConns: any = {};
     private layers: any = {
         'points': undefined,
-        'lines': undefined
-    }
-    private backgroundLayers: {[name: string]: boolean} = {
-        'rail': true,
-        'road': true,
-        'tram': true
+        'lines': undefined,
+        'background': undefined
     }
 
     private editMode = "mouse";
@@ -47,29 +43,6 @@ export class MapComponent {
     private acPopUp: any = undefined;
     private newPoints: any = [];
 
-    private defaultObjStyle =  {
-        radius: 0.5,
-        fillColor: "var(--black)",
-        color: "var(--black)",
-        opacity: 1,
-        weight: 4,
-        fillOpacity: 1
-    }
-
-    private hooverObjStyle =  {
-        radius: 0.5,
-        fillColor: "var(--warning)",
-        color: "var(--warning)",
-        opacity: 1,
-        weight: 4,
-        fillOpacity: 1
-    }
-
-    private popupStyle = {
-        closeButton: false,
-        className: "custom-popup"
-    }
-
     private initMap(): void {
         this.map = L.map('map', {
             center: [49.195629, 16.613396],
@@ -77,7 +50,7 @@ export class MapComponent {
             zoomControl: false
         });
 
-        this.setTiles(this.dataService.getTitleIndex());
+        this.setTiles(this.dataService.getTileIndex());
         let t = this;
         this.map.on('dragend', function(event) {
             t.setDefault();
@@ -87,7 +60,7 @@ export class MapComponent {
             if (t.editMode !== "mouse" && t.editMode !== "move") {
                 t.setDefault();
                 if (t.editMode === "new") {
-                    t.newPoints.push(L.circle(event.latlng, t.hooverObjStyle).addTo(t.layers['new']));
+                    t.newPoints.push(L.circle(event.latlng, t.setHoverObjStyle()).addTo(t.layers['new']));
                 }
             }
         })
@@ -98,6 +71,9 @@ export class MapComponent {
                 }
                 t.movePoint(event.latlng);
             }
+        })
+        this.map.on('zoomend', () => {
+            t.loadContext(t.map.getCenter());
         })
     }
 
@@ -147,6 +123,10 @@ export class MapComponent {
         this.dataService.layerChange().subscribe(() => {
             this.loadContext(this.map.getCenter());
         })
+
+        this.mapService.visibilityUpdateEvent().subscribe(() => {
+            this.loadContext(this.map.getCenter());
+        })
     }
 
     async ngAfterViewInit() {
@@ -166,7 +146,7 @@ export class MapComponent {
         })
         .addTo(this.map);
 
-        this.dataService.setTitleIndex(id);
+        this.dataService.setTileIndex(id);
     }
 
     setDefault() {
@@ -191,7 +171,7 @@ export class MapComponent {
         }
     }
 
-    createDirectionTriangle(pointA: any, pointB: any, center: any, key: string) {
+    createDirectionTriangle(pointA: any, pointB: any, center: any, layer: string, key: string) {
         pointA = this.map.latLngToLayerPoint(pointA);
         pointB = this.map.latLngToLayerPoint(pointB);
         
@@ -218,12 +198,16 @@ export class MapComponent {
         }
 
         let t = this;
-        let triangle = L.polygon([vertA, vertB, vertC], this.defaultObjStyle)
-        .addTo(this.layers["lines"])
-        .on('click', (event) => {
-            t.onLineClick(key);
-            L.DomEvent.stop(event);
-        })
+        let triangle = L.polygon([vertA, vertB, vertC], this.setObjStyle(layer, key !== undefined));
+        if (key !== '') {
+            triangle.addTo(this.layers["lines"])
+            .on('click', (event) => {
+                t.onLineClick(key);
+                L.DomEvent.stop(event);
+            })
+        } else {
+            triangle.addTo(this.layers["background"]);
+        }
         triangle.bringToBack();
 
         return triangle;
@@ -242,6 +226,57 @@ export class MapComponent {
             return false;
         } else {
             return this.map.layerPointToLatLng(edgePoint);
+        }
+    }
+
+    setObjStyle(layer: string, editable: boolean) {
+        let objColor = "";
+        let objOpacity = 0;
+        let radius = 1;
+        let interactive = true;
+
+        if (layer === "rail") {
+            objColor = "var(--rail)";
+        } else if (layer === 'road') {
+            objColor = "var(--road)";
+        } else if (layer === 'tram') {
+            objColor = "var(--tram)";
+        }
+
+        if (editable) {
+            objOpacity = 1;
+        } else {
+            objOpacity = 0.4;
+            radius = 0;
+            interactive = false;
+        }
+
+        return {
+            radius: radius,
+            fillColor: objColor,
+            color: objColor,
+            opacity: objOpacity,
+            weight: 4,
+            fillOpacity: 1,
+            interactive: interactive
+        }
+    }
+
+    setHoverObjStyle() {
+        return {
+            radius: 1,
+            fillColor: "var(--warning)",
+            color: "var(--warning)",
+            opacity: 1,
+            weight: 4,
+            fillOpacity: 1
+        }
+    }
+
+    setPopUpStyle() {
+        return {
+            closeButton: false,
+            className: "custom-popup"
         }
     }
 
@@ -296,19 +331,20 @@ export class MapComponent {
                 conns.push(key);
             }
             this.curObjects[response[i].gid] = {"gid": response[i].gid, "conns": conns, "point": undefined};
-            //this.createPoint(response[i].geom, response[i].gid);
+            this.createPoint(response[i].geom, response[i].gid, this.dataService.getCurLayer(), true);
         }
 
         let keys = Object.keys(this.curConns);
         for (let i = 0; i < keys.length; i++) {
-            //this.createLine(keys[i]);
+            this.createLine(keys[i], this.dataService.getCurLayer(), false);
         }
 
         // Non editable layers
-        keys = Object.keys(this.backgroundLayers);
+        let backgroundLayers: any = this.mapService.getBackgroundLayersState();
+        keys = Object.keys(backgroundLayers);
 
         for (let i = 0; i < keys.length; i++) {
-            if (keys[i] === this.dataService.getCurLayer() || !this.backgroundLayers[keys[i]]) {
+            if (keys[i] === this.dataService.getCurLayer() || !backgroundLayers[keys[i]]) {
                 continue;
             }
             let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng], keys[i]);
@@ -324,8 +360,7 @@ export class MapComponent {
                     }
                 }
                 geoms[response[j].gid] = response[j].geom;
-                L.circle(response[j].geom, this.defaultObjStyle)
-                    .addTo(this.layers['background'])
+                this.createPoint(response[j].geom, 0, keys[i], false);
             }
             let innerKeys = Object.keys(conns);
             for (let j = 0; j < innerKeys.length; j++) {
@@ -334,17 +369,16 @@ export class MapComponent {
                 if (pointA === undefined || pointB === undefined) {
                     continue;
                 }
-                L.polyline([pointA, pointB], this.defaultObjStyle)
-                    .addTo(this.layers['background'])
+                this.createLine('', keys[i], conns[innerKeys[j]] === 0, pointA, pointB);
             }
         }
     }
 
-    createPoint(latLng: L.LatLng, gid: number) {
+    createPoint(latLng: L.LatLng, gid: number, layer: string, editable: boolean) {
         let t = this;
-        let point = L.circle(latLng, this.defaultObjStyle)
-            .addTo(this.layers['points'])
-            .on('click', (event) => {
+        let point = L.circle(latLng, this.setObjStyle(layer, editable));
+        if (editable) {
+            point.on('click', (event) => {
                 t.onPointClick(gid);
                 L.DomEvent.stop(event);
             })
@@ -359,37 +393,63 @@ export class MapComponent {
                     t.editMode = "point";
                 }
                 L.DomEvent.stop(event);
-            });
-        this.curObjects[gid].point = point;
+            })
+            .addTo(this.layers['points']);
+            this.curObjects[gid].point = point;
+        } else {
+            point.addTo(this.layers['background']);
+        }
     }
 
-    createLine(key: string) {
-        let line = this.curConns[key];
-        let pointA = this.curObjects[line.a].point;
-        let pointB = this.curObjects[line.b].point;
+    createLine(key: string, layer: string, triangle: boolean, p_A?: any, p_B?: any) {
+        let line, pointA, pointB;
+        if (key !== '') {
+            line = this.curConns[key];
+            pointA = this.curObjects[line.a].point;
+            if (pointA !== undefined) {
+                pointA = pointA.getLatLng();
+            }
+            pointB = this.curObjects[line.b].point;
+            if (pointB !== undefined) {
+                pointB = pointB.getLatLng();
+            }
+        } else {
+            pointA = p_A;
+            pointB = p_B;
+        }
+
         if (pointA === undefined || pointB === undefined) {
             return;
         }
 
         let t = this;
-        let newLine = L.polyline([pointA.getLatLng(), pointB.getLatLng()], this.defaultObjStyle)
-        .addTo(this.layers['lines'])
-        .on('click', (event) => {
-            t.onLineClick(key);
-            L.DomEvent.stop(event);
-        })
-        line.line = newLine;
+        let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer, key !== ''));
 
-        if (line.t === 0) {
-            line.triangle = this.createDirectionTriangle(pointA.getLatLng(), pointB.getLatLng(), line.line.getCenter(), key);
+        if (key !== '') {
+            newLine.on('click', (event) => {
+                t.onLineClick(key);
+                L.DomEvent.stop(event);
+            })
+            .addTo(this.layers['lines'])
+            line.line = newLine;
+        } else {
+            newLine.addTo(this.layers['background']);
+        }
+
+        if (key !== '' && line.t === 0) {
+            line.triangle = this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer, key);
+        } else if (triangle) {
+            this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer, key);
         }
         newLine.bringToBack();
+
+        return;
     }
 
     async onPointClick(gid: number) {
         if (this.acPoint === undefined && this.editMode === 'mouse') {
             this.acPoint = this.curObjects[gid];
-            this.acPoint.point.setStyle(this.hooverObjStyle);
+            this.acPoint.point.setStyle(this.setHoverObjStyle());
             this.editMode = "point";
             this.onOnePointAction();
         } else if (this.acPoint !== undefined && this.editMode === 'point') {
@@ -421,7 +481,7 @@ export class MapComponent {
             btn.onclick = function() {
                 t.deletePoint();
             }
-            this.acPopUp = L.popup(this.popupStyle)
+            this.acPopUp = L.popup(this.setPopUpStyle())
             .setContent(btn)
             .setLatLng(this.acPoint.point.getLatLng())
             .openOn(t.map);
@@ -430,7 +490,7 @@ export class MapComponent {
 
     onTwoPointAction(secondGid: number) {
         this.editMode = 'twoPoint';
-        this.curObjects[secondGid].point.setStyle(this.hooverObjStyle);
+        this.curObjects[secondGid].point.setStyle(this.setHoverObjStyle());
         
         let t = this;
         let btn = document.createElement("button");
@@ -441,7 +501,7 @@ export class MapComponent {
         }
         let center = {"lat": (this.acPoint.point.getLatLng().lat + this.curObjects[secondGid].point.getLatLng().lat) / 2,
                       "lng": (this.acPoint.point.getLatLng().lng + this.curObjects[secondGid].point.getLatLng().lng) / 2 }
-        this.acPopUp = L.popup(this.popupStyle)
+        this.acPopUp = L.popup(this.setPopUpStyle())
         .setContent(btn)
         .setLatLng(center)
         .openOn(t.map);
@@ -505,12 +565,14 @@ export class MapComponent {
             if (line.a === this.acPoint.gid) {
                 line.line.setLatLngs([newLatLng, oldLatLngs[1]]);
                 if (line.t === 0) {
-                    line.triangle = this.createDirectionTriangle(newLatLng, oldLatLngs[1], line.line.getCenter(), line.key);
+                    line.triangle = this.createDirectionTriangle(newLatLng, oldLatLngs[1], line.line.getCenter(),
+                        this.dataService.getCurLayer(), line.key);
                 }
             } else {
                 line.line.setLatLngs([oldLatLngs[0], newLatLng]);
                 if (line.t === 0) {
-                    line.triangle = this.createDirectionTriangle(oldLatLngs[0], newLatLng, line.line.getCenter(), line.key);
+                    line.triangle = this.createDirectionTriangle(oldLatLngs[0], newLatLng, line.line.getCenter(),
+                        this.dataService.getCurLayer(), line.key);
                 }
             }
         }
@@ -527,12 +589,14 @@ export class MapComponent {
             if (line.a === this.acPoint.gid) {
                 line.line.setLatLngs([newLatLng, oldLatLngs[1]]);
                 if (line.t === 0) {
-                    line.triangle = this.createDirectionTriangle(newLatLng, oldLatLngs[1], line.line.getCenter(), line.key);
+                    line.triangle = this.createDirectionTriangle(newLatLng, oldLatLngs[1], line.line.getCenter(),
+                        this.dataService.getCurLayer(), line.key);
                 }
             } else {
                 line.line.setLatLngs([oldLatLngs[0], newLatLng]);
                 if (line.t === 0) {
-                    line.triangle = this.createDirectionTriangle(oldLatLngs[0], newLatLng, line.line.getCenter(), line.key);
+                    line.triangle = this.createDirectionTriangle(oldLatLngs[0], newLatLng, line.line.getCenter(),
+                        this.dataService.getCurLayer(), line.key);
                 }
             }
         }
@@ -542,9 +606,9 @@ export class MapComponent {
     onLineClick(key: string) {
         if (this.acLine === undefined && this.editMode === 'mouse') {
             this.acLine = this.curConns[key];
-            this.acLine.line.setStyle(this.hooverObjStyle);
+            this.acLine.line.setStyle(this.setHoverObjStyle());
             if (this.acLine.triangle !== undefined) {
-                this.acLine.triangle.setStyle(this.hooverObjStyle);
+                this.acLine.triangle.setStyle(this.setHoverObjStyle());
             }
             this.editMode = "line";
             this.onLineAction();
@@ -589,7 +653,7 @@ export class MapComponent {
             }
             div.appendChild(btnOneDir);
 
-            this.acPopUp = L.popup(this.popupStyle)
+            this.acPopUp = L.popup(this.setPopUpStyle())
             .setContent(div)
             .setLatLng(this.acLine.line.getCenter())
             .openOn(t.map);

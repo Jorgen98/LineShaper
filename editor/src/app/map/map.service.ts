@@ -10,6 +10,13 @@ export class MapService {
     private zoomOutObj = new Subject<any>();
     private onNewItemAddObj = new Subject<any>();
     private changeBaseMapObj = new Subject<any>();
+    private visibilityUpdateObj = new Subject<any>();
+
+    private backgroundLayers: {[name: string]: boolean} = {
+        'rail': true,
+        'road': true,
+        'tram': true
+    }
     
     zoomIn() {
         this.zoomInObj.next(0);
@@ -26,6 +33,10 @@ export class MapService {
     changeBaseMap(id: number) {
         this.changeBaseMapObj.next(id);
     }
+
+    visibilityUpdate() {
+        this.visibilityUpdateObj.next(0);
+    }
     
     zoomInEvent(): Observable<any>{
         return this.zoomInObj.asObservable();
@@ -41,5 +52,18 @@ export class MapService {
 
     changeBaseMapEvent(): Observable<any>{
         return this.changeBaseMapObj.asObservable();
+    }
+
+    visibilityUpdateEvent(): Observable<any>{
+        return this.visibilityUpdateObj.asObservable();
+    }
+
+    getBackgroundLayersState() {
+        return this.backgroundLayers;
+    }
+
+    flipBackgroundLayersState(layer: string) {
+        this.backgroundLayers[layer] = !this.backgroundLayers[layer];
+        this.visibilityUpdate();
     }
 }
