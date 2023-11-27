@@ -178,7 +178,9 @@ async function getPointsInRad(db, params) {
 
     try {
         let result = await db.query("SELECT *, ST_AsGeoJSON(geom) FROM " + tables[params.layer] +
-        " WHERE ST_DistanceSphere(geom, ST_MakePoint(" + point[0] + "," + point[1] + ")) <= 400");
+        " WHERE ST_DistanceSphere(geom, ST_MakePoint(" + point[0] + "," + point[1] + ")) <= 2000 " + 
+        "ORDER BY ST_DistanceSphere(geom, ST_MakePoint(" + point[0] + "," + point[1] + "))" +
+        "LIMIT " + process.env.MAX_LOAD_POINTS);
 
         for (let i = 0; i < result.rows.length; i++) {
             result.rows[i] = result.rows[i];
@@ -395,4 +397,70 @@ async function next(db, layer, gid, result) {
     }
 }
 
-module.exports = { getPoint, createPoint, updatePoint, deletePoint, getPointsInRad, getStats, deleteLayer, getPointsByGID, createPoints, changeDirection };
+async function deleteSection(db, params) {
+    if (tables[params.layer] === undefined) {
+        return false;
+    }
+
+    if (params.gidA === undefined || params.gidB === undefined) {
+        return false;
+    }
+
+    let result = [];
+    params.gidA = parseInt(params.gidA);
+    params.gidB = parseInt(params.gidB);
+    result.push(params.gidA);
+    result.push(params.gidB);
+
+    let connected = false;
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + params.gidA + "'")).rows[0].conns.indexOf(params.gidB) !== -1) {
+        connected = true;
+    }
+    if ((await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + params.gidB + "'")).rows[0].conns.indexOf(params.gidA) !== -1) {
+        connected = true;
+    }
+
+    if (!connected) {
+        return false;
+    }
+
+    await next(db, params.layer, params.gidA, result);
+    await next(db, params.layer, params.gidB, result);
+
+    for (let i = 0; i < result.length; i++) {
+        let point = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[i] + "'")).rows[0];
+
+        if (point === undefined) {
+            continue;
+        }
+
+        if (i > 0 && point.conns.indexOf(result[i - 1]) !== -1) {
+            point.conns.splice(point.conns.indexOf(result[i - 1]), 1);
+        }
+
+        if (i < (result.length - 1) && point.conns.indexOf(result[i + 1]) !== -1) {
+            point.conns.splice(point.conns.indexOf(result[i + 1]), 1);
+        }
+
+        if (point.conns.length > 0) {
+            try {
+                await db.query("UPDATE " + tables[params.layer] + " SET conns=ARRAY " + JSON.stringify(point.conns) + "::integer[] WHERE gid='" + point.gid + "'");
+            } catch(err) {
+                console.log(err);
+                return false;
+            }
+        } else {
+            try {
+                await db.query("DELETE FROM " + tables[params.layer] + " WHERE gid='" + point.gid + "'");
+            } catch(err) {
+                console.log(err);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+module.exports = { getPoint, createPoint, updatePoint, deletePoint, getPointsInRad, getStats,
+    deleteLayer, getPointsByGID, createPoints, changeDirection, deleteSection };

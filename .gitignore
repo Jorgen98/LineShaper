@@ -4,5 +4,8 @@ api/package-lock.json
 editor/.angular
 editor/node_modules
 editor/package-lock.json
+router/.angular
+router/node_modules
+router/package-lock.json
 postgres-data
 backups

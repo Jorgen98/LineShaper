@@ -58,6 +58,10 @@ app.put('/changeDirection', async (req, res) => {
         res.send(await dbPoint.changeDirection(db, req.query));
     })
 
+app.delete('/section', async (req, res) => {
+    res.send(await dbPoint.deleteSection(db, req.query));
+})
+
 // Running API itself
 app.listen(process.env.API_PORT, async () => {
     // Try to connect

@@ -1,0 +1,15 @@
+<div id="control">
+    <div id="head"></div>
+    <div id="mainControl">
+        <div id="leftControl" *ngIf="!newItems">
+            <button (click)="zoomIn()"><mat-icon>zoom_in</mat-icon></button>
+            <button (click)="zoomOut()"><mat-icon>zoom_out</mat-icon></button>
+            <button [class]="menuIndexBtn[0]" (click)="openMenuItem(0)"><mat-icon>layers</mat-icon></button>
+            <button [class]="menuIndexBtn[2]" (click)="openMenuItem(2)"><mat-icon>import_export</mat-icon></button>
+            <div class="verticalSpace"></div>
+        </div>
+        <div id="middleControl"><ng-template mapTiles></ng-template></div>
+        <div id="rigthControl"></div>
+    </div>
+</div>
+<map-component #appDashboard></map-component>

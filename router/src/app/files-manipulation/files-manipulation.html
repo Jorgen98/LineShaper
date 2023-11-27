@@ -1,0 +1,38 @@
+<div class="content" [ngSwitch]="state">
+    <!-- Default menu screen -->
+    <p class="header" *ngSwitchCase="'menu'">Import a export linkového vedení</p>
+    <div *ngSwitchCase="'menu'">
+        <button (click)="importMaps()">Načtení mapových podkladů</button>
+    </div>
+    <!-- Import maps screen -->
+    <p class="header" *ngSwitchCase="'impMap'">Import mapových podkladů</p>
+    <div *ngSwitchCase="'impMap'">
+        <div class="option">
+            <p class="option">Vstupní soubor</p>
+            <input class="fileInput" type="file" (change)="readFileContent($event)" accept=".geojson">
+        </div>
+        <div *ngIf="warningType" class="warning">
+            <p class="warning">{{ warningTypeText }}</p>
+        </div>
+        <button class="mark" (click)="importMaps()">Importuj data</button>
+        <div *ngIf="warning" class="warning">
+            <p class="warning">{{ warningText }}</p>
+        </div>
+        <button (click)="defaultMenu()">Menu</button>
+    </div>
+    <!-- Import maps screen warning -->
+    <p class="header" *ngSwitchCase="'impMapWar'">Pozor!</p>
+    <p class="header" *ngSwitchCase="'impMapWar'">Importem načteného souboru se přepíší aktuálně používaná data.</p>
+    <div *ngSwitchCase="'impMapWar'">
+        <button class="mark" (click)="importMapIntroDB()">Pokračovat</button>
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Progress screen -->
+    <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
+    <div *ngSwitchCase="'progress'">
+        <div class="progress" [style.width]="progress+'%'">
+            {{ progress + '%'}}
+        </div>
+        <button class="mark" *ngIf="progress === 100" (click)="importMapIntroDB()">Zavřít</button>
+    </div>
+</div>

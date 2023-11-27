@@ -122,6 +122,13 @@ export class DataService {
           );
     }
 
+    queryDeleteSection(gidA:number, gidB:number) {
+        return this.httpClient.delete("http://172.25.182.2:8087/section?layer=" + this.getCurLayer() + "&gidA=" + gidA + "&gidB=" + gidB, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     // Callable functions
     // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
@@ -278,6 +285,19 @@ export class DataService {
                     resolve(response);
                 } else {
                     resolve({});
+                }
+            });
+        });
+    }
+
+    // Delete whole section form crossroad to crossroad
+    deleteSection(gidA: number, gidB: number): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryDeleteSection(gidA, gidB).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
                 }
             });
         });

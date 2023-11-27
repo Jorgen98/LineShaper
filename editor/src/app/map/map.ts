@@ -611,47 +611,80 @@ export class MapComponent {
                 this.acLine.triangle.setStyle(this.setHoverObjStyle());
             }
             this.editMode = "line";
-            this.onLineAction();
+            this.onLineAction('base');
         } else {
             this.setDefault();
         }
     }
 
-    onLineAction() {
+    onLineAction(type: string) {
         let t = this;
         if (this.acLine !== undefined && this.editMode === 'line') {
             let div = document.createElement("div");
-            let btnConn = document.createElement("button");
-            btnConn.innerHTML = '<img src="assets/icons/trash.svg" class="mapBtnIn"/>';
-            btnConn.className = "mapBtn";
-            btnConn.onclick = function() {
-                t.deleteLine();
-            }
-            div.appendChild(btnConn);
+            if (type === 'base') {
+                let btnAdd = document.createElement("button");
+                btnAdd.innerHTML = '<img src="assets/icons/newPoint.svg" class="mapBtnIn"/>';
+                btnAdd.className = "mapBtn";
+                btnAdd.onclick = function() {
+                    t.addMidPoint();
+                }
+                div.appendChild(btnAdd);
 
-            let btnAdd = document.createElement("button");
-            btnAdd.innerHTML = '<img src="assets/icons/newPoint.svg" class="mapBtnIn"/>';
-            btnAdd.className = "mapBtn";
-            btnAdd.onclick = function() {
-                t.addMidPoint();
-            }
-            div.appendChild(btnAdd);
+                let btnConn = document.createElement("button");
+                btnConn.innerHTML = '<img src="assets/icons/trash.svg" class="mapBtnIn"/>';
+                btnConn.className = "mapBtn";
+                btnConn.onclick = function() {
+                    t.onLineAction('delete');
+                }
+                div.appendChild(btnConn);
 
-            let btnTwoDir = document.createElement("button");
-            btnTwoDir.innerHTML = '<img src="assets/icons/both.svg" class="mapBtnIn"/>';
-            btnTwoDir.className = "mapBtn";
-            btnTwoDir.onclick = function() {
-                t.makeLineBothWay();
-            }
-            div.appendChild(btnTwoDir);
+                let btnTwoDir = document.createElement("button");
+                btnTwoDir.innerHTML = '<img src="assets/icons/both.svg" class="mapBtnIn"/>';
+                btnTwoDir.className = "mapBtn";
+                btnTwoDir.onclick = function() {
+                    t.onLineAction('direction');
+                }
+                div.appendChild(btnTwoDir);
+            } else if (type === 'delete') {
+                let btnConn = document.createElement("button");
+                btnConn.innerHTML = '<p class="mapBtnTxt">Smazat jednu část</p>';
+                btnConn.className = "mapBtnTxt";
+                btnConn.onclick = function() {
+                    t.deleteLine();
+                }
+                div.appendChild(btnConn);
 
-            let btnOneDir = document.createElement("button");
-            btnOneDir.innerHTML = '<img src="assets/icons/turn.svg" class="mapBtnIn"/>';
-            btnOneDir.className = "mapBtn";
-            btnOneDir.onclick = function() {
-                t.makeLineOneWay();
+                let btnConns = document.createElement("button");
+                btnConns.innerHTML = '<p class="mapBtnTxt">Smazat celou sekci</p>';
+                btnConns.className = "mapBtnTxt";
+                btnConns.onclick = function() {
+                    t.deleteSection();
+                }
+                div.appendChild(btnConns);
+            } else if (type === 'direction') {
+                let btnTwoDir = document.createElement("button");
+                btnTwoDir.innerHTML = '<p class="mapBtnTxt">Sobousměnit</p>';
+                btnTwoDir.className = "mapBtnTxt";
+                btnTwoDir.onclick = function() {
+                    t.makeLineBothWay();
+                }
+                div.appendChild(btnTwoDir);
+
+                let btnOneDir = document.createElement("button");
+                if (this.acLine.t === 0) {
+                    btnOneDir.innerHTML = '<p class="mapBtnTxt">Změnit směr</p>';
+                } else {
+                    btnOneDir.innerHTML = '<p class="mapBtnTxt">Sjednosměrnit</p>';
+                }
+                btnOneDir.className = "mapBtnTxt";
+                btnOneDir.onclick = function() {
+                    t.makeLineOneWay();
+                }
+                div.appendChild(btnOneDir);
             }
-            div.appendChild(btnOneDir);
+            if (this.acPopUp !== undefined) {
+                this.acPopUp.close();   
+            }
 
             this.acPopUp = L.popup(this.setPopUpStyle())
             .setContent(div)
@@ -673,6 +706,15 @@ export class MapComponent {
             pointB.conns.splice(pointB.conns.indexOf(this.acLine.key), 1);   
         }
         await this.dataService.updatePoint(pointB.gid, undefined, this.dumpConns(pointB.gid, pointB.conns));
+
+        this.setDefault();
+    }
+
+    async deleteSection() {
+        let pointA = this.curObjects[this.acLine.a];
+        let pointB = this.curObjects[this.acLine.b];
+
+        await this.dataService.deleteSection(pointA.gid, pointB.gid);
 
         this.setDefault();
     }
