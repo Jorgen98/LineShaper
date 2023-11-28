@@ -48,8 +48,29 @@ export class DataService {
           );
     }
 
+    queryClearData() {
+        return this.httpClient.post("http://172.25.182.2:8087/clearRoutingData", {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     queryGetPointsInRad(latLng: [number, number], layer: string) {
         return this.httpClient.get("http://172.25.182.2:8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryPostCreateStops(stops: any) {
+        return this.httpClient.post("http://172.25.182.2:8087/createStops?stops=" + JSON.stringify(stops), {})
+                .pipe(
+                    retry(3)
+                );
+    }
+
+    queryGetStopsInRad(latLng: [number, number]) {
+        return this.httpClient.get("http://172.25.182.2:8087/stopsInRad?geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
@@ -76,6 +97,19 @@ export class DataService {
         });
     }
 
+    // Get DB stats
+    getStats(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryIsDbAlive().subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
     // Get map tiles layer
     getCurLayer(): string {
         return this.curLayer;
@@ -86,10 +120,49 @@ export class DataService {
         return this.layerChangeObj.asObservable();
     }
 
+    // Clear all routing data
+    clearData(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryClearData().subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
     // Get points and its connections around some point
     getPointsInRad(latLng: [number, number], layer: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetPointsInRad(latLng, layer).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    // Create more stops, used in import user case
+    createPoints(stops: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryPostCreateStops(stops).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    // Get stops and its names around some point
+    getStopsInRad(latLng: [number, number]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetStopsInRad(latLng).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

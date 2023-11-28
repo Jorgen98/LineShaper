@@ -30,8 +30,11 @@ export class MapComponent {
         ]
     };
     private layers: any = {
-        'background': undefined
+        'background': undefined,
+        'stops': undefined
     }
+
+    private acPopUp: any = undefined;
 
     private initMap(): void {
         this.map = L.map('map', {
@@ -43,6 +46,10 @@ export class MapComponent {
         this.setTiles(this.dataService.getTileIndex());
         let t = this;
         this.map.on('dragend', function(event) {
+            t.setDefault();
+        })
+
+        this.map.on('click', function(event) {
             t.setDefault();
         })
 
@@ -71,6 +78,7 @@ export class MapComponent {
 
     async ngAfterViewInit() {
         this.initMap();
+        this.setDefault();
     }
 
     setTiles(id: number): void {
@@ -91,6 +99,9 @@ export class MapComponent {
 
     setDefault() {
         this.loadContext(this.map.getCenter());
+        if (this.acPopUp !== undefined) {
+            this.acPopUp.close();
+        }
     }
 
     createDirectionTriangle(pointA: any, pointB: any, center: any, layer: string) {
@@ -120,7 +131,7 @@ export class MapComponent {
         }
 
         let t = this;
-        let triangle = L.polygon([vertA, vertB, vertC], this.setObjStyle(layer, false));
+        let triangle = L.polygon([vertA, vertB, vertC], this.setObjStyle(layer));
         triangle.addTo(this.layers["background"]);
         triangle.bringToBack();
 
@@ -143,13 +154,15 @@ export class MapComponent {
         }
     }
 
-    setObjStyle(layer: string, editable: boolean) {
+    setObjStyle(layer: string, name?: string) {
         let objColor = "";
         let objOpacity = 0;
         let radius = 1;
         let interactive = true;
 
-        if (layer === "rail") {
+        if (layer === "stop") {
+            objColor = "var(--black)";
+        } else if (layer === "rail") {
             objColor = "var(--rail)";
         } else if (layer === 'road') {
             objColor = "var(--road)";
@@ -157,7 +170,7 @@ export class MapComponent {
             objColor = "var(--tram)";
         }
 
-        if (editable) {
+        if (layer === "stop") {
             objOpacity = 1;
         } else {
             objOpacity = 0.4;
@@ -201,6 +214,18 @@ export class MapComponent {
         this.layers['background'] = L.layerGroup();
         this.layers['background'].addTo(this.map);
 
+        if (this.layers['stops'] !== undefined) {
+            this.map.removeLayer(this.layers['stops']);
+        }
+        this.layers['stops'] = L.layerGroup();
+        this.layers['stops'].addTo(this.map);
+
+        //Stops
+        let response = await this.dataService.getStopsInRad([latLng.lat, latLng.lng]);
+        for (let i = 0; i < response.length; i++) {
+            this.createPoint(response[i].geom, 'stop', response[i].name);
+        }
+
         // Non editable layers
         let backgroundLayers: any = this.mapService.getBackgroundLayersState();
         let keys = Object.keys(backgroundLayers);
@@ -222,7 +247,7 @@ export class MapComponent {
                     }
                 }
                 geoms[response[j].gid] = response[j].geom;
-                this.createPoint(response[j].geom, keys[i], false);
+                this.createPoint(response[j].geom, keys[i]);
             }
             let innerKeys = Object.keys(conns);
             for (let j = 0; j < innerKeys.length; j++) {
@@ -236,10 +261,19 @@ export class MapComponent {
         }
     }
 
-    createPoint(latLng: L.LatLng, layer: string, editable: boolean) {
+    createPoint(latLng: L.LatLng, layer: string, name: string = "") {
         let t = this;
-        let point = L.circle(latLng, this.setObjStyle(layer, editable));
-        point.addTo(this.layers['background']);
+        let point = L.circle(latLng, this.setObjStyle(layer));
+
+        if (layer === 'stop') {
+            point.addTo(this.layers['stops'])
+                .on('click', (event) => {
+                    t.onOnePointAction(latLng, name);
+                    L.DomEvent.stop(event);
+                })
+        } else {
+            point.addTo(this.layers['background']);
+        }
     }
 
     createLine(pointA: any, pointB: any, layer: string, triangle: boolean) {
@@ -250,7 +284,7 @@ export class MapComponent {
         }
 
         let t = this;
-        let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer, false));
+        let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer));
 
         newLine.addTo(this.layers['background']);
 
@@ -260,5 +294,16 @@ export class MapComponent {
         newLine.bringToBack();
 
         return;
+    }
+
+    onOnePointAction(geom: any, name: string) {
+        let t = this;
+        let btn = document.createElement("button");
+        btn.innerHTML = '<p class="mapBtnTxt">' + name + '</p>';
+        btn.className = "mapBtn";
+        this.acPopUp = L.popup(this.setPopUpStyle())
+        .setContent(btn)
+        .setLatLng(geom)
+        .openOn(t.map);
     }
 }

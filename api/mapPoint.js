@@ -245,6 +245,22 @@ async function getStats(db) {
             return false;
         }
     }
+
+    try {
+        let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_STOPS_TABLE);
+        stats['stops'] = parseInt(result.rows[0].count);
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+
+    try {
+        let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_SIGNS_TABLE);
+        stats['signs'] = parseInt(result.rows[0].count);
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
     
     return stats;
 }

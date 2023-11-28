@@ -10,6 +10,7 @@ dotenv.config();
 app.use(cors());
 
 const dbPoint = require('./mapPoint.js');
+const dbRoutingData = require('./routingData.js');
 
 // DB connection established
 const db = new Pool({
@@ -60,6 +61,19 @@ app.put('/changeDirection', async (req, res) => {
 
 app.delete('/section', async (req, res) => {
     res.send(await dbPoint.deleteSection(db, req.query));
+})
+
+//Stop data CRUD operations
+app.post('/clearRoutingData', async (req, res) => {
+    res.send(await dbRoutingData.clearData(db));
+})
+
+app.post('/createStops', async (req, res) => {
+    res.send(await dbRoutingData.createStops(db, req.query));
+})
+
+app.get('/stopsInRad', async (req, res) => {
+    res.send(await dbRoutingData.getStopsInRad(db, req.query));
 })
 
 // Running API itself

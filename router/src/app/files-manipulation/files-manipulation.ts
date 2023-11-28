@@ -43,7 +43,7 @@ export class FilesManipulationComponent {
                     this.warningType = true;
                     this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
                 } else {
-                    this.acFileContent = JSON.parse(fileReader.result.toString());
+                    this.acFileContent = fileReader.result;
                 }
             } catch {
                 this.warningType = true;
@@ -52,10 +52,22 @@ export class FilesManipulationComponent {
             }
             this.warningType = false;
         }
-        fileReader.readAsText(event.target.files[0]);
+        fileReader.readAsText(event.target.files[0], "iso-8859-2");
     }
 
-    async importMaps() {
+    async importData() {
+        if (this.state !== "impData") {
+            this.state = "impData";
+            return;
+        }
+
+        let stats = await this.dataService.getStats();
+
+        if (stats['stops'] > 0) {
+            this.state = "impDataWar";
+            return;
+        }
+
         this.importMapIntroDB();
     }
 
@@ -68,6 +80,52 @@ export class FilesManipulationComponent {
         this.state = 'progress';
         this.progress = 0;
         this.progressText = "Zpracování dat";
+        await this.dataService.clearData();
+
+        let content = this.acFileContent.split('\r\n');
+        let stops: any = [];
+
+        for (let i = 0; i < content.length;) {
+            let line = content[i].split(" ");
+            let key = line[0];
+            if (line[2] !== undefined) {
+                let j = 0;
+                let name = line[2];
+                while(line[2 + j][line[2 + j].length - 1] === ',' || line[2 + j][line[2 + j].length - 1] !== "'") {
+                    j++;
+                    name += ' ' + line[2 + j];
+                }
+
+                name = name.replaceAll('\u009a', "š");
+                name = name.replaceAll('\u009e', "ž");
+                name = name.replaceAll('\u009d', "ť");
+                name = name.replaceAll('&', "a");
+                stops.push({'id': parseInt(line[0]), 'n': name.replaceAll("'", ""), 'p': {}});
+
+                let positions: any = [];
+                i++;
+                line = content[i].split(" ");
+                while (line[0] === "" && line[1] === "") {
+                    positions.push({'n': line[2].replaceAll("S", ""), 'p': [parseInt(line[4])/100000/60, parseInt(line[3])/100000/60]});
+                    i++;
+                    line = content[i].split(" ");
+                }
+                
+                stops[stops.length - 1].p = positions;
+            } else {
+                i++;
+            }
+        }
+        
+        let upIndex = 40;
+        for (let i = 0; i < stops.length; i+=40) {
+            if (upIndex > (stops.length - 1)) {
+                upIndex = stops.length;
+            }
+            await this.dataService.createPoints(stops.slice(i, upIndex));
+            upIndex += 40;
+            this.progress = Math.round(i / stops.length * 100);
+        }
 
         this.progressText = "Zpracování dat je dokončeno"
         this.progress = 100;

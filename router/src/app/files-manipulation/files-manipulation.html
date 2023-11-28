@@ -2,28 +2,28 @@
     <!-- Default menu screen -->
     <p class="header" *ngSwitchCase="'menu'">Import a export linkového vedení</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="importMaps()">Načtení mapových podkladů</button>
+        <button (click)="importData()">Načtení mapových podkladů</button>
     </div>
     <!-- Import maps screen -->
-    <p class="header" *ngSwitchCase="'impMap'">Import mapových podkladů</p>
-    <div *ngSwitchCase="'impMap'">
+    <p class="header" *ngSwitchCase="'impData'">Import linkových podkladů</p>
+    <div *ngSwitchCase="'impData'">
         <div class="option">
-            <p class="option">Vstupní soubor</p>
-            <input class="fileInput" type="file" (change)="readFileContent($event)" accept=".geojson">
+            <p class="option">Vstupní soubory</p>
+            <input class="fileInput" type="file" (change)="readFileContent($event)">
         </div>
         <div *ngIf="warningType" class="warning">
             <p class="warning">{{ warningTypeText }}</p>
         </div>
-        <button class="mark" (click)="importMaps()">Importuj data</button>
+        <button class="mark" (click)="importData()">Importuj data</button>
         <div *ngIf="warning" class="warning">
             <p class="warning">{{ warningText }}</p>
         </div>
         <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- Import maps screen warning -->
-    <p class="header" *ngSwitchCase="'impMapWar'">Pozor!</p>
-    <p class="header" *ngSwitchCase="'impMapWar'">Importem načteného souboru se přepíší aktuálně používaná data.</p>
-    <div *ngSwitchCase="'impMapWar'">
+    <p class="header" *ngSwitchCase="'impDataWar'">Pozor!</p>
+    <p class="header" *ngSwitchCase="'impDataWar'">Importem načtených souborů se přepíší aktuálně používaná data.</p>
+    <div *ngSwitchCase="'impDataWar'">
         <button class="mark" (click)="importMapIntroDB()">Pokračovat</button>
         <button (click)="defaultMenu()">Zrušit</button>
     </div>
