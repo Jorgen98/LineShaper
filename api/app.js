@@ -76,6 +76,10 @@ app.get('/stopsInRad', async (req, res) => {
     res.send(await dbRoutingData.getStopsInRad(db, req.query));
 })
 
+app.get('/route', async (req, res) => {
+    res.send(await dbRoutingData.getRoute(db, req.query));
+})
+
 // Running API itself
 app.listen(process.env.API_PORT, async () => {
     // Try to connect

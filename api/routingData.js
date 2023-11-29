@@ -1,3 +1,5 @@
+const { computeRoute } = require("./routing");
+
 async function createStops(db, params) {
     if (params.stops === undefined) {
         return false;
@@ -85,4 +87,35 @@ async function getStopsInRad(db, params) {
     }
 }
 
-module.exports = { createStops, clearData, getStopsInRad };
+async function getRoute(db, params) {
+    if (params.layer === undefined) {
+        return false;
+    }
+
+    if (params.stops === undefined) {
+        return false;
+    }
+
+    let stops = JSON.parse(params.stops);
+    let points = [];
+
+    for (let i = 0; i < stops.length; i++) {
+        try {
+            let stop = await db.query("SELECT geom FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(stops[i].code) + " AND subcode='" + stops[i].subCode + "'");
+            if (stop.rows !== undefined) {
+                points.push(stop.rows[0].geom);
+            }
+        } catch(err) {
+            console.log(err);
+        }
+    }
+
+    if (points.length < 1) {
+        return false;
+    }
+
+    return await computeRoute(db, points, params.layer);
+}
+
+module.exports = { createStops, clearData, getStopsInRad, getRoute };

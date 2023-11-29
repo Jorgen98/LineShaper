@@ -35,6 +35,7 @@ export class MapComponent {
     }
 
     private acPopUp: any = undefined;
+    private selPoint: any = undefined;
 
     private initMap(): void {
         this.map = L.map('map', {
@@ -168,9 +169,11 @@ export class MapComponent {
             objColor = "var(--road)";
         } else if (layer === 'tram') {
             objColor = "var(--tram)";
+        } else if (layer === 'route') {
+            objColor = "var(--warning)";
         }
 
-        if (layer === "stop") {
+        if (layer === "stop" || layer === 'route') {
             objOpacity = 1;
         } else {
             objOpacity = 0.4;
@@ -223,7 +226,7 @@ export class MapComponent {
         //Stops
         let response = await this.dataService.getStopsInRad([latLng.lat, latLng.lng]);
         for (let i = 0; i < response.length; i++) {
-            this.createPoint(response[i].geom, 'stop', response[i].name);
+            this.createPoint(response[i].geom, 'stop', response[i]);
         }
 
         // Non editable layers
@@ -261,14 +264,14 @@ export class MapComponent {
         }
     }
 
-    createPoint(latLng: L.LatLng, layer: string, name: string = "") {
+    createPoint(latLng: L.LatLng, layer: string, props: any = {}) {
         let t = this;
         let point = L.circle(latLng, this.setObjStyle(layer));
 
         if (layer === 'stop') {
             point.addTo(this.layers['stops'])
                 .on('click', (event) => {
-                    t.onOnePointAction(latLng, name);
+                    t.onOnePointAction(latLng, props);
                     L.DomEvent.stop(event);
                 })
         } else {
@@ -285,7 +288,6 @@ export class MapComponent {
 
         let t = this;
         let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer));
-
         newLine.addTo(this.layers['background']);
 
         if (triangle) {
@@ -296,14 +298,67 @@ export class MapComponent {
         return;
     }
 
-    onOnePointAction(geom: any, name: string) {
+    onOnePointAction(geom: any, props: any) {
         let t = this;
+        let div = document.createElement("div");
+        div.className = "mapDiv";
+
         let btn = document.createElement("button");
-        btn.innerHTML = '<p class="mapBtnTxt">' + name + '</p>';
+        btn.innerHTML = '<p class="mapBtnTxt">' + props.name + '\n' + props.subcode + '</p>';
         btn.className = "mapBtn";
+        btn.disabled = true;
+        div.appendChild(btn);
+
+        btn = document.createElement("button");
+        btn.innerHTML = '<p class="mapBtnTxt">Odtud</p>';
+        btn.className = "mapBtn";
+        btn.onclick = function() {
+            t.makeTwoPointRoute(true, props);
+        }
+        div.appendChild(btn);
+
+        if (this.selPoint !== undefined) {
+            btn = document.createElement("button");
+            btn.innerHTML = '<p class="mapBtnTxt">Sem</p>';
+            btn.className = "mapBtn";
+            btn.onclick = function() {
+                t.makeTwoPointRoute(false, props);
+            }
+            div.appendChild(btn);
+        }
+
+        if (this.acPopUp !== undefined) {
+            this.acPopUp.close();   
+        }
+
         this.acPopUp = L.popup(this.setPopUpStyle())
-        .setContent(btn)
+        .setContent(div)
         .setLatLng(geom)
         .openOn(t.map);
+    }
+
+
+    async makeTwoPointRoute(start: boolean, props: any) {
+        if (start) {
+            this.selPoint = {'code': props.code, 'subCode': props.subcode};
+        } else if (this.selPoint !== undefined) {
+            this.createRoute(await this.dataService.getRoute([this.selPoint, {'code': props.code, 'subCode': props.subcode}], 'tram'));
+            this.selPoint = undefined;
+        }
+
+        this.setDefault();
+    }
+
+    createRoute(points: any) {
+        if (this.layers['route'] !== undefined) {
+            this.map.removeLayer(this.layers['route']);
+        }
+        this.layers['route'] = L.layerGroup();
+        this.layers['route'].addTo(this.map);
+
+        let newLine = L.polyline(points, this.setObjStyle('route'));
+        newLine.addTo(this.layers['route']);
+
+        console.log('a');
     }
 }

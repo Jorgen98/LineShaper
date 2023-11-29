@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry } from 'rxjs';
 
@@ -12,6 +12,8 @@ export class DataService {
     private DBConnected: Boolean | undefined = false;
     private curLayer = '';
     private DBGuard: NodeJS.Timer | undefined;
+
+    private whoToAsk = 'http://localhost'; //http://172.25.182.2
 
     constructor(private httpClient: HttpClient) {
         this.isDBConnected(0);
@@ -42,35 +44,42 @@ export class DataService {
 
     // Query functions
     queryIsDbAlive() {
-        return this.httpClient.get("http://172.25.182.2:8087/mapStats")
+        return this.httpClient.get(this.whoToAsk + ":8087/mapStats")
         .pipe(
             retry(3)
           );
     }
 
     queryClearData() {
-        return this.httpClient.post("http://172.25.182.2:8087/clearRoutingData", {})
+        return this.httpClient.post(this.whoToAsk + ":8087/clearRoutingData", {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsInRad(latLng: [number, number], layer: string) {
-        return this.httpClient.get("http://172.25.182.2:8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + ":8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
     }
 
     queryPostCreateStops(stops: any) {
-        return this.httpClient.post("http://172.25.182.2:8087/createStops?stops=" + JSON.stringify(stops), {})
+        return this.httpClient.post(this.whoToAsk + ":8087/createStops?stops=" + JSON.stringify(stops), {})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryGetStopsInRad(latLng: [number, number]) {
-        return this.httpClient.get("http://172.25.182.2:8087/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + ":8087/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetRoute(stops: any, layer: string) {
+        return this.httpClient.get(this.whoToAsk + ":8087/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {})
         .pipe(
             retry(3)
           );
@@ -163,6 +172,19 @@ export class DataService {
     getStopsInRad(latLng: [number, number]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetStopsInRad(latLng).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    // Get route
+    getRoute(stops: any, layer: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetRoute(stops, layer).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
