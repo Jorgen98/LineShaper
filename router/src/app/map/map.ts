@@ -35,7 +35,7 @@ export class MapComponent {
     }
 
     private acPopUp: any = undefined;
-    private selPoint: any = undefined;
+    private selPoint: any = [];
 
     private initMap(): void {
         this.map = L.map('map', {
@@ -313,16 +313,24 @@ export class MapComponent {
         btn.innerHTML = '<p class="mapBtnTxt">Odtud</p>';
         btn.className = "mapBtn";
         btn.onclick = function() {
-            t.makeTwoPointRoute(true, props);
+            t.makeTwoPointRoute(0, props);
         }
         div.appendChild(btn);
 
-        if (this.selPoint !== undefined) {
+        if (this.selPoint.length > 0) {
+            btn = document.createElement("button");
+            btn.innerHTML = '<p class="mapBtnTxt">Přes</p>';
+            btn.className = "mapBtn";
+            btn.onclick = function() {
+                t.makeTwoPointRoute(2, props);
+            }
+            div.appendChild(btn);
+
             btn = document.createElement("button");
             btn.innerHTML = '<p class="mapBtnTxt">Sem</p>';
             btn.className = "mapBtn";
             btn.onclick = function() {
-                t.makeTwoPointRoute(false, props);
+                t.makeTwoPointRoute(1, props);
             }
             div.appendChild(btn);
         }
@@ -338,12 +346,15 @@ export class MapComponent {
     }
 
 
-    async makeTwoPointRoute(start: boolean, props: any) {
-        if (start) {
-            this.selPoint = {'code': props.code, 'subCode': props.subcode};
-        } else if (this.selPoint !== undefined) {
-            this.createRoute(await this.dataService.getRoute([this.selPoint, {'code': props.code, 'subCode': props.subcode}], 'tram'));
-            this.selPoint = undefined;
+    async makeTwoPointRoute(mode: number, props: any) {
+        if (mode === 0) {
+            this.selPoint = [{'code': props.code, 'subCode': props.subcode}];
+        } else if (mode === 1) {
+            this.selPoint.push({'code': props.code, 'subCode': props.subcode});
+            this.createRoute(await this.dataService.getRoute(this.selPoint, 'tram'));
+            this.selPoint = [];
+        } else if (mode === 2) {
+            this.selPoint.push({'code': props.code, 'subCode': props.subcode});
         }
 
         this.setDefault();

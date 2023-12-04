@@ -5,7 +5,6 @@ let tables = {
 }
 
 async function computeRoute(db, stops, layer) {
-    let result = [];
     let possibilities = [];
 
     stops = await getStopsData(db, stops);
@@ -20,14 +19,143 @@ async function computeRoute(db, stops, layer) {
         }
 
         let subNet = await getSubNet(db, layer, stops[i], stops[i + 1]);
+        let target = await findInNet(db, stops[i + 1], layer);
+        let maxLength = Infinity;
+        let maxScore = 0;
+        let run = true;
 
-        let keys = Object.keys(subNet);
-        for (let i = 0; i < keys.length; i++) {
-            result.push(keys[i]);
+        for (let j = 0; j < possibilities.length; j++) {
+            if (maxScore < possibilities[j].score) {
+                maxScore = possibilities[j].score;
+            }
+            possibilities[j].finished = false;
+            possibilities[j].score += JSON.parse(JSON.stringify(possibilities[j].endScore));
+            possibilities[j].endScore = 0;
+        }
+
+        while (run) {
+            run = false;
+            let curIdx = 0;
+
+            let k = 0;
+            while (k < possibilities.length) {
+                if (!possibilities[k].finished && possibilities[k].length > maxLength
+                    && possibilities[k].score > maxScore) {
+                    possibilities.splice(k, 1);
+                    continue;
+                }
+
+                if (possibilities[k].finished) {
+                    k++;
+                    continue;
+                } else {
+                    run = true;
+                }
+
+                if (possibilities[k].score < possibilities[curIdx].score) {
+                    curIdx = k;
+                }
+
+                if (possibilities[k].length < possibilities[curIdx].length) {
+                    curIdx = k;
+                }
+                k++;
+            }
+
+            if (!run || possibilities[curIdx].finished) {
+                break;
+            }
+
+            let newPoss = [];
+            do {
+                possibilities[curIdx].visited.push(possibilities[curIdx].current);
+                if (subNet[possibilities[curIdx].current] !== undefined) {
+                    newPoss = JSON.parse(JSON.stringify(subNet[possibilities[curIdx].current].conns));
+                } else {
+                    newPoss = [];
+                }
+
+                if (newPoss.indexOf(possibilities[curIdx].visited[possibilities[curIdx].visited.length - 2]) !== -1) {
+                    newPoss.splice(newPoss.indexOf(possibilities[curIdx].visited[possibilities[curIdx].visited.length - 2]), 1);
+                }
+
+                let k = 0;
+                while (k < newPoss.length) {
+                    if (possibilities[curIdx].visited.indexOf(newPoss[k]) !== -1) {
+                        let indices = [];
+                        let idx = possibilities[curIdx].visited.indexOf(newPoss[k]);
+                        while (idx !== -1) {
+                            indices.push(idx);
+                            idx = possibilities[curIdx].visited.indexOf(newPoss[k], idx + 1);
+                        }
+                        if (indices.length < 2 && subNet[newPoss[k]] !== undefined) {
+                            k++;
+                        } else {
+                            newPoss.splice(k, 1);
+                        }
+                    } else if (subNet[newPoss[k]] === undefined) {
+                        newPoss.splice(k, 1);
+                    } else {
+                        k++;
+                    }
+                }
+
+                if (newPoss.length === 1) {
+                    possibilities[curIdx].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[0]].pos);
+                    for (let k = 0; k < target.length; k++) {
+                        if (newPoss[0] === target[k].visited[0] && possibilities[curIdx].current === target[k].current ||
+                            possibilities[curIdx].current === target[k].visited[0] && newPoss[0] === target[k].current ) {
+                            possibilities[curIdx].finished = true;
+                            possibilities[curIdx].endScore = target[k].score;
+                        }
+                    }
+
+                    if (possibilities[curIdx].finished && maxLength > possibilities[curIdx].length) {
+                        maxLength = JSON.parse(JSON.stringify(possibilities[curIdx].length));
+                    }
+
+                    possibilities[curIdx].current = newPoss[0];
+
+                    if (possibilities[curIdx].length > maxLength) {
+                        newPoss = [];
+                    }
+                }
+            } while(newPoss.length === 1 && !possibilities[curIdx].finished);
+
+            if (newPoss.length === 0) {
+                possibilities.splice(curIdx, 1);
+            } else if (!possibilities[curIdx].finished) {
+                for (let k = 1; k < newPoss.length; k++) {
+                    possibilities.push(JSON.parse(JSON.stringify(possibilities[curIdx])));
+                    possibilities[possibilities.length - 1].current = newPoss[k];
+                    possibilities[possibilities.length - 1].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[k]].pos);
+                }
+                possibilities[curIdx].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[0]].pos);
+                possibilities[curIdx].current = newPoss[0];
+            }
+        }
+
+        j = 0;
+        while (j < possibilities.length) {
+            if (!possibilities[j].finished) {
+                possibilities.splice(j, 1);
+            } else {
+                j++;
+            }
         }
     }
+    
+    for (let i = 0; i < possibilities.length; i++) {
+        possibilities[i].visited.push(possibilities[i].current);
+    }
 
-    return await decode(db, result, layer);
+    possibilities.sort((a, b) => a.score - b.score || a.endScore - b.endScore || a.length - b.length);
+
+    if (possibilities.length < 1) {
+        return [];
+    }
+    
+    return await decode(db, possibilities[0].visited, layer);
 }
 
 async function getStopsData(db, stops) {
@@ -58,8 +186,7 @@ async function findInNet(db, stop, layer) {
     let response;
     try {
         response = await db.query("SELECT *, ST_AsGeoJSON(geom) FROM " + tables[layer] +
-        " WHERE ST_DistanceSphere(geom,'" + stop.geom + "') <= 200 " + 
-        "ORDER BY ST_DistanceSphere(geom,'" + stop.geom + "') LIMIT 6");
+        " WHERE ST_DistanceSphere(geom,'" + stop.geom + "') <= 300 ");
     } catch(err) {
         console.log(err);
         return false;
@@ -74,18 +201,8 @@ async function findInNet(db, stop, layer) {
     for (let i = 0; i < response.rows.length; i++) {
         gids[response.rows[i].gid] = response.rows[i];
         for (let j = 0; j < response.rows[i].conns.length; j++) {
-            let key = "";
-            if (response.rows[i].gid > response.rows[i].conns[j]) {
-                key = response.rows[i].gid + '_' + response.rows[i].conns[j];
-            } else {
-                key = response.rows[i].conns[j] + '_' + response.rows[i].gid;
-            }
-
-            if (lines[key] === undefined) {
-                lines[key] = {'a': response.rows[i].gid, 'b': response.rows[i].conns[j], 'score': 0, 'dir': 0};
-            } else {
-                lines[key].dir = 1;
-            }
+            let key = response.rows[i].gid + '_' + response.rows[i].conns[j];
+            lines[key] = {'a': response.rows[i].gid, 'current': response.rows[i].conns[j], 'score': 0, 'endScore': 0, 'length': 0, 'finished': false, 'visited': [response.rows[i].gid]};
         }
     }
 
@@ -94,7 +211,7 @@ async function findInNet(db, stop, layer) {
 
     for (let i = 0; i < keys.length; i++) {
         let pointA = gids[lines[keys[i]].a];
-        let pointB = gids[lines[keys[i]].b];
+        let pointB = gids[lines[keys[i]].current];
 
         if (pointA === undefined || pointB === undefined) {
             continue;
@@ -104,12 +221,22 @@ async function findInNet(db, stop, layer) {
         pointB = JSON.parse(pointB.st_asgeojson).coordinates;
 
         lines[keys[i]].score = triangulation(pointA, pointB, stop.pos);
+        lines[keys[i]].length = countDistance(pointA, pointB);
         if (lines[keys[i]].score < Infinity) {
+            delete lines[keys[i]].a;
             result.push(lines[keys[i]]);
         }
     }
 
-    return result;
+    result.sort((a, b) => a.score - b.score);
+
+    if (result.length < 1) {
+        return [];
+    } else if (result.length < 2) {
+        return [result[0]];
+    } else {
+        return [result[0], result[1]];
+    }
 }
 
 async function getSubNet(db, layer, stopA, stopB) {
@@ -120,7 +247,7 @@ async function getSubNet(db, layer, stopA, stopB) {
 
     try {
         response = await db.query("SELECT gid, conns, ST_AsGeoJSON(geom) FROM " + tables[layer] +
-        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") + 30");
+        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") * 3");
     } catch(err) {
         console.log(err);
         return false;
