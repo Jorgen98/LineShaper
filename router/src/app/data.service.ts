@@ -13,7 +13,7 @@ export class DataService {
     private curLayer = '';
     private DBGuard: NodeJS.Timer | undefined;
 
-    private whoToAsk = 'http://localhost'; //http://172.25.182.2
+    private whoToAsk = 'http://localhost'//'http://172.25.182.2';
 
     constructor(private httpClient: HttpClient) {
         this.isDBConnected(0);
@@ -50,8 +50,8 @@ export class DataService {
           );
     }
 
-    queryClearData() {
-        return this.httpClient.post(this.whoToAsk + ":8087/clearRoutingData", {})
+    queryClearData(type: string) {
+        return this.httpClient.post(this.whoToAsk + ":8087/clearRoutingData?type=" + type, {})
         .pipe(
             retry(3)
           );
@@ -66,6 +66,13 @@ export class DataService {
 
     queryPostCreateStops(stops: any) {
         return this.httpClient.post(this.whoToAsk + ":8087/createStops?stops=" + JSON.stringify(stops), {})
+                .pipe(
+                    retry(3)
+                );
+    }
+
+    queryPostSaveLines(lines: any) {
+        return this.httpClient.post(this.whoToAsk + ":8087/saveLines?lines=" + JSON.stringify(lines), {})
                 .pipe(
                     retry(3)
                 );
@@ -130,9 +137,9 @@ export class DataService {
     }
 
     // Clear all routing data
-    clearData(): Promise<any> {
+    clearData(type: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryClearData().subscribe(response => {
+            this.queryClearData(type).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
@@ -159,6 +166,19 @@ export class DataService {
     createPoints(stops: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostCreateStops(stops).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    // Save lines, used in import user case
+    saveLines(lines: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryPostSaveLines(lines).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

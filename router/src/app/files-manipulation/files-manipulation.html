@@ -9,7 +9,7 @@
     <div *ngSwitchCase="'impData'">
         <div class="option">
             <p class="option">Vstupní soubory</p>
-            <input class="fileInput" type="file" (change)="readFileContent($event)">
+            <input class="fileInput" type="file" (change)="readFile($event)" multiple>
         </div>
         <div *ngIf="warningType" class="warning">
             <p class="warning">{{ warningTypeText }}</p>
@@ -20,12 +20,17 @@
         </div>
         <button (click)="defaultMenu()">Menu</button>
     </div>
-    <!-- Import maps screen warning -->
+    <!-- Import data screen warning -->
     <p class="header" *ngSwitchCase="'impDataWar'">Pozor!</p>
     <p class="header" *ngSwitchCase="'impDataWar'">Importem načtených souborů se přepíší aktuálně používaná data.</p>
     <div *ngSwitchCase="'impDataWar'">
-        <button class="mark" (click)="importMapIntroDB()">Pokračovat</button>
+        <button class="mark" (click)="importDataIntroDB()">Pokračovat</button>
         <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- No data can be loaded from input files warning -->
+    <p class="header" *ngSwitchCase="'impNoDataWar'">Načtené soubory neobsahují správná data. Ujistěte se prosím, že nahráváte správné soubory.</p>
+    <div *ngSwitchCase="'impNoDataWar'">
+        <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- Progress screen -->
     <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
@@ -33,6 +38,6 @@
         <div class="progress" [style.width]="progress+'%'">
             {{ progress + '%'}}
         </div>
-        <button class="mark" *ngIf="progress === 100" (click)="importMapIntroDB()">Zavřít</button>
+        <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">Zavřít</button>
     </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { DataService } from '../data.service';
 import { MapService } from '../map/map.service';
 import { formatDate } from '@angular/common';
@@ -16,34 +16,58 @@ export class FilesManipulationComponent {
     warningText = "";
     warningType = false;
     warningTypeText = "";
-    acFileContent: any = undefined;
+    acStopsFileContent: any = undefined;
+    acLinesFileContent: any = undefined;
     progress = 0;
     progressText = "";
+    loadState = 0;
 
     async defaultMenu() {
         this.warning = false;
         this.warningType = false;
         this.warningText = "";
         this.warningTypeText = "";
-        this.acFileContent = undefined;
+        this.acStopsFileContent = undefined;
+        this.acLinesFileContent = undefined;
         this.state = 'menu';
     }
 
-    readFileContent(event: any) {
+    readFile(event: any) {
         if (event.target.files[0] === undefined) {
             this.warningType = true;
             this.warningTypeText = "Vybraný soubor se nepodařilo načíst";
             return;
         }
 
+        for (let i = 0; i < event.target.files.length; i++) {
+            // Line order file
+            if (event.target.files[i].type === "text/csv") {
+                this.readFileContent(event.target.files[i], 0);
+            // Stops txt file
+            } else if (event.target.files[i].type === "text/plain") {
+                this.readFileContent(event.target.files[i], 1);
+            // Line codes file
+            } else if (event.target.files[i].type === '') {
+                // TO DO
+            }
+        }
+    }
+
+    readFileContent(file: any, type: number) {
         let fileReader = new FileReader();
-        fileReader.onload = (input) => {
+        fileReader.onload = () => {
             try {
                 if (fileReader.result === null) {
                     this.warningType = true;
                     this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
                 } else {
-                    this.acFileContent = fileReader.result;
+                    if (type === 0) {
+                        this.acLinesFileContent = fileReader.result;
+                    } else if (type === 1) {
+                        this.acStopsFileContent = fileReader.result;
+                    } else {
+                        // TO DO
+                    }
                 }
             } catch {
                 this.warningType = true;
@@ -52,7 +76,8 @@ export class FilesManipulationComponent {
             }
             this.warningType = false;
         }
-        fileReader.readAsText(event.target.files[0], "iso-8859-2");
+
+        fileReader.readAsText(file, "iso-8859-2");
     }
 
     async importData() {
@@ -63,26 +88,43 @@ export class FilesManipulationComponent {
 
         let stats = await this.dataService.getStats();
 
+        if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined) {
+            this.state = "impNoDataWar";
+            return;
+        }
+
         if (stats['stops'] > 0) {
             this.state = "impDataWar";
             return;
         }
 
-        this.importMapIntroDB();
+        this.importDataIntroDB();
     }
 
-    async importMapIntroDB() {
+    async importDataIntroDB() {
         if (this.progress === 100) {
             this.progress = 0;
             this.defaultMenu();
             return;
         }
+
+        if (this.acStopsFileContent !== undefined) {
+            console.log('a');
+            await this.importStopsIntroDB();
+        }
+
+        if (this.acLinesFileContent !== undefined) {
+            await this.importLinesIntroDB();
+        }
+    }
+
+    async importStopsIntroDB() {
         this.state = 'progress';
         this.progress = 0;
         this.progressText = "Zpracování dat";
-        await this.dataService.clearData();
+        await this.dataService.clearData('stops');
 
-        let content = this.acFileContent.split('\r\n');
+        let content = this.acStopsFileContent.split('\r\n');
         let stops: any = [];
 
         for (let i = 0; i < content.length;) {
@@ -96,9 +138,7 @@ export class FilesManipulationComponent {
                     name += ' ' + line[2 + j];
                 }
 
-                name = name.replaceAll('\u009a', "š");
-                name = name.replaceAll('\u009e', "ž");
-                name = name.replaceAll('\u009d', "ť");
+                name = this.isoFix(name);
                 name = name.replaceAll('&', "a");
                 stops.push({'id': parseInt(line[0]), 'n': name.replaceAll("'", ""), 'p': {}});
 
@@ -129,5 +169,79 @@ export class FilesManipulationComponent {
 
         this.progressText = "Zpracování dat je dokončeno"
         this.progress = 100;
+    }
+
+
+    async importLinesIntroDB() {
+        this.state = 'progress';
+        this.progress = 0;
+        this.progressText = "Zpracování dat";
+        await this.dataService.clearData('lines');
+
+        let content = this.acLinesFileContent.split('\r\n');
+        let lines: any = [];
+
+        for (let i = 1; i < content.length;) {
+            let line = content[i].split(";");
+            let record: any = {'lc': line[0], 'type': line[1], 'routeA': [], 'routeB': []};
+            let routeA: any = [];
+            let routeB: any = [];
+
+            do {
+                if (line[4] !== '' && line[5] !== '' &&
+                    line[4] !== undefined && line[5] !== undefined) {
+                    if (line[5].split(',').length > 1) {
+                        line[5] = line[5].split(',')[0];
+                    }
+                    routeA.push(line[4] + '_' + line[5]);
+                }
+                if (line[4] !== '' && line[6] !== '' &&
+                    line[4] !== undefined && line[6] !== undefined) {
+                    if (line[6].split(',').length > 1) {
+                        line[6] = line[6].split(',')[0];
+                    }
+                    routeB.unshift(line[4] + '_' + line[6]);
+                }
+
+                i++;
+                if (content[i] !== undefined) {
+                    line = content[i].split(";");
+                } else {
+                    break;
+                }
+            } while(line[0] === '' && i < content.length) 
+
+            record.routeA = routeA;
+            record.routeB = routeB;
+
+            if (record.type === 'Vlak') {
+                // TO DO
+            } else if (record.type === 'Bus') {
+                // TO DO
+            } else if (record.type === 'Tram') {
+                record.type = 'tram';
+                lines.push(record);
+            }
+        }
+        
+        let upIndex = 20;
+        for (let i = 0; i < lines.length; i+=20) {
+            if (upIndex > (lines.length - 1)) {
+                upIndex = lines.length;
+            }
+            await this.dataService.saveLines(lines.slice(i, upIndex));
+            upIndex += 20;
+            this.progress = Math.round(i / lines.length * 100);
+        }
+
+        this.progressText = "Zpracování dat je dokončeno"
+        this.progress = 100;
+    }
+
+    isoFix(input: string) {
+        input = input.replaceAll('\u009a', "š");
+        input = input.replaceAll('\u009e', "ž");
+        input = input.replaceAll('\u009d', "ť");
+        return input;
     }
 }

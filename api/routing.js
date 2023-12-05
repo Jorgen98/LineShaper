@@ -247,7 +247,7 @@ async function getSubNet(db, layer, stopA, stopB) {
 
     try {
         response = await db.query("SELECT gid, conns, ST_AsGeoJSON(geom) FROM " + tables[layer] +
-        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") * 3");
+        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") * 5");
     } catch(err) {
         console.log(err);
         return false;

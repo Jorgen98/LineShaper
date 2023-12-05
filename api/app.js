@@ -63,21 +63,39 @@ app.delete('/section', async (req, res) => {
     res.send(await dbPoint.deleteSection(db, req.query));
 })
 
-//Stop data CRUD operations
+// Clean data in stop, line or line code tables
 app.post('/clearRoutingData', async (req, res) => {
-    res.send(await dbRoutingData.clearData(db));
+    res.send(await dbRoutingData.clearData(db, req.query));
 })
 
+// Import stop data
 app.post('/createStops', async (req, res) => {
     res.send(await dbRoutingData.createStops(db, req.query));
 })
 
+// Import line data
+app.post('/saveLines', async (req, res) => {
+    res.send(await dbRoutingData.saveLines(db, req.query));
+})
+
+// Get stop and its info around some point
 app.get('/stopsInRad', async (req, res) => {
     res.send(await dbRoutingData.getStopsInRad(db, req.query));
 })
 
+// Get lines info
+app.get('/lines', async (req, res) => {
+    res.send(await dbRoutingData.getLines(db, req.query));
+})
+
+// Get route based on stop codes
 app.get('/route', async (req, res) => {
     res.send(await dbRoutingData.getRoute(db, req.query));
+})
+
+// Get whole line route based on code and direction
+app.get('/lineRoute', async (req, res) => {
+    res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
 
 // Running API itself

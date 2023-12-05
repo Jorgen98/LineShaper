@@ -348,13 +348,13 @@ export class MapComponent {
 
     async makeTwoPointRoute(mode: number, props: any) {
         if (mode === 0) {
-            this.selPoint = [{'code': props.code, 'subCode': props.subcode}];
+            this.selPoint = [props.code + '_' + props.subcode];
         } else if (mode === 1) {
-            this.selPoint.push({'code': props.code, 'subCode': props.subcode});
+            this.selPoint.push(props.code + '_' + props.subcode);
             this.createRoute(await this.dataService.getRoute(this.selPoint, 'tram'));
             this.selPoint = [];
         } else if (mode === 2) {
-            this.selPoint.push({'code': props.code, 'subCode': props.subcode});
+            this.selPoint.push(props.code + '_' + props.subcode);
         }
 
         this.setDefault();
@@ -369,7 +369,5 @@ export class MapComponent {
 
         let newLine = L.polyline(points, this.setObjStyle('route'));
         newLine.addTo(this.layers['route']);
-
-        console.log('a');
     }
 }

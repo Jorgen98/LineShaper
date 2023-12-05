@@ -42,10 +42,20 @@ async function createStops(db, params) {
     }
 }
 
-async function clearData(db) {
+async function clearData(db, params) {
+    if (params.type === undefined) {
+        return false;
+    }
     try {
-        await db.query("TRUNCATE TABLE " + process.env.DB_STOPS_TABLE + " RESTART IDENTITY");
-        await db.query("TRUNCATE TABLE " + process.env.DB_SIGNS_TABLE + " RESTART IDENTITY");
+        if (params.type === 'stops') {
+            await db.query("TRUNCATE TABLE " + process.env.DB_STOPS_TABLE + " RESTART IDENTITY");
+            await db.query("DROP TABLE signs");
+            await db.query("CREATE TABLE IF NOT EXISTS signs (id SERIAL PRIMARY KEY, code INT, subCode INT, geom GEOMETRY);");
+        }
+
+        if (params.type === 'lines') {
+            await db.query("TRUNCATE TABLE " + process.env.DB_LINES_TABLE + " RESTART IDENTITY");
+        }
         return true;
     } catch(err) {
         console.log(err);
@@ -97,19 +107,7 @@ async function getRoute(db, params) {
     }
 
     let stops = JSON.parse(params.stops);
-    let points = [];
-
-    for (let i = 0; i < stops.length; i++) {
-        try {
-            let stop = await db.query("SELECT geom FROM " + process.env.DB_SIGNS_TABLE +
-                " WHERE code=" + parseInt(stops[i].code) + " AND subcode='" + stops[i].subCode + "'");
-            if (stop.rows !== undefined) {
-                points.push(stop.rows[0].geom);
-            }
-        } catch(err) {
-            console.log(err);
-        }
-    }
+    let points = await getStopsGeom(db, stops);
 
     if (points.length < 1) {
         return false;
@@ -118,4 +116,137 @@ async function getRoute(db, params) {
     return await computeRoute(db, points, params.layer);
 }
 
-module.exports = { createStops, clearData, getStopsInRad, getRoute };
+async function getStopsGeom(db, stops) {
+    let points = [];
+    for (let i = 0; i < stops.length; i++) {
+        try {
+            let stop = await db.query("SELECT geom FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND subcode='" + parseInt(stops[i].split('_')[1]) + "'");
+            if (stop.rows !== undefined && stop.rows[0] !== undefined) {
+                points.push(stop.rows[0].geom);
+            }
+        } catch(err) {
+            console.log(err);
+        }
+    }
+
+    return points;
+}
+
+async function saveLines(db, params) {
+    if (params.lines === undefined) {
+        return false;
+    }
+
+    let data = JSON.parse(params.lines);
+    let query = "";
+
+    for (let i = 0; i < data.length; i++) {
+        query += "(" + data[i].lc + ", '" + data[i].type +
+            "', '{" + data[i].routeA + "}', '{" + data[i].routeB + "}')";
+
+        if (data.length > 0 && i < (data.length - 1)) {
+            query += ",";
+        }
+    }
+
+    try {
+        await db.query("INSERT INTO " + process.env.DB_LINES_TABLE +
+        ' (code, layer, routeA, routeB) VALUES ' + query);
+        return true;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+async function getLines(db) {
+    try {
+        let result = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE);
+
+        for (let i = 0; i < result.rows.length; i++) {
+            let route_start = undefined, route_end = undefined;
+            route_start = await getRouteStartName(db, result.rows[i].routea);
+            route_end = await getRouteEndName(db, result.rows[i].routea);
+
+            delete result.rows[i]['routea'];
+            if (route_start !== undefined && route_end !== undefined) {
+                result.rows[i]['routeA'] = {'s': route_start, 'e': route_end};
+            }
+
+            route_start = await getRouteStartName(db, result.rows[i].routeb);
+            route_end = await getRouteEndName(db, result.rows[i].routeb);
+
+            delete result.rows[i]['routeb'];
+            if (route_start !== undefined && route_end !== undefined) {
+                result.rows[i]['routeB'] = {'s': route_start, 'e': route_end};
+            }
+
+            delete result.rows[i]['id'];
+            
+        }
+        return result.rows;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+
+}
+
+async function getRouteStartName(db, codes) {
+    let result = undefined;
+    if (codes !== undefined && codes[0].split('_').length === 2) {
+            result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
+                " WHERE code=" + codes[0].split('_')[0]);
+            if (result.rows !== undefined) {
+                return result.rows[0].name;
+            }
+    } else {
+        return undefined;
+    }
+}
+
+async function getRouteEndName(db, codes) {
+    let result = undefined;
+    if (codes !== undefined && codes[codes.length - 1].split('_').length === 2) {
+            result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
+                " WHERE code=" + codes[codes.length - 1].split('_')[0]);
+            if (result.rows !== undefined) {
+                return result.rows[0].name;
+            }
+    } else {
+        return undefined;
+    }
+}
+
+async function getLineRoute(db, params) {
+    if (params.code === undefined) {
+        return false;
+    }
+
+    if (params.dir === undefined) {
+        return false;
+    }
+
+    let line = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + params.code);
+
+    if (line.rows === undefined || line.rows[0] === undefined) {
+        return false;
+    }
+
+    let points;
+
+    if (params.dir === 'a') {
+        points = await getStopsGeom(db, line.rows[0].routea);
+    } else if (params.dir === 'b') {
+        points = await getStopsGeom(db, line.rows[0].routeb);
+    }
+
+    if (points.length < 1) {
+        return false;
+    }
+    
+    return await computeRoute(db, points, line.rows[0].layer);
+}
+
+module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute };
