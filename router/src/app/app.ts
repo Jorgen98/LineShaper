@@ -4,6 +4,7 @@ import { AppDirective } from './app.directive';
 import { TileSelectComponent } from './tile-select/tile-select';
 import { DataService } from './data.service';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
+import { RoutingComponent } from './routing/routing';
 
 @Component({
     selector: 'app-root',
@@ -49,6 +50,7 @@ export class AppComponent implements OnInit {
         switch (id) {
             case 0: viewContainerRef.createComponent(TileSelectComponent); break;
             case 2: viewContainerRef.createComponent(FilesManipulationComponent); break;
+            case 3: viewContainerRef.createComponent(RoutingComponent); break;
             default: break;
         }
     }

@@ -1,0 +1,24 @@
+<div class="content" [ngSwitch]="state">
+    <!-- Default menu screen -->
+    <p class="header" *ngSwitchCase="'menu'">Trasování linek</p>
+    <div *ngSwitchCase="'menu'">
+        <button (click)="routeOneLine()">Trasování jedné linky</button>
+    </div>
+    <!-- Route one screen -->
+    <div *ngSwitchCase="'routeOneLine'">
+        <p class="header" *ngSwitchCase="'routeOneLine'">Choose type to edit</p>
+        <div class="option" (change)="setLineEnds()">
+            <select [(ngModel)]="curLine">
+                <option *ngFor="let item of curLines" [value]="item.code">{{ item.code }}</option>
+            </select>
+        </div>
+        <p class="header" *ngSwitchCase="'routeOneLine'">Choose type to edit</p>
+        <div class="option">
+            <select [(ngModel)]="curDir">
+                <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
+            </select>
+        </div>
+        <button (click)="routeOneLine()">Vypočítat trasu</button>
+        <button (click)="defaultMenu()">Menu</button>
+    </div>
+</div>

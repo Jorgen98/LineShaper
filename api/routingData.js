@@ -195,9 +195,9 @@ async function getLines(db) {
 
 async function getRouteStartName(db, codes) {
     let result = undefined;
-    if (codes !== undefined && codes[0].split('_').length === 2) {
+    if (codes !== undefined && codes.length > 0 && codes[0].split('_').length === 2) {
             result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-                " WHERE code=" + codes[0].split('_')[0]);
+                " WHERE code=" + parseInt(codes[0].split('_')[0]));
             if (result.rows !== undefined) {
                 return result.rows[0].name;
             }
@@ -208,9 +208,9 @@ async function getRouteStartName(db, codes) {
 
 async function getRouteEndName(db, codes) {
     let result = undefined;
-    if (codes !== undefined && codes[codes.length - 1].split('_').length === 2) {
+    if (codes !== undefined && codes.length > 0 && codes[codes.length - 1].split('_').length === 2) {
             result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-                " WHERE code=" + codes[codes.length - 1].split('_')[0]);
+                " WHERE code=" + parseInt(codes[codes.length - 1].split('_')[0]));
             if (result.rows !== undefined) {
                 return result.rows[0].name;
             }
@@ -245,7 +245,7 @@ async function getLineRoute(db, params) {
     if (points.length < 1) {
         return false;
     }
-    
+
     return await computeRoute(db, points, line.rows[0].layer);
 }
 

@@ -13,7 +13,7 @@ export class DataService {
     private curLayer = '';
     private DBGuard: NodeJS.Timer | undefined;
 
-    private whoToAsk = 'http://localhost'//'http://172.25.182.2';
+    private whoToAsk = 'http://172.25.182.2';
 
     constructor(private httpClient: HttpClient) {
         this.isDBConnected(0);
@@ -87,6 +87,20 @@ export class DataService {
 
     queryGetRoute(stops: any, layer: string) {
         return this.httpClient.get(this.whoToAsk + ":8087/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetLinesInfo() {
+        return this.httpClient.get(this.whoToAsk + ":8087/lines", {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetWholeLine(code: number, dir: string) {
+        return this.httpClient.get(this.whoToAsk + ":8087/lineRoute?code=" + code + "&dir=" + dir, {})
         .pipe(
             retry(3)
           );
@@ -205,6 +219,30 @@ export class DataService {
     getRoute(stops: any, layer: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetRoute(stops, layer).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    getLinesInfo(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetLinesInfo().subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    getWholeLine(code: number, dir: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetWholeLine(code, dir).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

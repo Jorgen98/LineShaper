@@ -10,6 +10,7 @@ export class MapService {
     private zoomOutObj = new Subject<any>();
     private changeBaseMapObj = new Subject<any>();
     private visibilityUpdateObj = new Subject<any>();
+    private putRouteOnMapObj = new Subject<any>();
 
     private backgroundLayers: {[name: string]: boolean} = {
         'rail': false,
@@ -32,6 +33,10 @@ export class MapService {
     visibilityUpdate() {
         this.visibilityUpdateObj.next(0);
     }
+
+    putRouteOnMap(points: any) {
+        this.putRouteOnMapObj.next(points);
+    }
     
     zoomInEvent(): Observable<any>{
         return this.zoomInObj.asObservable();
@@ -47,6 +52,10 @@ export class MapService {
 
     visibilityUpdateEvent(): Observable<any>{
         return this.visibilityUpdateObj.asObservable();
+    }
+
+    putRouteOnMapEvent(): Observable<any>{
+        return this.putRouteOnMapObj.asObservable();
     }
 
     getBackgroundLayersState() {

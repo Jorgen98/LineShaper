@@ -33,9 +33,11 @@ async function computeRoute(db, stops, layer) {
             possibilities[j].endScore = 0;
         }
 
-        while (run) {
+        let ii = 0;
+        while (run && ii < 10000) {
             run = false;
             let curIdx = 0;
+            ii++;
 
             let k = 0;
             while (k < possibilities.length) {

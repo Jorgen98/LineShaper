@@ -9,13 +9,15 @@ import { MapComponent } from './map/map';
 import { AppDirective } from './app.directive';
 import { HttpClientModule } from '@angular/common/http';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
+import { RoutingComponent } from './routing/routing';
 
 @NgModule({
   declarations: [
     AppComponent,
     MapComponent,
     AppDirective,
-    FilesManipulationComponent
+    FilesManipulationComponent,
+    RoutingComponent
   ],
   imports: [
     CommonModule,

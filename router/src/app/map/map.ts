@@ -75,6 +75,10 @@ export class MapComponent {
         this.mapService.visibilityUpdateEvent().subscribe(() => {
             this.loadContext(this.map.getCenter());
         })
+
+        this.mapService.putRouteOnMapEvent().subscribe((stops) => {
+            this.createRoute(stops);
+        })
     }
 
     async ngAfterViewInit() {
