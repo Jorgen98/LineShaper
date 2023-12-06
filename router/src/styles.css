@@ -125,3 +125,7 @@ p.mapBtnTxt {
     display: flex;
     flex-direction: column;
 }
+
+.mat-icon {
+    color: var(--white);
+}

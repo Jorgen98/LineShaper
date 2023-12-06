@@ -2,6 +2,7 @@
     <div id="head"></div>
     <div id="mainControl">
         <div id="leftControl" *ngIf="!newItems">
+            <button><a href="http://localhost:9001/"><mat-icon>home</mat-icon></a></button>
             <button (click)="zoomIn()"><mat-icon>zoom_in</mat-icon></button>
             <button (click)="zoomOut()"><mat-icon>zoom_out</mat-icon></button>
             <button [class]="menuIndexBtn[0]" (click)="openMenuItem(0)"><mat-icon>layers</mat-icon></button>

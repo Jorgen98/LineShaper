@@ -1,10 +1,10 @@
 {
-  "name": "editor",
+  "name": "router",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --base-href=/lineRouter/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

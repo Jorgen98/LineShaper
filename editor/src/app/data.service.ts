@@ -17,6 +17,8 @@ export class DataService {
         this.isDBConnected(0);
     }
 
+    private whoToAsk = 'http://localhost:9001/api';
+
     // Inner functions
     setTileIndex(id: number) {
         this.curTitleIndex = id;
@@ -42,14 +44,14 @@ export class DataService {
 
     // Query functions
     queryIsDbAlive() {
-        return this.httpClient.get("http://172.25.182.2:8087/mapStats")
+        return this.httpClient.get(this.whoToAsk + "/mapStats")
         .pipe(
             retry(3)
           );
     }
 
     queryGetPoint(gid: number) {
-        return this.httpClient.get("http://172.25.182.2:8087/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.get(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
         .pipe(
             retry(3)
           );
@@ -57,7 +59,7 @@ export class DataService {
 
     queryPostPutPoint(gid: number, reqType:string, geom?: number[], conns?: number[]) {
         if (reqType === 'post') {
-            return this.httpClient.post("http://172.25.182.2:8087/mapPoint?layer=" + this.getCurLayer() +
+            return this.httpClient.post(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() +
                 "&geom=" + JSON.stringify(geom) + "&conns=" + JSON.stringify(conns), {})
                 .pipe(
                     retry(3)
@@ -71,7 +73,7 @@ export class DataService {
                 params += "&conns=" + JSON.stringify(conns);
             }
 
-            return this.httpClient.put("http://172.25.182.2:8087/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid + params, {})
+            return this.httpClient.put(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid + params, {})
             .pipe(
                 retry(3)
             );
@@ -79,7 +81,7 @@ export class DataService {
     }
 
     queryPostPoints(hubs: any) {
-        return this.httpClient.post("http://172.25.182.2:8087/createPoints?layer=" + this.getCurLayer() +
+        return this.httpClient.post(this.whoToAsk + "/createPoints?layer=" + this.getCurLayer() +
                 "&hubs=" + JSON.stringify(hubs), {})
                 .pipe(
                     retry(3)
@@ -87,35 +89,35 @@ export class DataService {
     }
 
     queryDeletePoint(gid:number) {
-        return this.httpClient.delete("http://172.25.182.2:8087/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.delete(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
         .pipe(
             retry(3)
           );
     }
 
     queryDeleteLayer() {
-        return this.httpClient.delete("http://172.25.182.2:8087/layer?layer=" + this.getCurLayer(), {})
+        return this.httpClient.delete(this.whoToAsk + "/layer?layer=" + this.getCurLayer(), {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsInRad(latLng: [number, number], layer: string) {
-        return this.httpClient.get("http://172.25.182.2:8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsByGid(gid: number) {
-        return this.httpClient.get("http://172.25.182.2:8087/pointsByGid?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.get(this.whoToAsk + "/pointsByGid?layer=" + this.getCurLayer() + "&gid=" + gid, {})
         .pipe(
             retry(3)
           );
     }
 
     querySetLineDirection(gidA: number, gidB: number, mode: number) {
-        return this.httpClient.put("http://172.25.182.2:8087/changeDirection?layer=" + this.getCurLayer() + "&gidA=" + gidA
+        return this.httpClient.put(this.whoToAsk + "/changeDirection?layer=" + this.getCurLayer() + "&gidA=" + gidA
             + "&gidB=" + gidB + "&mode=" + mode, {})
         .pipe(
             retry(3)
@@ -123,7 +125,7 @@ export class DataService {
     }
 
     queryDeleteSection(gidA:number, gidB:number) {
-        return this.httpClient.delete("http://172.25.182.2:8087/section?layer=" + this.getCurLayer() + "&gidA=" + gidA + "&gidB=" + gidB, {})
+        return this.httpClient.delete(this.whoToAsk + "/section?layer=" + this.getCurLayer() + "&gidA=" + gidA + "&gidB=" + gidB, {})
         .pipe(
             retry(3)
           );

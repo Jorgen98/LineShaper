@@ -13,7 +13,7 @@ export class DataService {
     private curLayer = '';
     private DBGuard: NodeJS.Timer | undefined;
 
-    private whoToAsk = 'http://172.25.182.2';
+    private whoToAsk = 'http://localhost:9001/api';
 
     constructor(private httpClient: HttpClient) {
         this.isDBConnected(0);
@@ -44,63 +44,63 @@ export class DataService {
 
     // Query functions
     queryIsDbAlive() {
-        return this.httpClient.get(this.whoToAsk + ":8087/mapStats")
+        return this.httpClient.get(this.whoToAsk + "/mapStats")
         .pipe(
             retry(3)
           );
     }
 
     queryClearData(type: string) {
-        return this.httpClient.post(this.whoToAsk + ":8087/clearRoutingData?type=" + type, {})
+        return this.httpClient.post(this.whoToAsk + "/clearRoutingData?type=" + type, {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsInRad(latLng: [number, number], layer: string) {
-        return this.httpClient.get(this.whoToAsk + ":8087/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
     }
 
     queryPostCreateStops(stops: any) {
-        return this.httpClient.post(this.whoToAsk + ":8087/createStops?stops=" + JSON.stringify(stops), {})
+        return this.httpClient.post(this.whoToAsk + "/createStops?stops=" + JSON.stringify(stops), {})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryPostSaveLines(lines: any) {
-        return this.httpClient.post(this.whoToAsk + ":8087/saveLines?lines=" + JSON.stringify(lines), {})
+        return this.httpClient.post(this.whoToAsk + "/saveLines?lines=" + JSON.stringify(lines), {})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryGetStopsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + ":8087/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetRoute(stops: any, layer: string) {
-        return this.httpClient.get(this.whoToAsk + ":8087/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {})
+        return this.httpClient.get(this.whoToAsk + "/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetLinesInfo() {
-        return this.httpClient.get(this.whoToAsk + ":8087/lines", {})
+        return this.httpClient.get(this.whoToAsk + "/lines", {})
         .pipe(
             retry(3)
           );
     }
 
     queryGetWholeLine(code: number, dir: string) {
-        return this.httpClient.get(this.whoToAsk + ":8087/lineRoute?code=" + code + "&dir=" + dir, {})
+        return this.httpClient.get(this.whoToAsk + "/lineRoute?code=" + code + "&dir=" + dir, {})
         .pipe(
             retry(3)
           );

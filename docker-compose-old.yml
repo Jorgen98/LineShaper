@@ -1,16 +1,18 @@
 version: '3.9'
 services:
+  # /lineShaperDemo
   nginx:
     container_name: lineShaper-proxyServer
     image: nginx:1.19
-    depends_on:
-      postgis:
-        condition: service_healthy
     ports:
-      - 9001:80
+      - 80:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./index.html:/home/index.html
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.2
+  # /lineShaperDemo/mapEditor
   editor:
     container_name: lineShaper-mapEditor
     build:
@@ -21,6 +23,9 @@ services:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.3
     deploy:
       restart_policy:
         condition: on-failure
@@ -31,6 +36,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+  # /lineShaperDemo/lineRouter
   router:
     container_name: lineShaper-lineRouter
     build:
@@ -41,6 +47,9 @@ services:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.4
     deploy:
       restart_policy:
         condition: on-failure
@@ -63,6 +72,9 @@ services:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.5
     deploy:
       restart_policy:
         condition: on-failure
@@ -79,6 +91,9 @@ services:
     volumes:
       - ./api/:/docker-entrypoint-initdb.d/
       - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      app-network:
+        ipv4_address: 172.25.182.6
     expose:
       - ${DB_PORT}
     environment:
@@ -100,3 +115,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+networks:
+  app-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.182.1/24
