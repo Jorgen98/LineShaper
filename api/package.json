@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "docker_run": "PORT=$API_PORT node app.js"
+    "start": "HOST='localhost' node app.js",
+    "docker_run": "HOST='postgis' PORT=$API_PORT node app.js"
   },
   "author": "",
   "license": "ISC",

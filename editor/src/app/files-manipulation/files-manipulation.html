@@ -3,7 +3,7 @@
     <p class="header" *ngSwitchCase="'menu'">Import a export map</p>
     <div *ngSwitchCase="'menu'">
         <button (click)="importMaps()">Načtení mapových podkladů</button>
-        <button (click)="exportMaps()">Export mapových podkladů</button>
+        <button (click)="exportMaps()" disabled>Export mapových podkladů</button>
     </div>
     <!-- Import maps screen -->
     <p class="header" *ngSwitchCase="'impMap'">Import mapových podkladů</p>

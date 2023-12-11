@@ -122,13 +122,13 @@ export class FilesManipulationComponent {
             }
         }
 
-        let upIndex = 150;
-        for (let i = 0; i < this.acFileContent.hubs.length; i+=150) {
+        let upIndex = 50;
+        for (let i = 0; i < this.acFileContent.hubs.length; i+=50) {
             if (upIndex > (this.acFileContent.hubs.length - 1)) {
                 upIndex = this.acFileContent.hubs.length;
             }
             await this.dataService.createPoints(this.acFileContent.hubs.slice(i, upIndex));
-            upIndex += 150;
+            upIndex += 50;
             this.progress = Math.round(i / this.acFileContent.hubs.length * 100);
         }
 

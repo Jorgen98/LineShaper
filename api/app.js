@@ -15,7 +15,7 @@ const dbRoutingData = require('./routingData.js');
 // DB connection established
 const db = new Pool({
     user: process.env.DB_USER,
-    host: 'postgis',
+    host: process.env.HOST,
     database: process.env.DB_DATABASE,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT
@@ -25,7 +25,7 @@ app.get('/api/mapStats', async (req, res) => {
     res.send(await dbPoint.getStats(db));
     });
 
-app.delete('/api/ayer', async (req, res) => {
+app.delete('/api/layer', async (req, res) => {
     res.send(await dbPoint.deleteLayer(db, req.query));
     });
 
@@ -52,7 +52,8 @@ app.get('/api/pointsInRad', async (req, res) => {
     })
 
 app.get('/api/pointsByGid', async (req, res) => {
-        res.send(await dbPoint.getPointsByGID(db, req.query));
+        return false;
+        //res.send(await dbPoint.getPointsByGID(db, req.query));
     })
 
 app.put('/api/changeDirection', async (req, res) => {

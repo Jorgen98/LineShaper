@@ -1,6 +1,7 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -17,7 +18,7 @@ export class DataService {
         this.isDBConnected(0);
     }
 
-    private whoToAsk = 'http://localhost:9001/api';
+    private whoToAsk = environment.apiUrl;
 
     // Inner functions
     setTileIndex(id: number) {

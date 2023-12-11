@@ -157,13 +157,13 @@ export class FilesManipulationComponent {
             }
         }
         
-        let upIndex = 40;
-        for (let i = 0; i < stops.length; i+=40) {
+        let upIndex = 10;
+        for (let i = 0; i < stops.length; i+=10) {
             if (upIndex > (stops.length - 1)) {
                 upIndex = stops.length;
             }
             await this.dataService.createPoints(stops.slice(i, upIndex));
-            upIndex += 40;
+            upIndex += 10;
             this.progress = Math.round(i / stops.length * 100);
         }
 

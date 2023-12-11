@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -13,7 +14,7 @@ export class DataService {
     private curLayer = '';
     private DBGuard: NodeJS.Timer | undefined;
 
-    private whoToAsk = 'http://localhost:9001/api';
+    private whoToAsk = environment.apiUrl;
 
     constructor(private httpClient: HttpClient) {
         this.isDBConnected(0);
