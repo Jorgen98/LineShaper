@@ -84,6 +84,15 @@ export class MapComponent {
     async ngAfterViewInit() {
         this.initMap();
         this.setDefault();
+
+        // Routing test
+        /*let route = await this.dataService.getWholeLine(2, 'b');
+
+        if (!route) {
+            return;
+        }
+
+        this.createRoute(route);*/
     }
 
     setTiles(id: number): void {

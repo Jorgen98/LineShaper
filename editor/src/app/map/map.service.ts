@@ -13,9 +13,9 @@ export class MapService {
     private visibilityUpdateObj = new Subject<any>();
 
     private backgroundLayers: {[name: string]: boolean} = {
-        'rail': true,
-        'road': true,
-        'tram': true
+        'rail': false,
+        'road': false,
+        'tram': false
     }
     
     zoomIn() {

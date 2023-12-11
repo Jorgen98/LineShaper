@@ -5,159 +5,218 @@ let tables = {
 }
 
 async function computeRoute(db, stops, layer) {
-    let possibilities = [];
+    let result = [];
 
     stops = await getStopsData(db, stops);
+    let maxIterations = 50;
 
+    console.log('Routing stats')
+
+    let numOfIter = 0;
+    let numOfPoss = 0;
+    let disconnected = false;
     for (let i = 0; i < stops.length - 1; i++) {
-        if (possibilities.length === 0) {
-            possibilities = await findInNet(db, stops[i], layer);
-        }
-
+        let possibilities = await findInNet(db, stops[i], layer, 'start');
         if (possibilities.length === 0) {
             continue;
         }
 
         let subNet = await getSubNet(db, layer, stops[i], stops[i + 1]);
-        let target = await findInNet(db, stops[i + 1], layer);
-        let maxLength = Infinity;
-        let maxScore = 0;
-        let run = true;
+        let endPosition = await findInNet(db, stops[i + 1], layer, 'end');
 
-        for (let j = 0; j < possibilities.length; j++) {
-            if (maxScore < possibilities[j].score) {
-                maxScore = possibilities[j].score;
-            }
-            possibilities[j].finished = false;
-            possibilities[j].score += JSON.parse(JSON.stringify(possibilities[j].endScore));
-            possibilities[j].endScore = 0;
+        let j = 0;
+        while (j < possibilities.length) {
+            possibilities[j].toEnd = countDistance(subNet[possibilities[j].current].pos, stops[i + 1].pos);
+            j++;
         }
 
-        let ii = 0;
-        while (run && ii < 10000) {
-            run = false;
-            let curIdx = 0;
-            ii++;
+        let bestToEnd = Infinity;
+        let itersNum = 0;
+        let possNum = possibilities.length;
+        let finishedPossNum = 0;
+        let visitedHubs = {};
+        let minLength = Infinity;
+        numOfPoss += possibilities.length;
 
-            let k = 0;
-            while (k < possibilities.length) {
-                if (!possibilities[k].finished && possibilities[k].length > maxLength
-                    && possibilities[k].score > maxScore) {
-                    possibilities.splice(k, 1);
-                    continue;
-                }
+        while (itersNum < maxIterations && finishedPossNum < possibilities.length) {
+            itersNum++;
+            numOfIter++;
+            bestToEnd = Infinity;
+            finishedPossNum = 0;
 
-                if (possibilities[k].finished) {
-                    k++;
-                    continue;
+            j = 0;
+            let curIndx = 0;
+            while (j < possibilities.length) {
+                if (possibilities[j].length > minLength + 100) {
+                    possibilities.splice(j, 1);
                 } else {
-                    run = true;
+                    if (!possibilities[j].finished && possibilities[j].toEnd < bestToEnd) {
+                        bestToEnd = possibilities[j].toEnd;
+                        curIndx = j;
+                    } else if (possibilities[j].finished) {
+                        finishedPossNum++;
+                    }
+                    j++;
                 }
-
-                if (possibilities[k].score < possibilities[curIdx].score) {
-                    curIdx = k;
-                }
-
-                if (possibilities[k].length < possibilities[curIdx].length) {
-                    curIdx = k;
-                }
-                k++;
             }
 
-            if (!run || possibilities[curIdx].finished) {
-                break;
-            }
+            let nextHubs = [];
 
-            let newPoss = [];
             do {
-                possibilities[curIdx].visited.push(possibilities[curIdx].current);
-                if (subNet[possibilities[curIdx].current] !== undefined) {
-                    newPoss = JSON.parse(JSON.stringify(subNet[possibilities[curIdx].current].conns));
+                let lastPointCode = possibilities[curIndx].visited[possibilities[curIndx].visited.length - 1];
+                possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[lastPointCode].pos);
+
+                // Check if current position is finish
+                for (let k = 0; k < endPosition.length; k++) {
+                    if (lastPointCode === endPosition[k].pointCodeA && possibilities[curIndx].current === endPosition[k].pointCodeB ||
+                        lastPointCode === endPosition[k].pointCodeB && possibilities[curIndx].current === endPosition[k].pointCodeA ) {
+                        possibilities[curIndx].finished = true;
+                        possibilities[curIndx].score += JSON.parse(JSON.stringify(endPosition[k].score));
+                        possibilities[curIndx].toEnd = 0;
+                        finishedPossNum++;
+
+                        if (minLength > possibilities[curIndx].length) {
+                            minLength = possibilities[curIndx].length;
+                        }
+                        break;
+                    }
+                }
+
+                // If we find the finish, there is no need to continue in search
+                if (possibilities[curIndx].finished) {
+                    break;
+                }
+
+                // Current hub actualization
+                possibilities[curIndx].visited.push(possibilities[curIndx].current);
+                // Find next hubs
+                if (subNet[possibilities[curIndx].current] !== undefined) {
+                    nextHubs = JSON.parse(JSON.stringify(subNet[possibilities[curIndx].current].conns));
                 } else {
-                    newPoss = [];
+                    nextHubs = [];
                 }
 
-                if (newPoss.indexOf(possibilities[curIdx].visited[possibilities[curIdx].visited.length - 2]) !== -1) {
-                    newPoss.splice(newPoss.indexOf(possibilities[curIdx].visited[possibilities[curIdx].visited.length - 2]), 1);
+                // Remove reverse way possibilities
+                if (nextHubs.indexOf(possibilities[curIndx].visited[possibilities[curIndx].visited.length - 2]) !== -1) {
+                    nextHubs.splice(nextHubs.indexOf(possibilities[curIndx].visited[possibilities[curIndx].visited.length - 2]), 1);
                 }
 
+                // Remove hubs, which are out of current map
                 let k = 0;
-                while (k < newPoss.length) {
-                    if (possibilities[curIdx].visited.indexOf(newPoss[k]) !== -1) {
-                        let indices = [];
-                        let idx = possibilities[curIdx].visited.indexOf(newPoss[k]);
-                        while (idx !== -1) {
-                            indices.push(idx);
-                            idx = possibilities[curIdx].visited.indexOf(newPoss[k], idx + 1);
-                        }
-                        if (indices.length < 2 && subNet[newPoss[k]] !== undefined) {
-                            k++;
-                        } else {
-                            newPoss.splice(k, 1);
-                        }
-                    } else if (subNet[newPoss[k]] === undefined) {
-                        newPoss.splice(k, 1);
+                while (k < nextHubs.length) {
+                    if (subNet[nextHubs[k]] === undefined) {
+                        nextHubs.splice(k, 1);
                     } else {
                         k++;
                     }
                 }
 
-                if (newPoss.length === 1) {
-                    possibilities[curIdx].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[0]].pos);
-                    for (let k = 0; k < target.length; k++) {
-                        if (newPoss[0] === target[k].visited[0] && possibilities[curIdx].current === target[k].current ||
-                            possibilities[curIdx].current === target[k].visited[0] && newPoss[0] === target[k].current ) {
-                            possibilities[curIdx].finished = true;
-                            possibilities[curIdx].endScore = target[k].score;
+                if (nextHubs.length === 1) {
+                    possibilities[curIndx].current = nextHubs[0];
+
+                    possibilities[curIndx].toEnd = countDistance(subNet[possibilities[curIndx].current].pos, stops[i + 1].pos);
+                    if (possibilities[curIndx].lastToEnd < possibilities[curIndx].toEnd) {
+                        possibilities[curIndx].numOfWorstJumps++;
+                    }
+
+                    possibilities[curIndx].lastToEnd = JSON.parse(JSON.stringify(possibilities[curIndx].toEnd));
+                    if (possibilities[curIndx].numOfWorstJumps > 2 && minLength < Infinity) {
+                        nextHubs = [];
+                    }
+                }
+            } while (nextHubs.length === 1 && !possibilities[curIndx].finished);
+
+            // If we find the finish, there is no need to continue in search
+            if (possibilities[curIndx].finished) {
+                continue;
+            }
+
+            if (nextHubs.length === 0) {
+                possibilities.splice(curIndx, 1);
+                continue;
+            }
+
+            // Count new distance to finish
+            possibilities[curIndx].toEnd = countDistance(subNet[possibilities[curIndx].current].pos, stops[i + 1].pos);
+
+            // If there is an possibility with better score, remove current possibility
+            if (visitedHubs[possibilities[curIndx].current] !== undefined && visitedHubs[possibilities[curIndx].current] <= possibilities[curIndx].length) {
+                possibilities.splice(curIndx, 1);
+                continue;
+            } else {
+                visitedHubs[possibilities[curIndx].current] = possibilities[curIndx].length;
+            }
+
+            // Save new possibilities and distances to finish position
+            for (let k = 1; k < nextHubs.length; k++) {
+                possibilities.push(JSON.parse(JSON.stringify(possibilities[curIndx])));
+                possibilities[possibilities.length - 1].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[nextHubs[k]].pos);
+                possibilities[possibilities.length - 1].toEnd = countDistance(subNet[nextHubs[k]].pos, stops[i + 1].pos);
+                possibilities[possibilities.length - 1].current = nextHubs[k];
+                numOfPoss ++;
+                possNum ++;
+            }
+            possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[nextHubs[0]].pos);
+            possibilities[curIndx].toEnd = countDistance(subNet[nextHubs[0]].pos, stops[i + 1].pos);
+            possibilities[curIndx].current = nextHubs[0];
+        }
+        console.log(i + ':\t' + numOfIter + '\t' + itersNum + '\t' + numOfPoss + '\t' + possNum);
+
+        possibilities.sort((a, b) => b.finished - a.finished || a.score - b.score || a.endScore - b.endScore || a.length - b.length);
+        if (result.length === 0 && possibilities.length > 0 && possibilities[0].finished) {
+            result.push({'score': JSON.parse(JSON.stringify(possibilities[0].score)),
+                'visited': JSON.parse(JSON.stringify(possibilities[0].visited)),
+                'length': JSON.parse(JSON.stringify(possibilities[0].length))})
+        } else {
+            let k = 0;
+            disconnected = true;
+            for (let j = 0; j < possibilities.length; j++) {
+                if (possibilities[j].finished) {
+                    k = 0;
+                    while (k < result.length) {
+                        if (result[k].visited[result[k].visited.length - 1] === possibilities[j].visited[0]) {
+                            disconnected = false;
+                        }
+                        k++;
+                    }
+                }
+            }
+
+            for (let j = 0; j < possibilities.length; j++) {
+                if (possibilities[j].finished) {
+                    k = 0;
+                    while (k < result.length) {
+                        if (result[k].visited[result[k].visited.length - 1] === possibilities[j].visited[0]) {
+                            result.push(JSON.parse(JSON.stringify(result[k])));
+                            result[result.length - 1].score += possibilities[j].score;
+                            result[result.length - 1].visited = result[result.length - 1].visited.concat(possibilities[j].visited);
+                            result[result.length - 1].length += possibilities[j].length;
+
+                            if (i === stops.length - 2) {
+                                result[result.length - 1].visited.push(possibilities[j].current);
+                            }
+
+                            result.splice(k, 1);
+                        } else {
+                            if (disconnected) {
+                                result[result.length - 1].visited = result[result.length - 1].visited.concat(possibilities[j].visited);
+                            }
+                            k++;
                         }
                     }
-
-                    if (possibilities[curIdx].finished && maxLength > possibilities[curIdx].length) {
-                        maxLength = JSON.parse(JSON.stringify(possibilities[curIdx].length));
-                    }
-
-                    possibilities[curIdx].current = newPoss[0];
-
-                    if (possibilities[curIdx].length > maxLength) {
-                        newPoss = [];
-                    }
                 }
-            } while(newPoss.length === 1 && !possibilities[curIdx].finished);
-
-            if (newPoss.length === 0) {
-                possibilities.splice(curIdx, 1);
-            } else if (!possibilities[curIdx].finished) {
-                for (let k = 1; k < newPoss.length; k++) {
-                    possibilities.push(JSON.parse(JSON.stringify(possibilities[curIdx])));
-                    possibilities[possibilities.length - 1].current = newPoss[k];
-                    possibilities[possibilities.length - 1].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[k]].pos);
-                }
-                possibilities[curIdx].length += countDistance(subNet[possibilities[curIdx].current].pos, subNet[newPoss[0]].pos);
-                possibilities[curIdx].current = newPoss[0];
-            }
-        }
-
-        j = 0;
-        while (j < possibilities.length) {
-            if (!possibilities[j].finished) {
-                possibilities.splice(j, 1);
-            } else {
-                j++;
             }
         }
     }
-    
-    for (let i = 0; i < possibilities.length; i++) {
-        possibilities[i].visited.push(possibilities[i].current);
-    }
 
-    possibilities.sort((a, b) => a.score - b.score || a.endScore - b.endScore || a.length - b.length);
-
-    if (possibilities.length < 1) {
+    console.log(result.length);
+    if (result.length < 1) {
         return [];
+    } else {
+        result.sort((a, b) => a.score - b.score);
     }
     
-    return await decode(db, possibilities[0].visited, layer);
+    return await decode(db, result[0].visited, layer);
 }
 
 async function getStopsData(db, stops) {
@@ -184,7 +243,7 @@ async function getStopsData(db, stops) {
     return stops;
 }
 
-async function findInNet(db, stop, layer) {
+async function findInNet(db, stop, layer, mode) {
     let response;
     try {
         response = await db.query("SELECT *, ST_AsGeoJSON(geom) FROM " + tables[layer] +
@@ -204,7 +263,21 @@ async function findInNet(db, stop, layer) {
         gids[response.rows[i].gid] = response.rows[i];
         for (let j = 0; j < response.rows[i].conns.length; j++) {
             let key = response.rows[i].gid + '_' + response.rows[i].conns[j];
-            lines[key] = {'a': response.rows[i].gid, 'current': response.rows[i].conns[j], 'score': 0, 'endScore': 0, 'length': 0, 'finished': false, 'visited': [response.rows[i].gid]};
+            if (mode === 'start') {
+                lines[key] = {'pointCodeA': response.rows[i].gid,
+                'current': response.rows[i].conns[j],
+                'score': 0,
+                'length': 0,
+                'toEnd': 0,
+                'finished': false,
+                'visited': [response.rows[i].gid],
+                'lastToEnd': Infinity,
+                'numOfWorstJumps': 0};
+            } else {
+                lines[key] = {'pointCodeA': response.rows[i].gid,
+                    'pointCodeB': response.rows[i].conns[j],
+                    'score': 0};
+            }
         }
     }
 
@@ -212,8 +285,12 @@ async function findInNet(db, stop, layer) {
     let keys = Object.keys(lines);
 
     for (let i = 0; i < keys.length; i++) {
-        let pointA = gids[lines[keys[i]].a];
+        let pointA = gids[lines[keys[i]].pointCodeA];
         let pointB = gids[lines[keys[i]].current];
+
+        if (mode === 'end') {
+            pointB = gids[lines[keys[i]].pointCodeB];
+        }
 
         if (pointA === undefined || pointB === undefined) {
             continue;
@@ -223,9 +300,11 @@ async function findInNet(db, stop, layer) {
         pointB = JSON.parse(pointB.st_asgeojson).coordinates;
 
         lines[keys[i]].score = triangulation(pointA, pointB, stop.pos);
-        lines[keys[i]].length = countDistance(pointA, pointB);
         if (lines[keys[i]].score < Infinity) {
-            delete lines[keys[i]].a;
+            if (mode === 'start') {
+                delete lines[keys[i]].pointCodeA;
+            }
+
             result.push(lines[keys[i]]);
         }
     }
@@ -249,7 +328,7 @@ async function getSubNet(db, layer, stopA, stopB) {
 
     try {
         response = await db.query("SELECT gid, conns, ST_AsGeoJSON(geom) FROM " + tables[layer] +
-        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") * 5");
+        " WHERE ST_DistanceSphere(geom, " + centerPoint + ") <= ST_DistanceSpheroid('" + stopA.geom + "'," + centerPoint + ") * 100");
     } catch(err) {
         console.log(err);
         return false;
