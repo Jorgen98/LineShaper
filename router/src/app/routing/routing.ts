@@ -36,6 +36,8 @@ export class RoutingComponent implements OnInit {
             return;
         }
         
+        this.state = 'routingProgress';
+
         let route = await this.dataService.getWholeLine(parseInt(this.curLine), this.curDir);
 
         if (!route) {

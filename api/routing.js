@@ -240,6 +240,15 @@ async function getStopsData(db, stops) {
         stops[i] = stop.rows[0];
     }
 
+    let i = 1;
+    while (i < stops.length) {
+        if (stops[i - 1].id === stops[i].id) {
+            stops.splice(i, 1);
+        } else {
+            i++;
+        }
+    }
+
     return stops;
 }
 

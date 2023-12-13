@@ -107,22 +107,26 @@ async function getRoute(db, params) {
     }
 
     let stops = JSON.parse(params.stops);
-    let points = await getStopsGeom(db, stops);
+    let result = await getStopsGeom(db, stops);
 
-    if (points.length < 1) {
+    console.log(result)
+
+    if (result.points.length < 1) {
         return false;
     }
 
-    return await computeRoute(db, points, params.layer);
+    return {'stops': result.stops, 'route': await computeRoute(db, result.points, params.layer)};
 }
 
 async function getStopsGeom(db, stops) {
     let points = [];
+    let stopsPoss = [];
     for (let i = 0; i < stops.length; i++) {
         try {
-            let stop = await db.query("SELECT geom FROM " + process.env.DB_SIGNS_TABLE +
+            let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
                 " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND subcode='" + parseInt(stops[i].split('_')[1]) + "'");
             if (stop.rows !== undefined && stop.rows[0] !== undefined) {
+                stopsPoss.push(JSON.parse(stop.rows[0].st_asgeojson).coordinates);
                 points.push(stop.rows[0].geom);
             }
         } catch(err) {
@@ -130,7 +134,7 @@ async function getStopsGeom(db, stops) {
         }
     }
 
-    return points;
+    return {'stops': stopsPoss, 'points': points};
 }
 
 async function saveLines(db, params) {
@@ -234,19 +238,19 @@ async function getLineRoute(db, params) {
         return false;
     }
 
-    let points;
+    let result;
 
     if (params.dir === 'a') {
-        points = await getStopsGeom(db, line.rows[0].routea);
+        result = await getStopsGeom(db, line.rows[0].routea);
     } else if (params.dir === 'b') {
-        points = await getStopsGeom(db, line.rows[0].routeb);
+        result = await getStopsGeom(db, line.rows[0].routeb);
     }
 
-    if (points.length < 1) {
+    if (result.points.length < 1) {
         return false;
     }
 
-    return await computeRoute(db, points, line.rows[0].layer);
+    return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer)};
 }
 
 module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute };

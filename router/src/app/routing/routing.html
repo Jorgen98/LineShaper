@@ -6,13 +6,13 @@
     </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
-        <p class="header" *ngSwitchCase="'routeOneLine'">Choose type to edit</p>
+        <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si linku</p>
         <div class="option" (change)="setLineEnds()">
             <select [(ngModel)]="curLine">
                 <option *ngFor="let item of curLines" [value]="item.code">{{ item.code }}</option>
             </select>
         </div>
-        <p class="header" *ngSwitchCase="'routeOneLine'">Choose type to edit</p>
+        <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si směr</p>
         <div class="option">
             <select [(ngModel)]="curDir">
                 <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
@@ -20,5 +20,8 @@
         </div>
         <button (click)="routeOneLine()">Vypočítat trasu</button>
         <button (click)="defaultMenu()">Menu</button>
+    </div>
+    <div *ngSwitchCase="'routingProgress'">
+        <p class="header" *ngSwitchCase="'routingProgress'">Probíhá výpočet trasy. Vyčkejte prosím.</p>
     </div>
 </div>

@@ -287,6 +287,7 @@ export class MapComponent {
                     t.onOnePointAction(latLng, props);
                     L.DomEvent.stop(event);
                 })
+            point.bringToBack();
         } else {
             point.addTo(this.layers['background']);
         }
@@ -373,14 +374,21 @@ export class MapComponent {
         this.setDefault();
     }
 
-    createRoute(points: any) {
+    createRoute(input: any) {
         if (this.layers['route'] !== undefined) {
             this.map.removeLayer(this.layers['route']);
         }
         this.layers['route'] = L.layerGroup();
         this.layers['route'].addTo(this.map);
 
-        let newLine = L.polyline(points, this.setObjStyle('route'));
+        let newLine = L.polyline(input.route, this.setObjStyle('route'));
         newLine.addTo(this.layers['route']);
+        newLine.bringToFront();
+
+        for (let i = 0; i < input.stops.length; i++) {
+            let point = L.circle(input.stops[i], this.setObjStyle('route'));
+            point.addTo(this.layers['route']);
+            point.bringToFront();
+        }
     }
 }
