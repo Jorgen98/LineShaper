@@ -18,6 +18,7 @@ export class FilesManipulationComponent {
     warningTypeText = "";
     acStopsFileContent: any = undefined;
     acLinesFileContent: any = undefined;
+    acLineCodesFileContent: any = undefined;
     progress = 0;
     progressText = "";
     loadState = 0;
@@ -29,6 +30,7 @@ export class FilesManipulationComponent {
         this.warningTypeText = "";
         this.acStopsFileContent = undefined;
         this.acLinesFileContent = undefined;
+        this.acLineCodesFileContent = undefined;
         this.state = 'menu';
     }
 
@@ -41,14 +43,14 @@ export class FilesManipulationComponent {
 
         for (let i = 0; i < event.target.files.length; i++) {
             // Line order file
-            if (event.target.files[i].type === "text/csv") {
+            if (event.target.files[i].type === "text/csv" && event.target.files[i].name.includes('Order')) {
                 this.readFileContent(event.target.files[i], 0);
             // Stops txt file
-            } else if (event.target.files[i].type === "text/plain") {
+            } else if (event.target.files[i].type === "text/plain" && event.target.files[i].name.includes('Zastavky')) {
                 this.readFileContent(event.target.files[i], 1);
             // Line codes file
-            } else if (event.target.files[i].type === '') {
-                // TO DO
+            } else if (event.target.files[i].type === "text/csv" && event.target.files[i].name.includes('Labels')) {
+                this.readFileContent(event.target.files[i], 2);
             }
         }
     }
@@ -66,7 +68,7 @@ export class FilesManipulationComponent {
                     } else if (type === 1) {
                         this.acStopsFileContent = fileReader.result;
                     } else {
-                        // TO DO
+                        this.acLineCodesFileContent = fileReader.result;
                     }
                 }
             } catch {
@@ -88,12 +90,12 @@ export class FilesManipulationComponent {
 
         let stats = await this.dataService.getStats();
 
-        if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined) {
+        if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined && this.acLineCodesFileContent === undefined) {
             this.state = "impNoDataWar";
             return;
         }
 
-        if (stats['stops'] > 0) {
+        if (stats['stops'] > 0 || stats['signs'] > 0 || stats['lines'] > 0 || stats['lineCodes'] > 0) {
             this.state = "impDataWar";
             return;
         }
@@ -109,12 +111,15 @@ export class FilesManipulationComponent {
         }
 
         if (this.acStopsFileContent !== undefined) {
-            console.log('a');
             await this.importStopsIntroDB();
         }
 
         if (this.acLinesFileContent !== undefined) {
             await this.importLinesIntroDB();
+        }
+
+        if (this.acLineCodesFileContent !== undefined) {
+            await this.importLineCodesIntroDB();
         }
     }
 
@@ -214,19 +219,19 @@ export class FilesManipulationComponent {
 
             record.routeA = routeA;
             record.routeB = routeB;
-            // Trolej
             if (record.type === 'Vlak') {
                 record.type = 'rail';
                 lines.push(record);
             } else if (record.type === 'Bus') {
                 // TO DO
+            } else if (record.type === 'Trolej') {
+                record.type = 'road';
+                lines.push(record);
             } else if (record.type === 'Tram') {
                 record.type = 'tram';
                 lines.push(record);
             }
         }
-
-        console.log(lines);
         
         let upIndex = 20;
         for (let i = 0; i < lines.length; i+=20) {
@@ -246,6 +251,42 @@ export class FilesManipulationComponent {
         input = input.replaceAll('\u009a', "š");
         input = input.replaceAll('\u009e', "ž");
         input = input.replaceAll('\u009d', "ť");
+        input = input.replaceAll('\u008a', "Š");
+        input = input.replaceAll('\u008e', "Ž");
+        input = input.replaceAll('\u008d', "Ť");
         return input;
+    }
+
+    async importLineCodesIntroDB() {
+        this.state = 'progress';
+        this.progress = 0;
+        this.progressText = "Zpracování dat";
+        await this.dataService.clearData('lineCodes');
+
+        let content = this.acLineCodesFileContent.split('\r\n');
+        let lines: any = [];
+
+        for (let i = 0; i < content.length; i++) {
+            let line = content[i].split(";");
+            let record: any;
+
+            if (line[0] !== undefined && line[1] !== undefined && line[1] !== '') {
+                record = {'lc': parseInt(line[0]), 'lName': this.isoFix(line[1])};
+                lines.push(record);
+            }
+        }
+        
+        let upIndex = 20;
+        for (let i = 0; i < lines.length; i+=20) {
+            if (upIndex > (lines.length - 1)) {
+                upIndex = lines.length;
+            }
+            await this.dataService.saveLineCodes(lines.slice(i, upIndex));
+            upIndex += 20;
+            this.progress = Math.round(i / lines.length * 100);
+        }
+
+        this.progressText = "Zpracování dat je dokončeno"
+        this.progress = 100;
     }
 }

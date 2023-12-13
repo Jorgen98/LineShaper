@@ -269,6 +269,14 @@ async function getStats(db) {
         console.log(err);
         return false;
     }
+
+    try {
+        let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_LINE_CODES_TABLE);
+        stats['lineCodes'] = parseInt(result.rows[0].count);
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
     
     return stats;
 }

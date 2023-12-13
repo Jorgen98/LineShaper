@@ -107,6 +107,13 @@ export class DataService {
           );
     }
 
+    queryPostSaveLineCodes(lineCodes: any) {
+        return this.httpClient.post(this.whoToAsk + "/saveLineCodes?lineCodes=" + JSON.stringify(lineCodes), {})
+                .pipe(
+                    retry(3)
+                );
+    }
+
     // Callable functions
     // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
@@ -248,6 +255,19 @@ export class DataService {
                     resolve(response);
                 } else {
                     resolve({});
+                }
+            });
+        });
+    }
+
+    // Save lineCodes, used in import user case
+    saveLineCodes(lineCodes: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryPostSaveLineCodes(lineCodes).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
                 }
             });
         });

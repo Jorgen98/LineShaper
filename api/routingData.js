@@ -56,6 +56,10 @@ async function clearData(db, params) {
         if (params.type === 'lines') {
             await db.query("TRUNCATE TABLE " + process.env.DB_LINES_TABLE + " RESTART IDENTITY");
         }
+
+        if (params.type === 'lineCodes') {
+            await db.query("TRUNCATE TABLE " + process.env.DB_LINE_CODES_TABLE + " RESTART IDENTITY");
+        }
         return true;
     } catch(err) {
         console.log(err);
@@ -166,7 +170,7 @@ async function saveLines(db, params) {
 
 async function getLines(db) {
     try {
-        let result = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE);
+        let result = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " ORDER BY code");
 
         for (let i = 0; i < result.rows.length; i++) {
             let route_start = undefined, route_end = undefined;
@@ -187,8 +191,22 @@ async function getLines(db) {
             }
 
             delete result.rows[i]['id'];
+
+            let lineName;
+            try {
+                lineName = await db.query("SELECT code, name FROM " + process.env.DB_LINE_CODES_TABLE + " WHERE code=" + result.rows[i]['code']);
+            } catch(err) {
+                console.log(err);
+                continue;
+            }
             
+            if (lineName.rows[0] !== undefined) {
+                result.rows[i]['name'] = lineName.rows[0].name;
+            } else {
+                result.rows[i]['name'] = result.rows[i]['code'].toString();
+            }
         }
+
         return result.rows;
     } catch(err) {
         console.log(err);
@@ -253,4 +271,30 @@ async function getLineRoute(db, params) {
     return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer)};
 }
 
-module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute };
+async function saveLineCodes(db, params) {
+    if (params.lineCodes === undefined) {
+        return false;
+    }
+
+    let data = JSON.parse(params.lineCodes);
+    let query = "";
+
+    for (let i = 0; i < data.length; i++) {
+        query += "(" + data[i].lc + ", '" + data[i].lName + "')";
+
+        if (data.length > 0 && i < (data.length - 1)) {
+            query += ",";
+        }
+    }
+
+    try {
+        await db.query("INSERT INTO " + process.env.DB_LINE_CODES_TABLE +
+        ' (code, name) VALUES ' + query);
+        return true;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute, saveLineCodes };

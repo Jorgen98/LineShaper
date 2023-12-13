@@ -9,11 +9,26 @@
             margin: 0;
         }
         
-        p {
+        p.mainTitle {
             font-family: verdana;
             font-size: 2rem;
             color: #52b69a;
-            margin: auto auto 2rem auto;
+            margin: 0;
+        }
+
+        p.version {
+            font-family: verdana;
+            font-size: 1rem;
+            color: #52b69a;
+            margin: auto 0;
+        }
+
+        p.text {
+            font-family: verdana;
+            font-size: 1.25rem;
+            color: #f8f9fa;
+            margin: auto;
+            text-align: center;
         }
 
         input {
@@ -31,12 +46,37 @@
             background-color: #212529;
             border: solid #52b69a 0.2rem;
         }
+
+        .innerMenu {
+            display: flex;
+            flex-direction: column;
+            margin: auto;
+            padding: 2rem;
+            background-color: #212529;
+            border-radius: 0.5rem;
+        }
+
+        .title {
+            display: flex;
+            margin: auto auto 2rem auto;
+            width: 25rem;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
     <body>
         <div style="display: flex; flex-direction: column; height: 100vh; width: 100%;">
-            <p><i>LineShaper</i></p>
-            <input id='aHref1' style="margin: 0.5rem auto 0.5rem auto;"  type="button" onclick="location.href='/mapEditor/'" value="Editor map" />
-            <input style="margin: 0 auto auto auto;" type="button" onclick="location.href='/lineRouter/'" value="Trasování linek" />
+            <div class="innerMenu">
+                <div class="title">
+                    <p class="mainTitle"><i>LineShaper</i></p>
+                    <p class="version">0.5</p>
+                </div>
+                <div class="title">
+                    <p class="text">Interaktivní nástroj pro generování tras linek veřejné dopravy.</p>
+                </div>
+                <input id='aHref1' style="margin: 0.5rem auto 0.5rem auto;"  type="button" onclick="location.href='/mapEditor/'" value="Editor map" />
+                <input style="margin: 0 auto auto auto;" type="button" onclick="location.href='/lineRouter/'" value="Trasování linek" />
+            </div>
         </div>
     </body>
 </html>

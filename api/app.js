@@ -79,6 +79,11 @@ app.post('/api/saveLines', async (req, res) => {
     res.send(await dbRoutingData.saveLines(db, req.query));
 })
 
+// Import line codes data
+app.post('/api/saveLineCodes', async (req, res) => {
+    res.send(await dbRoutingData.saveLineCodes(db, req.query));
+})
+
 // Get stop and its info around some point
 app.get('/api/stopsInRad', async (req, res) => {
     res.send(await dbRoutingData.getStopsInRad(db, req.query));
