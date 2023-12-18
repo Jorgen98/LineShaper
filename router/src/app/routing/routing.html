@@ -9,7 +9,7 @@
         <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si linku</p>
         <div class="option" (change)="setLineEnds()">
             <select [(ngModel)]="curLine">
-                <option *ngFor="let item of curLines" [value]="item.code">{{ item.name }}</option>
+                <option *ngFor="let item of curLines" [value]="item.code">{{ item.name + '/' + item.code }}</option>
             </select>
         </div>
         <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si směr</p>

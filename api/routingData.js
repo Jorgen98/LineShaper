@@ -113,8 +113,6 @@ async function getRoute(db, params) {
     let stops = JSON.parse(params.stops);
     let result = await getStopsGeom(db, stops);
 
-    console.log(result)
-
     if (result.points.length < 1) {
         return false;
     }
@@ -131,7 +129,11 @@ async function getStopsGeom(db, stops) {
                 " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND subcode='" + parseInt(stops[i].split('_')[1]) + "'");
             if (stop.rows !== undefined && stop.rows[0] !== undefined) {
                 stopsPoss.push(JSON.parse(stop.rows[0].st_asgeojson).coordinates);
-                points.push(stop.rows[0].geom);
+                if (stops[i].split('_').length > 2) {
+                    points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
+                } else {
+                    points.push({'geom': stop.rows[0].geom, 'specCode': ''});
+                }
             }
         } catch(err) {
             console.log(err);
@@ -217,12 +219,12 @@ async function getLines(db) {
 
 async function getRouteStartName(db, codes) {
     let result = undefined;
-    if (codes !== undefined && codes.length > 0 && codes[0].split('_').length === 2) {
-            result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-                " WHERE code=" + parseInt(codes[0].split('_')[0]));
-            if (result.rows !== undefined) {
-                return result.rows[0].name;
-            }
+    if (codes !== undefined && codes.length > 0 && codes[0].split('_').length  > 1) {
+        result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
+            " WHERE code=" + parseInt(codes[0].split('_')[0]));
+        if (result.rows !== undefined) {
+            return result.rows[0].name;
+        }
     } else {
         return undefined;
     }
@@ -230,12 +232,12 @@ async function getRouteStartName(db, codes) {
 
 async function getRouteEndName(db, codes) {
     let result = undefined;
-    if (codes !== undefined && codes.length > 0 && codes[codes.length - 1].split('_').length === 2) {
-            result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-                " WHERE code=" + parseInt(codes[codes.length - 1].split('_')[0]));
-            if (result.rows !== undefined) {
-                return result.rows[0].name;
-            }
+    if (codes !== undefined && codes.length > 0 && codes[codes.length - 1].split('_').length > 1) {
+        result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
+            " WHERE code=" + parseInt(codes[codes.length - 1].split('_')[0]));
+        if (result.rows !== undefined) {
+            return result.rows[0].name;
+        }
     } else {
         return undefined;
     }

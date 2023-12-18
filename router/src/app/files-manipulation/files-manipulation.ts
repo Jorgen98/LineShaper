@@ -193,19 +193,42 @@ export class FilesManipulationComponent {
             let routeB: any = [];
 
             do {
-                if (line[3] !== 'konečná' || line[0] !== '' || content[i + 1].split(";")[0] !== '') {
-                    if (line[4] !== '' && line[5] !== '' &&
-                        line[4] !== undefined && line[5] !== undefined &&
-                        line[5].split(',').length === 1) {
+                if (line[4] !== '' && line[5] !== '' &&
+                    line[4] !== undefined && line[5] !== undefined) {
+
+                    if (line[3] === "konečná") {
                         if (line[5].split(',').length > 1) {
-                            line[5] = line[5].split(',')[0];
+                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_k');
+                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_k');
+                        } else {
+                            routeA.push(line[4] + '_' + line[5] + '_k');
                         }
-                        routeA.push(line[4] + '_' + line[5]);
+                    } else {
+                        if (line[5].split(',').length > 1) {
+                            routeA.push(line[4] + '_' + line[5].split(',')[0]);
+                            routeA.push(line[4] + '_' + line[5].split(',')[1]);
+                        } else {
+                            routeA.push(line[4] + '_' + line[5]);
                         }
-                    if (line[4] !== '' && line[6] !== '' &&
-                        line[4] !== undefined && line[6] !== undefined &&
-                        line[6].split(',').length === 1) {
-                        routeB.unshift(line[4] + '_' + line[6]);
+                    }
+                }
+                if (line[4] !== '' && line[6] !== '' &&
+                    line[4] !== undefined && line[6] !== undefined) {
+                    
+                    if (line[3] === "konečná") {
+                        if (line[6].split(',').length > 1) {
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_k');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_k');
+                        } else {
+                            routeB.unshift(line[4] + '_' + line[6] + '_k');
+                        }
+                    } else {
+                        if (line[6].split(',').length > 1) {
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[0]);
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[1]);
+                        } else {
+                            routeB.unshift(line[4] + '_' + line[6]);
+                        }
                     }
                 }
 
@@ -233,13 +256,13 @@ export class FilesManipulationComponent {
             }
         }
         
-        let upIndex = 20;
-        for (let i = 0; i < lines.length; i+=20) {
+        let upIndex = 10;
+        for (let i = 0; i < lines.length; i+=10) {
             if (upIndex > (lines.length - 1)) {
                 upIndex = lines.length;
             }
             await this.dataService.saveLines(lines.slice(i, upIndex));
-            upIndex += 20;
+            upIndex += 10;
             this.progress = Math.round(i / lines.length * 100);
         }
 
