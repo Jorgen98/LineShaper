@@ -12,7 +12,7 @@ export class TileSelectComponent implements OnInit {
     constructor(private mapService: MapService, private dataService: DataService) {}
     @ViewChild('option', { static: true}) tiles!: ElementRef;
     tileIndx = ["", "", ""];
-    netLayers = ["", "", ""];
+    netLayers = ["", "", "", ""];
     
 
     ngOnInit() {
@@ -44,8 +44,10 @@ export class TileSelectComponent implements OnInit {
             this.mapService.flipBackgroundLayersState('rail');
         } else if (id === 1) {
             this.mapService.flipBackgroundLayersState('road');
-        } else {
+        } else if (id === 2) {
             this.mapService.flipBackgroundLayersState('tram');
+        } else {
+            this.mapService.flipBackgroundLayersState('midPoint');
         }
 
         if (this.netLayers[id] === "") {

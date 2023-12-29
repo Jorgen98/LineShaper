@@ -1,0 +1,22 @@
+<div class="content" [ngSwitch]="state">
+    <!-- Default menu screen -->
+    <p class="header" *ngSwitchCase="'menu'">Mezilehlé body na trase</p>
+    <div *ngSwitchCase="'menu'">
+        <button (click)="addMidPointStart()">Přidat nový mezilehlý bod</button>
+    </div>
+    <!-- Add new mid point screen 1 -->
+    <p class="header" *ngSwitchCase="'addMidPoint0'">Zvolte si výchozí zastávku.</p>
+    <div *ngSwitchCase="'addMidPoint0'">
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Add new mid point screen 2 -->
+    <p class="header" *ngSwitchCase="'addMidPoint1'">Vyberte si konečnou zastávku.</p>
+    <div *ngSwitchCase="'addMidPoint1'">
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Add new mid point screen warning -->
+    <p class="header" *ngSwitchCase="'addMidPointWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
+    <div *ngSwitchCase="'addMidPointWarning'">
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+</div>

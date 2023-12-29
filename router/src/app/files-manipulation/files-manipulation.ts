@@ -205,8 +205,8 @@ export class FilesManipulationComponent {
                         }
                     } else {
                         if (line[5].split(',').length > 1) {
-                            routeA.push(line[4] + '_' + line[5].split(',')[0]);
-                            routeA.push(line[4] + '_' + line[5].split(',')[1]);
+                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_p');
+                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_p');
                         } else {
                             routeA.push(line[4] + '_' + line[5]);
                         }
@@ -224,8 +224,8 @@ export class FilesManipulationComponent {
                         }
                     } else {
                         if (line[6].split(',').length > 1) {
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[0]);
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[1]);
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_p');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_p');
                         } else {
                             routeB.unshift(line[4] + '_' + line[6]);
                         }

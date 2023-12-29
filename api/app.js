@@ -11,6 +11,7 @@ app.use(cors());
 
 const dbPoint = require('./mapPoint.js');
 const dbRoutingData = require('./routingData.js');
+const dbMidPoint = require('./mapMidPoint.js');
 
 // DB connection established
 const db = new Pool({
@@ -103,6 +104,20 @@ app.get('/api/route', async (req, res) => {
 app.get('/api/lineRoute', async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
+
+// Mid points CRUD operations
+app.get('/api/midPoint', async (req, res) => {
+    res.send(await dbMidPoint.getMidPointByOneStopCode(db, req.query.endCodeA));
+    })
+    .post('/api/midPoint', async (req, res) => {
+        res.send(await dbMidPoint.createMidPoint(db, req.query));
+    })
+    .put('/api/midPoint', async (req, res) => {
+        res.send(await dbMidPoint.updateMidPoint(db, req.query));
+    })
+    .delete('/api/midPoint', async (req, res) => {
+        res.send(await dbMidPoint.deleteMidPoint(db, req.query));
+    });
 
 // Running API itself
 app.listen(process.env.API_PORT, async () => {

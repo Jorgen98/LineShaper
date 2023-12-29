@@ -35,7 +35,10 @@ export class MapComponent {
     }
 
     private acPopUp: any = undefined;
-    private selPoint: any = [];
+    private midPoints: any = [];
+    private selMidPoint: any = undefined;
+    private selMidPointIndx: any = 0;
+    private move = false;
 
     private initMap(): void {
         this.map = L.map('map', {
@@ -52,6 +55,15 @@ export class MapComponent {
 
         this.map.on('click', function(event) {
             t.setDefault();
+        })
+
+        this.map.on('mousemove', (event) => {
+            if (t.selMidPoint !== undefined && t.move) {
+                if (t.acPopUp !== undefined) {
+                    t.acPopUp.close();
+                }
+                t.moveMidPoint(event.latlng);
+            }
         })
 
         this.map.on('zoomend', () => {
@@ -146,8 +158,12 @@ export class MapComponent {
 
         let t = this;
         let triangle = L.polygon([vertA, vertB, vertC], this.setObjStyle(layer));
-        triangle.addTo(this.layers["background"]);
-        triangle.bringToBack();
+        if (layer === 'midPoint' || layer === 'midPointBac') {
+            triangle.addTo(this.layers['midPoint']);
+        } else {
+            triangle.addTo(this.layers['background']);
+            triangle.bringToBack();
+        }
 
         return triangle;
     }
@@ -183,11 +199,19 @@ export class MapComponent {
         } else if (layer === 'tram') {
             objColor = "var(--tram)";
         } else if (layer === 'route') {
+            objColor = "var(--route)";
+        } else if (layer === 'midPoint') {
+            objColor = "var(--midPoint)";
+        } else if (layer === 'hoover') {
             objColor = "var(--warning)";
         }
 
-        if (layer === "stop" || layer === 'route') {
+        if (layer === "stop" || layer === 'midPoint' || layer === "hoover") {
             objOpacity = 1;
+        } else if (layer === 'route') {
+            objOpacity = 1;
+            interactive = false;
+            radius = 2;
         } else {
             objOpacity = 0.4;
             radius = 0;
@@ -202,17 +226,6 @@ export class MapComponent {
             weight: 4,
             fillOpacity: 1,
             interactive: interactive
-        }
-    }
-
-    setHoverObjStyle() {
-        return {
-            radius: 1,
-            fillColor: "var(--warning)",
-            color: "var(--warning)",
-            opacity: 1,
-            weight: 4,
-            fillOpacity: 1
         }
     }
 
@@ -236,10 +249,14 @@ export class MapComponent {
         this.layers['stops'] = L.layerGroup();
         this.layers['stops'].addTo(this.map);
 
+        let response = await this.dataService.getStopsInRad([latLng.lat, latLng.lng], this.mapService.getBackgroundLayersState()['midPoint']);
+
+        //Midpoints
+        this.createMidpoint(response.midpoints);
+
         //Stops
-        let response = await this.dataService.getStopsInRad([latLng.lat, latLng.lng]);
-        for (let i = 0; i < response.length; i++) {
-            this.createPoint(response[i].geom, 'stop', response[i]);
+        for (let i = 0; i < response.stops.length; i++) {
+            this.createPoint(response.stops[i].geom, 'stop', response.stops[i]);
         }
 
         // Non editable layers
@@ -247,7 +264,7 @@ export class MapComponent {
         let keys = Object.keys(backgroundLayers);
 
         for (let i = 0; i < keys.length; i++) {
-            if (!backgroundLayers[keys[i]]) {
+            if (!backgroundLayers[keys[i]] || keys[i] === 'midPoint') {
                 continue;
             }
             let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng], keys[i]);
@@ -284,94 +301,65 @@ export class MapComponent {
         if (layer === 'stop') {
             point.addTo(this.layers['stops'])
                 .on('click', (event) => {
-                    t.onOnePointAction(latLng, props);
+                    t.mapService.onStopClick(props);
                     L.DomEvent.stop(event);
                 })
-            point.bringToBack();
+                .bindTooltip(props.name + '\n' + props.subcode);
+        } else if (layer === 'midPoint') {
+            point.addTo(this.layers['midPoint'])
+                .on('click', (event) => {
+                    t.onMidPointAction(t.midPoints[props.index], props.pointIndex);
+                    L.DomEvent.stop(event);
+                })
+                .on('mousedown', (event) => {
+                    if (this.selMidPoint !== undefined) {
+                        t.move = true;
+                    }
+                    L.DomEvent.stop(event);
+                })
+                .on('mouseup', (event) => {
+                    console.log(this.selMidPoint)
+                    if (this.selMidPoint !== undefined) {
+                        t.move = false;
+                        t.saveMidPointChanges(t.midPoints[props.index]);
+                    }
+                    L.DomEvent.stop(event);
+                })
+        } else if (layer === 'route') {
+            point.addTo(this.layers['route']);
         } else {
             point.addTo(this.layers['background']);
         }
+
+        return point;
     }
 
     createLine(pointA: any, pointB: any, layer: string, triangle: boolean) {
-        let line;
-
         if (pointA === undefined || pointB === undefined) {
             return;
         }
 
-        let t = this;
         let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer));
-        newLine.addTo(this.layers['background']);
+
+        if (layer === 'midPoint') {
+            newLine.addTo(this.layers['midPoint']);
+        } else if (layer === 'route') {
+            newLine.addTo(this.layers['route']);
+        } else {
+            newLine.addTo(this.layers['background']);
+        }
+
+        let newTriangle;
 
         if (triangle) {
-            this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer);
-        }
-        newLine.bringToBack();
-
-        return;
-    }
-
-    onOnePointAction(geom: any, props: any) {
-        let t = this;
-        let div = document.createElement("div");
-        div.className = "mapDiv";
-
-        let btn = document.createElement("button");
-        btn.innerHTML = '<p class="mapBtnTxt">' + props.name + '\n' + props.subcode + '</p>';
-        btn.className = "mapBtn";
-        btn.disabled = true;
-        div.appendChild(btn);
-
-        btn = document.createElement("button");
-        btn.innerHTML = '<p class="mapBtnTxt">Odtud</p>';
-        btn.className = "mapBtn";
-        btn.onclick = function() {
-            t.makeTwoPointRoute(0, props);
-        }
-        div.appendChild(btn);
-
-        if (this.selPoint.length > 0) {
-            btn = document.createElement("button");
-            btn.innerHTML = '<p class="mapBtnTxt">Přes</p>';
-            btn.className = "mapBtn";
-            btn.onclick = function() {
-                t.makeTwoPointRoute(2, props);
-            }
-            div.appendChild(btn);
-
-            btn = document.createElement("button");
-            btn.innerHTML = '<p class="mapBtnTxt">Sem</p>';
-            btn.className = "mapBtn";
-            btn.onclick = function() {
-                t.makeTwoPointRoute(1, props);
-            }
-            div.appendChild(btn);
+            newTriangle = this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer);
         }
 
-        if (this.acPopUp !== undefined) {
-            this.acPopUp.close();   
+        if (layer !== 'midPoint' || this.move) {
+            newLine.bringToBack();
         }
 
-        this.acPopUp = L.popup(this.setPopUpStyle())
-        .setContent(div)
-        .setLatLng(geom)
-        .openOn(t.map);
-    }
-
-
-    async makeTwoPointRoute(mode: number, props: any) {
-        if (mode === 0) {
-            this.selPoint = [props.code + '_' + props.subcode];
-        } else if (mode === 1) {
-            this.selPoint.push(props.code + '_' + props.subcode);
-            this.createRoute(await this.dataService.getRoute(this.selPoint, 'tram'));
-            this.selPoint = [];
-        } else if (mode === 2) {
-            this.selPoint.push(props.code + '_' + props.subcode);
-        }
-
-        this.setDefault();
+        return {'line': newLine, 'triangle': newTriangle};
     }
 
     createRoute(input: any) {
@@ -381,14 +369,91 @@ export class MapComponent {
         this.layers['route'] = L.layerGroup();
         this.layers['route'].addTo(this.map);
 
-        let newLine = L.polyline(input.route, this.setObjStyle('route'));
-        newLine.addTo(this.layers['route']);
-        newLine.bringToFront();
+        for (let i = 0; i < (input.route.length - 1); i++) {
+            this.createLine(input.route[i], input.route[i + 1], 'route', true);
+        }
 
         for (let i = 0; i < input.stops.length; i++) {
-            let point = L.circle(input.stops[i], this.setObjStyle('route'));
-            point.addTo(this.layers['route']);
-            point.bringToFront();
+            this.createPoint(input.stops[i], 'route');
         }
+
+        this.loadContext(this.map.getCenter());
+    }
+
+    createMidpoint(input: any) {
+        this.midPoints = [];
+        this.selMidPoint = undefined;
+
+        if (this.layers['midPoint'] !== undefined) {
+            this.map.removeLayer(this.layers['midPoint']);
+        }
+        this.layers['midPoint'] = L.layerGroup();
+        this.layers['midPoint'].addTo(this.map);
+
+        for (let i = 0; i < input.length; i++) {
+            let lines = [];
+            let triangles = [];
+            for (let j = 0; j < (input[i].points.length - 1); j++) {
+                let newObjs = this.createLine(input[i].points[j], input[i].points[j + 1], 'midPoint', true);
+                lines.push(newObjs?.line);
+                triangles.push(newObjs?.triangle);
+            }
+
+            this.midPoints.push({'endCodeA': input[i].endcodea, 'endCodeB': input[i].endcodeb, 'lines': lines, 'triangles': triangles, 'points': []});
+        }
+
+        for (let i = 0; i < input.length; i++) {
+            let points = [];
+            for (let j = 1; j < (input[i].points.length - 1); j++) {
+                points.push(this.createPoint(input[i].points[j], 'midPoint', {'index': i, 'pointIndex': j - 1}));
+            }
+            this.midPoints[i].points = points;
+        }
+    }
+
+    onMidPointAction(midPointData: any, pointIndex: number) {
+        midPointData.points[pointIndex].setStyle(this.setObjStyle('hoover'));
+        this.selMidPoint = midPointData;
+        this.selMidPointIndx = pointIndex;
+    }
+
+    moveMidPoint(latLng: any) {
+        this.map.dragging.disable();
+        this.selMidPoint.points[this.selMidPointIndx].setLatLng(latLng);
+        this.moveMidPointLines(latLng);
+        this.map.dragging.enable();
+    }
+
+    moveMidPointLines(latLng: any) {
+        let lineA = this.selMidPoint.lines[this.selMidPointIndx];
+        let lineB = this.selMidPoint.lines[this.selMidPointIndx + 1];
+
+        let triangleA = this.selMidPoint.triangles[this.selMidPointIndx];
+        let triangleB = this.selMidPoint.triangles[this.selMidPointIndx + 1];
+
+        let newObjs;
+
+        newObjs = this.createLine(lineA.getLatLngs()[0], latLng, 'midPoint', true);
+        this.selMidPoint.lines[this.selMidPointIndx] = newObjs?.line;
+        this.selMidPoint.triangles[this.selMidPointIndx] = newObjs?.triangle;
+        this.map.removeLayer(lineA);
+        this.map.removeLayer(triangleA);
+
+        newObjs = this.createLine(latLng, lineB.getLatLngs()[1], 'midPoint', true);
+        this.selMidPoint.lines[this.selMidPointIndx + 1] = newObjs?.line;
+        this.selMidPoint.triangles[this.selMidPointIndx + 1] = newObjs?.triangle;
+        this.map.removeLayer(lineB);
+        this.map.removeLayer(triangleB);
+    }
+
+    async saveMidPointChanges(midPointData: any) {
+        let midPoints = [];
+
+        for (let i = 0; i < midPointData.points.length; i++) {
+            midPoints.push([midPointData.points[i].getLatLng().lat, midPointData.points[i].getLatLng().lng]);
+        }
+
+        await this.dataService.updateMidpoint(midPointData.endCodeA, midPointData.endCodeB, midPoints);
+        this.setDefault();
     }
 }

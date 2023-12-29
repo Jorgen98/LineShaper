@@ -5,6 +5,7 @@ import { TileSelectComponent } from './tile-select/tile-select';
 import { DataService } from './data.service';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { RoutingComponent } from './routing/routing';
+import { MidPointsComponent } from './mid-points/mid-points';
 
 @Component({
     selector: 'app-root',
@@ -51,6 +52,7 @@ export class AppComponent implements OnInit {
             case 0: viewContainerRef.createComponent(TileSelectComponent); break;
             case 2: viewContainerRef.createComponent(FilesManipulationComponent); break;
             case 3: viewContainerRef.createComponent(RoutingComponent); break;
+            case 4: viewContainerRef.createComponent(MidPointsComponent); break;
             default: break;
         }
     }

@@ -11,11 +11,13 @@ export class MapService {
     private changeBaseMapObj = new Subject<any>();
     private visibilityUpdateObj = new Subject<any>();
     private putRouteOnMapObj = new Subject<any>();
+    private onStopClickObj = new Subject<any>();
 
     private backgroundLayers: {[name: string]: boolean} = {
         'rail': false,
         'road': false,
-        'tram': false
+        'tram': false,
+        'midPoint': true
     }
     
     zoomIn() {
@@ -37,6 +39,10 @@ export class MapService {
     putRouteOnMap(points: any) {
         this.putRouteOnMapObj.next(points);
     }
+
+    onStopClick(code: any) {
+        this.onStopClickObj.next(code);
+    }
     
     zoomInEvent(): Observable<any>{
         return this.zoomInObj.asObservable();
@@ -56,6 +62,10 @@ export class MapService {
 
     putRouteOnMapEvent(): Observable<any>{
         return this.putRouteOnMapObj.asObservable();
+    }
+
+    onStopClickEvent(): Observable<any>{
+        return this.onStopClickObj.asObservable();
     }
 
     getBackgroundLayersState() {

@@ -79,8 +79,8 @@ export class DataService {
                 );
     }
 
-    queryGetStopsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {})
+    queryGetStopsInRad(latLng: [number, number], midPoints: boolean) {
+        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng) + '&midPoints=' + midPoints, {})
         .pipe(
             retry(3)
           );
@@ -102,9 +102,6 @@ export class DataService {
 
     queryGetWholeLine(code: number, dir: string) {
         return this.httpClient.get(this.whoToAsk + "/lineRoute?code=" + code + "&dir=" + dir, {})
-        .pipe(
-            retry(3)
-          );
     }
 
     queryPostSaveLineCodes(lineCodes: any) {
@@ -112,6 +109,20 @@ export class DataService {
                 .pipe(
                     retry(3)
                 );
+    }
+
+    queryPostCreateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
+        return this.httpClient.post(this.whoToAsk + "/midPoint?endCodeA=" + endCodeA + "&endCodeB=" + endCodeB + "&midPoints=" + JSON.stringify(midpoints), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryPutUpdateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
+        return this.httpClient.put(this.whoToAsk + "/midPoint?endCodeA=" + endCodeA + "&endCodeB=" + endCodeB + "&midPoints=" + JSON.stringify(midpoints), {})
+        .pipe(
+            retry(3)
+          );
     }
 
     // Callable functions
@@ -211,9 +222,9 @@ export class DataService {
     }
 
     // Get stops and its names around some point
-    getStopsInRad(latLng: [number, number]): Promise<any> {
+    getStopsInRad(latLng: [number, number], midPoints: boolean): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryGetStopsInRad(latLng).subscribe(response => {
+            this.queryGetStopsInRad(latLng, midPoints).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
@@ -264,6 +275,32 @@ export class DataService {
     saveLineCodes(lineCodes: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryPostSaveLineCodes(lineCodes).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    // Add new midpoint
+    addMidpoint(endCodeA: any, endCodeB: any, midpoints: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryPostCreateMidPoint(endCodeA, endCodeB, midpoints).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    // Update midpoint
+    updateMidpoint(endCodeA: any, endCodeB: any, midpoints: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryPutUpdateMidPoint(endCodeA, endCodeB, midpoints).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

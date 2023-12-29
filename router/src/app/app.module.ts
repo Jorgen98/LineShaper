@@ -10,6 +10,7 @@ import { AppDirective } from './app.directive';
 import { HttpClientModule } from '@angular/common/http';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { RoutingComponent } from './routing/routing';
+import { MidPointsComponent } from './mid-points/mid-points';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { RoutingComponent } from './routing/routing';
     MapComponent,
     AppDirective,
     FilesManipulationComponent,
-    RoutingComponent
+    RoutingComponent,
+    MidPointsComponent
   ],
   imports: [
     CommonModule,
