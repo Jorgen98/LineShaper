@@ -12,8 +12,7 @@ let configs = [
         'stopsFindRadius': 310,
         'subNetRadius': 100,
         'maxIterations': 50,
-        'canReturn': true,
-        'waveOptimization': false
+        'canReturn': true
     },
     // Road
     {
@@ -22,8 +21,7 @@ let configs = [
         'stopsFindRadius': 100,
         'subNetRadius': 4,
         'maxIterations': 80,
-        'canReturn': true,
-        'waveOptimization': true
+        'canReturn': true
     },
     // Tram
     {
@@ -32,8 +30,7 @@ let configs = [
         'stopsFindRadius': 200,
         'subNetRadius': 100,
         'maxIterations': 50,
-        'canReturn': false,
-        'waveOptimization': false
+        'canReturn': false
     }
 ]
 let configIndex = 0;
@@ -668,10 +665,12 @@ async function getStopsData(db, stops) {
             continue;
         }
 
-        stop.rows[0].pos = JSON.parse(stop.rows[0].st_asgeojson).coordinates;
-        stop.rows[0].specCode = stops[i].specCode;
-        delete stop.rows[0].st_asgeojson;
-        stops[i] = stop.rows[0];
+        if (stop.rows.length > 0) {
+            stop.rows[0].pos = JSON.parse(stop.rows[0].st_asgeojson).coordinates;
+            stop.rows[0].specCode = stops[i].specCode;
+            delete stop.rows[0].st_asgeojson;
+            stops[i] = stop.rows[0];
+        }
     }
 
     let i = 1;

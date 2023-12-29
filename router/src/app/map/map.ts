@@ -123,14 +123,14 @@ export class MapComponent {
         this.dataService.setTileIndex(id);
     }
 
-    setDefault() {
-        this.loadContext(this.map.getCenter());
+    async setDefault() {
+        await this.loadContext(this.map.getCenter());
         if (this.acPopUp !== undefined) {
             this.acPopUp.close();
         }
     }
 
-    createDirectionTriangle(pointA: any, pointB: any, center: any, layer: string) {
+    createDirectionTriangle(pointA: any, pointB: any, center: any, layer: string, props: any = undefined) {
         pointA = this.map.latLngToLayerPoint(pointA);
         pointB = this.map.latLngToLayerPoint(pointB);
         
@@ -158,8 +158,15 @@ export class MapComponent {
 
         let t = this;
         let triangle = L.polygon([vertA, vertB, vertC], this.setObjStyle(layer));
-        if (layer === 'midPoint' || layer === 'midPointBac') {
-            triangle.addTo(this.layers['midPoint']);
+        if (layer === 'midPoint') {
+            triangle.on('click', async (event) => {
+                if (this.selMidPoint !== undefined) {
+                    await this.setDefault();
+                }
+                t.onLineClick(props);
+                L.DomEvent.stop(event);
+            })
+            .addTo(this.layers['midPoint']);
         } else {
             triangle.addTo(this.layers['background']);
             triangle.bringToBack();
@@ -318,10 +325,9 @@ export class MapComponent {
                     L.DomEvent.stop(event);
                 })
                 .on('mouseup', (event) => {
-                    console.log(this.selMidPoint)
                     if (this.selMidPoint !== undefined) {
                         t.move = false;
-                        t.saveMidPointChanges(t.midPoints[props.index]);
+                        t.saveMidPointChanges();
                     }
                     L.DomEvent.stop(event);
                 })
@@ -334,15 +340,23 @@ export class MapComponent {
         return point;
     }
 
-    createLine(pointA: any, pointB: any, layer: string, triangle: boolean) {
+    createLine(pointA: any, pointB: any, layer: string, triangle: boolean, props: any = {}) {
         if (pointA === undefined || pointB === undefined) {
             return;
         }
 
         let newLine = L.polyline([pointA, pointB], this.setObjStyle(layer));
+        let t = this;
 
         if (layer === 'midPoint') {
-            newLine.addTo(this.layers['midPoint']);
+            newLine.on('click', async (event) => {
+                    if (this.selMidPoint !== undefined) {
+                        await this.setDefault();
+                    }
+                    t.onLineClick(props);
+                    L.DomEvent.stop(event);
+                })
+                .addTo(this.layers['midPoint'])
         } else if (layer === 'route') {
             newLine.addTo(this.layers['route']);
         } else {
@@ -352,7 +366,7 @@ export class MapComponent {
         let newTriangle;
 
         if (triangle) {
-            newTriangle = this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer);
+            newTriangle = this.createDirectionTriangle(pointA, pointB, newLine.getCenter(), layer, props);
         }
 
         if (layer !== 'midPoint' || this.move) {
@@ -394,7 +408,7 @@ export class MapComponent {
             let lines = [];
             let triangles = [];
             for (let j = 0; j < (input[i].points.length - 1); j++) {
-                let newObjs = this.createLine(input[i].points[j], input[i].points[j + 1], 'midPoint', true);
+                let newObjs = this.createLine(input[i].points[j], input[i].points[j + 1], 'midPoint', true, {'index': i, 'lineIndex': j});
                 lines.push(newObjs?.line);
                 triangles.push(newObjs?.triangle);
             }
@@ -411,10 +425,89 @@ export class MapComponent {
         }
     }
 
-    onMidPointAction(midPointData: any, pointIndex: number) {
+    onMidPointAction(midPointData: any, pointIndex: number, type = 'base') {
         midPointData.points[pointIndex].setStyle(this.setObjStyle('hoover'));
         this.selMidPoint = midPointData;
         this.selMidPointIndx = pointIndex;
+
+        let t = this;
+        let div = document.createElement("div");
+        if (type === 'base') {
+            let btn = document.createElement("button");
+            btn.innerHTML = '<img src="assets/icons/trash.svg" class="mapBtnIn"/>';
+            btn.className = "mapBtn";
+            btn.onclick = function() {
+                t.onMidPointAction(midPointData, pointIndex, 'delete');
+            }
+            div.appendChild(btn);
+        } else if (type === 'delete') {
+            if (midPointData.points.length > 1) {
+                let btn = document.createElement("button");
+                btn.innerHTML = '<p class="mapBtnTxt">Smazat tento bod</p>';
+                btn.className = "mapBtnTxt";
+                btn.onclick = async function() {
+                    await t.deleteOneMidPoint(pointIndex);
+                    t.setDefault();
+                }
+                div.appendChild(btn);
+            }
+
+            let btnWhole = document.createElement("button");
+            btnWhole.innerHTML = '<p class="mapBtnTxt">Vymazat celou medzi sekci</p>';
+            btnWhole.className = "mapBtnTxt";
+            btnWhole.onclick = async function() {
+                await t.deleteMidPoint();
+                t.setDefault();
+            }
+            div.appendChild(btnWhole);
+        }
+
+        this.acPopUp = L.popup(this.setPopUpStyle())
+        .setContent(div)
+        .setLatLng(midPointData.points[pointIndex].getLatLng())
+        .openOn(t.map);
+    }
+
+    onLineClick(props: any, type = 'base') {
+        this.selMidPoint = this.midPoints[props.index];
+        this.selMidPoint.lines[props.lineIndex].setStyle(this.setObjStyle('hoover'));
+        this.selMidPoint.triangles[props.lineIndex].setStyle(this.setObjStyle('hoover'));
+        
+        let t = this;
+        let div = document.createElement("div");
+        if (type === 'base') {
+            let btnAdd = document.createElement("button");
+            btnAdd.innerHTML = '<img src="assets/icons/newPoint.svg" class="mapBtnIn"/>';
+            btnAdd.className = "mapBtn";
+            btnAdd.onclick = function() {
+                t.addMidPoint(props.lineIndex);
+            }
+            div.appendChild(btnAdd);
+
+            let btn = document.createElement("button");
+            btn.innerHTML = '<img src="assets/icons/trash.svg" class="mapBtnIn"/>';
+            btn.className = "mapBtn";
+            btn.onclick = function() {
+                t.onLineClick(props, 'delete');
+            }
+            div.appendChild(btn);
+        } else if (type === 'delete') {
+            let btn = document.createElement("button");
+            btn.innerHTML = '<p class="mapBtnTxt">Vymazat celou medzi sekci</p>';
+            btn.className = "mapBtnTxt";
+            btn.onclick = async function() {
+                await t.deleteMidPoint();
+                t.setDefault();
+            }
+            div.appendChild(btn);
+        }
+
+        let center = {"lat": (this.selMidPoint.lines[props.lineIndex].getLatLngs()[0].lat + this.selMidPoint.lines[props.lineIndex].getLatLngs()[1].lat) / 2,
+                      "lng": (this.selMidPoint.lines[props.lineIndex].getLatLngs()[0].lng + this.selMidPoint.lines[props.lineIndex].getLatLngs()[1].lng) / 2 }
+        this.acPopUp = L.popup(this.setPopUpStyle())
+        .setContent(div)
+        .setLatLng(center)
+        .openOn(t.map);
     }
 
     moveMidPoint(latLng: any) {
@@ -446,14 +539,51 @@ export class MapComponent {
         this.map.removeLayer(triangleB);
     }
 
-    async saveMidPointChanges(midPointData: any) {
+    async addMidPoint(index: number) {
         let midPoints = [];
 
-        for (let i = 0; i < midPointData.points.length; i++) {
-            midPoints.push([midPointData.points[i].getLatLng().lat, midPointData.points[i].getLatLng().lng]);
+        for (let i = 0; i < index; i++) {
+            midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
         }
 
-        await this.dataService.updateMidpoint(midPointData.endCodeA, midPointData.endCodeB, midPoints);
+        let center = [(this.selMidPoint.lines[index].getLatLngs()[0].lat + this.selMidPoint.lines[index].getLatLngs()[1].lat) / 2,
+                      (this.selMidPoint.lines[index].getLatLngs()[0].lng + this.selMidPoint.lines[index].getLatLngs()[1].lng) / 2 ];
+        midPoints.push(center);
+
+        for (let i = index; i < this.selMidPoint.points.length; i++) {
+            midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
+        }
+
+        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
         this.setDefault();
+    }
+
+    async deleteOneMidPoint(index: number) {
+        let midPoints = [];
+
+        for (let i = 0; i < this.selMidPoint.points.length; i++) {
+            if (i === index) {
+                continue;
+            }
+            midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
+        }
+
+        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
+        this.setDefault();
+    }
+
+    async saveMidPointChanges() {
+        let midPoints = [];
+
+        for (let i = 0; i < this.selMidPoint.points.length; i++) {
+            midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
+        }
+
+        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
+        this.setDefault();
+    }
+
+    async deleteMidPoint() {
+        await this.dataService.deleteMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB);
     }
 }

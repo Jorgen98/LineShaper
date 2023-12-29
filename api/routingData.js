@@ -1,4 +1,4 @@
-const { getMidPointByOneStopCode } = require("./mapMidPoint");
+const { getMidPointByOneStopCode, getMidPointByTwoStopCodes } = require("./mapMidPoint");
 const { computeRoute } = require("./routing");
 
 async function createStops(db, params) {
@@ -148,6 +148,16 @@ async function getStopsGeom(db, stops) {
                     points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
                 } else {
                     points.push({'geom': stop.rows[0].geom, 'specCode': ''});
+                }
+
+                if (i < (stops.length - 1)) {
+                    let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
+                        stops[i + 1].split('_')[0] + '_' + stops[i + 1].split('_')[1]);
+
+                    if (midpoint) {
+                        stopsPoss = stopsPoss.concat(midpoint.stopPoss);
+                        points = points.concat(midpoint.points);
+                    }
                 }
             }
         } catch(err) {

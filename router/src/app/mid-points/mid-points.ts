@@ -26,6 +26,7 @@ export class MidPointsComponent {
     defaultMenu() {
         this.state = 'menu';
         this.stops = [];
+        this.mapService.visibilityUpdate();
     }
 
     addMidPointStart() {
