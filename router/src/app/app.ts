@@ -14,11 +14,17 @@ import { MidPointsComponent } from './mid-points/mid-points';
 })
 
 export class AppComponent implements OnInit {
-    constructor(private mapService: MapService, private dataService: DataService) {}
+    constructor(private mapService: MapService) {
+        this.mapService.onRoutingEvent().subscribe((state) => {
+            this.btnDisabled = state;
+        })
+    }
     @ViewChild(AppDirective, { static: true}) mapTiles!: AppDirective;
     menuIndexBtn = ["", "", "", "", ""];
     newItems = false;
-
+    btnDisabled = false;
+    mapDisabledZIndex = 0;
+    
     ngOnInit(): void {
         this.openMenuItem(2);
         this.closeMenuItem();

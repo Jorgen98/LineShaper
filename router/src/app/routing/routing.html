@@ -3,6 +3,7 @@
     <p class="header" *ngSwitchCase="'menu'">Trasování linek</p>
     <div *ngSwitchCase="'menu'">
         <button (click)="routeOneLine()">Trasování jedné linky</button>
+        <button (click)="routeAllRoutes()">Trasování všech linek</button>
     </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
@@ -21,7 +22,17 @@
         <button (click)="routeOneLine()">Vypočítat trasu</button>
         <button (click)="defaultMenu()">Menu</button>
     </div>
+    <!-- One route progress screen -->
     <div *ngSwitchCase="'routingProgress'">
         <p class="header" *ngSwitchCase="'routingProgress'">Probíhá výpočet trasy. Vyčkejte prosím.</p>
+    </div>
+    <!-- Progress screen -->
+    <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
+    <div *ngSwitchCase="'progress'">
+        <div class="progress" [style.width]="progress+'%'" *ngIf="progress !== 100 && progress !== 0">
+            {{ progress + '%'}}
+        </div>
+        <button class="mark" *ngIf="progress === 100" (click)="defaultMenu()">Zavřít</button>
+        <button *ngIf="progress !== 100 && progress !== 0" (click)="cancelRouting()">Zrušit</button>
     </div>
 </div>

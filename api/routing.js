@@ -62,11 +62,6 @@ async function computeRoute(db, stops, layer) {
     let state = 0;
     let stepsBack = 0;
     let tempRoute = [];
-    let tempScore = Infinity;
-    /* 0 - default state, waiting for first rote data insertion
-     * 1 - connected state, no stop order jumps, parts between stops connects on each other
-     * 2 - forward disconnection
-     */
  
     if (stops[stopBIndex] !== undefined && stops[stopBIndex].specCode === 'k') {
         state = 2;
