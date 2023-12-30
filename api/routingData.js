@@ -61,6 +61,10 @@ async function clearData(db, params) {
         if (params.type === 'lineCodes') {
             await db.query("TRUNCATE TABLE " + process.env.DB_LINE_CODES_TABLE + " RESTART IDENTITY");
         }
+
+        if (params.type === 'midpoints') {
+            await db.query("TRUNCATE TABLE " + process.env.DB_MIDPOINTS_TABLE + " RESTART IDENTITY");
+        }
         return true;
     } catch(err) {
         console.log(err);

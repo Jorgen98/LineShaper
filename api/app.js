@@ -119,6 +119,10 @@ app.get('/api/midPoint', async (req, res) => {
         res.send(await dbMidPoint.deleteMidPoint(db, req.query));
     });
 
+app.get('/api/midPointsByGid', async (req, res) => {
+    res.send(await dbMidPoint.getMidPointsByID(db, req.query));
+})
+
 // Running API itself
 app.listen(process.env.API_PORT, async () => {
     // Try to connect

@@ -3,6 +3,7 @@
     <p class="header" *ngSwitchCase="'menu'">Import a export linkového vedení</p>
     <div *ngSwitchCase="'menu'">
         <button (click)="importData()">Načtení linkových podkladů</button>
+        <button (click)="exportMidPointData()">Export uživatelem definovaných mezilehlých bodů</button>
     </div>
     <!-- Import maps screen -->
     <p class="header" *ngSwitchCase="'impData'">Import linkových podkladů</p>

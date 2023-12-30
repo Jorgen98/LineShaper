@@ -222,4 +222,24 @@ async function deleteMidPoint(db, params) {
     }
 }
 
-module.exports = { getMidPointByTwoStopCodes, getMidPointByOneStopCode, createMidPoint, updateMidPoint, deleteMidPoint };
+async function getMidPointsByID(db, params) {
+    if (params.id === undefined) {
+        return false;
+    }
+
+    try {
+        let result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE +
+        " WHERE id > " + parseInt(params.id) + " ORDER BY id LIMIT (1000)");
+
+        for (let i = 0; i < result.rows.length; i++) {
+            result.rows[i]['midpoints'] = JSON.parse(result.rows[i]['st_asgeojson']).coordinates;
+            delete result.rows[i]['st_asgeojson'];
+        }
+        return result.rows;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+module.exports = { getMidPointByTwoStopCodes, getMidPointByOneStopCode, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };

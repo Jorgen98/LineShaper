@@ -19,6 +19,7 @@ export class FilesManipulationComponent {
     acStopsFileContent: any = undefined;
     acLinesFileContent: any = undefined;
     acLineCodesFileContent: any = undefined;
+    acMidPointFileContent: any = undefined;
     progress = 0;
     progressText = "";
     loadState = 0;
@@ -31,6 +32,7 @@ export class FilesManipulationComponent {
         this.acStopsFileContent = undefined;
         this.acLinesFileContent = undefined;
         this.acLineCodesFileContent = undefined;
+        this.acMidPointFileContent = undefined;
         this.state = 'menu';
     }
 
@@ -51,6 +53,9 @@ export class FilesManipulationComponent {
             // Line codes file
             } else if (event.target.files[i].type === "text/csv" && event.target.files[i].name.includes('Labels')) {
                 this.readFileContent(event.target.files[i], 2);
+            // MidPoints file
+            } else if (event.target.files[i].type === "application/geo+json" && event.target.files[i].name.includes('midpoints')) {
+                this.readFileContent(event.target.files[i], 3);
             }
         }
     }
@@ -67,8 +72,10 @@ export class FilesManipulationComponent {
                         this.acLinesFileContent = fileReader.result;
                     } else if (type === 1) {
                         this.acStopsFileContent = fileReader.result;
-                    } else {
+                    } else if (type === 2) {
                         this.acLineCodesFileContent = fileReader.result;
+                    } else {
+                        this.acMidPointFileContent = fileReader.result;
                     }
                 }
             } catch {
@@ -90,12 +97,13 @@ export class FilesManipulationComponent {
 
         let stats = await this.dataService.getStats();
 
-        if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined && this.acLineCodesFileContent === undefined) {
+        if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined
+            && this.acLineCodesFileContent === undefined && this.acMidPointFileContent === undefined) {
             this.state = "impNoDataWar";
             return;
         }
 
-        if (stats['stops'] > 0 || stats['signs'] > 0 || stats['lines'] > 0 || stats['lineCodes'] > 0) {
+        if (stats['stops'] > 0 || stats['signs'] > 0 || stats['lines'] > 0 || stats['lineCodes'] > 0 || stats['midpoints'] > 0) {
             this.state = "impDataWar";
             return;
         }
@@ -120,6 +128,10 @@ export class FilesManipulationComponent {
 
         if (this.acLineCodesFileContent !== undefined) {
             await this.importLineCodesIntroDB();
+        }
+
+        if (this.acMidPointFileContent !== undefined) {
+            await this.importMidPointsIntroDB();
         }
     }
 
@@ -310,6 +322,71 @@ export class FilesManipulationComponent {
         }
 
         this.progressText = "Zpracování dat je dokončeno"
+        this.progress = 100;
+    }
+
+    async importMidPointsIntroDB() {
+        this.state = 'progress';
+        this.progress = 0;
+        this.progressText = "Zpracování dat";
+        await this.dataService.clearData('midpoints');
+
+        let content = JSON.parse(this.acMidPointFileContent);
+        if (content.type === 'midpoints') {
+            for (let i = 0; i < content.records.length; i++) {
+                await this.dataService.addMidpoint(content.records[i].endcodea, content.records[i].endcodeb, content.records[i].midpoints);
+                this.progress = Math.round(i / content.records.length * 100);
+            }
+        }
+
+        this.progressText = "Zpracování dat je dokončeno"
+        this.progress = 100;
+    }
+
+    async exportMidPointData() {
+        if (this.progress === 100) {
+            this.progress = 0;
+            this.defaultMenu();
+            return;
+        }
+        this.state = 'progress';
+        this.progress = 0;
+        this.progressText = "Export dat";
+
+        let data = [];
+        let id = 0;
+        let recNum = (await this.dataService.getStats())['midpoints'];
+        let procRec = 0;
+        let result: any = [];
+        let indexes: any = {};
+        while ((data = await this.dataService.getMidPointsById(id)).length > 0) {
+            id = data[data.length - 1].id;
+            for (let i = 0; i < data.length; i++, procRec++) {
+                result.push(data[i]);
+                indexes[data[i].id] = procRec;
+            }
+            this.progress = Math.round(procRec / recNum * 100);
+            data = [];
+        }
+
+        for (let i = 0; i < result.length; i++) {
+            delete result[i].id;
+            result[i].midpoints = JSON.parse(JSON.stringify(result[i].midpoints));
+        }
+
+        let filename = "midpoints_" + formatDate(new Date(), 'yyyy-MM-dd', 'en') + ".geojson";
+        let blob = new Blob([JSON.stringify({"type": 'midpoints',
+            "valid": formatDate(new Date(), 'yyyy-MM-dd', 'en'), "records": result})], { type: 'text/json' });
+
+        let a = document.createElement("a");
+        document.body.appendChild(a);
+        a.setAttribute('download', filename);
+        a.style.display = 'none';
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+
+        this.progressText = "Exportování dat je dokončeno"
         this.progress = 100;
     }
 }

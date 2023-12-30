@@ -132,6 +132,13 @@ export class DataService {
           );
     }
 
+    queryGetMidPointsById(id: number) {
+        return this.httpClient.get(this.whoToAsk + "/midPointsByGid?id=" + id, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     // Callable functions
     // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
@@ -321,6 +328,19 @@ export class DataService {
     deleteMidpoint(endCodeA: any, endCodeB: any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryDeleteMidPoint(endCodeA, endCodeB).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    // Get 1000 midpoint records above some ID, used in export use case
+    getMidPointsById(id: number): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetMidPointsById(id).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
