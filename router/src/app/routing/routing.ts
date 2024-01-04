@@ -146,7 +146,7 @@ export class RoutingComponent implements OnInit {
                         if (type === 0) {
                             text += lines[i].name;
                         } else {
-                            text += lines[i].code;
+                            text += 'L' + lines[i].code + 'D99';
                         }
                         text += ',' + result[lines[i].code].a[j][0] + ',' + result[lines[i].code].a[j][1] + ',' + idx + '\r\n';
                         idx++;
@@ -158,7 +158,7 @@ export class RoutingComponent implements OnInit {
                         if (type === 0) {
                             text += lines[i].name;
                         } else {
-                            text += lines[i].code;
+                            text += 'L' + lines[i].code + 'D99';
                         }
                         text += ',' + result[lines[i].code].b[j][0] + ',' + result[lines[i].code].b[j][1] + ',' + idx + '\r\n';
                         idx++;

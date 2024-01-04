@@ -262,8 +262,29 @@ export class MapComponent {
         this.createMidpoint(response.midpoints);
 
         //Stops
+        let stopsOnMap: {[id: string]: {geom: L.LatLng, label: string, keys: string []}} = {};
+        for (const stop of response.stops) {
+            let key = stop.geom[0].toString() + stop.geom[1].toString();
+            let label = stop.name;
+            let codes = [];
+            for (const sign of stop.subcodes) {
+                label += ' ' + sign;
+                codes.push(stop.code + '_' + sign);
+            }
+
+            if (stopsOnMap[key] !== undefined) {
+                stopsOnMap[key].label += ', ' + label;
+                stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
+            } else {
+                stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
+            }
+        }
+
         for (let i = 0; i < response.stops.length; i++) {
             this.createPoint(response.stops[i].geom, 'stop', response.stops[i]);
+        }
+        for (const stop in stopsOnMap) {
+            this.createPoint(stopsOnMap[stop].geom, 'stop', stopsOnMap[stop]);
         }
 
         // Non editable layers
@@ -311,7 +332,7 @@ export class MapComponent {
                     t.mapService.onStopClick(props);
                     L.DomEvent.stop(event);
                 })
-                .bindTooltip(props.name + '\n' + props.subcode);
+                .bindTooltip(props.label);
         } else if (layer === 'midPoint') {
             point.addTo(this.layers['midPoint'])
                 .on('click', (event) => {
@@ -413,7 +434,7 @@ export class MapComponent {
                 triangles.push(newObjs?.triangle);
             }
 
-            this.midPoints.push({'endCodeA': input[i].endcodea, 'endCodeB': input[i].endcodeb, 'lines': lines, 'triangles': triangles, 'points': []});
+            this.midPoints.push({'id': input[i].id, 'lines': lines, 'triangles': triangles, 'points': []});
         }
 
         for (let i = 0; i < input.length; i++) {
@@ -554,7 +575,7 @@ export class MapComponent {
             midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
         }
 
-        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
+        await this.dataService.updateMidpoint(this.selMidPoint.id, midPoints);
         this.setDefault();
     }
 
@@ -568,7 +589,7 @@ export class MapComponent {
             midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
         }
 
-        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
+        await this.dataService.updateMidpoint(this.selMidPoint.id, midPoints);
         this.setDefault();
     }
 
@@ -579,11 +600,11 @@ export class MapComponent {
             midPoints.push([this.selMidPoint.points[i].getLatLng().lat, this.selMidPoint.points[i].getLatLng().lng]);
         }
 
-        await this.dataService.updateMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB, midPoints);
+        await this.dataService.updateMidpoint(this.selMidPoint.id, midPoints);
         this.setDefault();
     }
 
     async deleteMidPoint() {
-        await this.dataService.deleteMidpoint(this.selMidPoint.endCodeA, this.selMidPoint.endCodeB);
+        await this.dataService.deleteMidpoint(this.selMidPoint.id);
     }
 }

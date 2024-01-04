@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { DataService } from '../data.service';
 import { MapService } from '../map/map.service';
 import { formatDate } from '@angular/common';
@@ -141,39 +141,63 @@ export class FilesManipulationComponent {
         this.progressText = "Zpracování dat";
         await this.dataService.clearData('stops');
 
-        let content = this.acStopsFileContent.split('\r\n');
-        let stops: any = [];
+        let input = this.acStopsFileContent.split('\r\n');
+        let stops: {code: number, name: string, signs: {[latLng: string]: string []}} [] = [];
 
-        for (let i = 0; i < content.length;) {
-            let line = content[i].split(" ");
-            let key = line[0];
-            if (line[2] !== undefined) {
+        for (let i = 0; i < input.length;) {
+            let inputLine = input[i].split(" ");
+            let stopCode = parseInt(inputLine[0]);
+            if (inputLine[2] !== undefined) {
                 let j = 0;
-                let name = line[2];
-                while(line[2 + j][line[2 + j].length - 1] === ',' || line[2 + j][line[2 + j].length - 1] !== "'") {
+                let name = inputLine[2];
+
+                // Get stop name
+                while(inputLine[2 + j][inputLine[2 + j].length - 1] === ',' || inputLine[2 + j][inputLine[2 + j].length - 1] !== "'") {
                     j++;
-                    name += ' ' + line[2 + j];
+                    name += ' ' + inputLine[2 + j];
                 }
 
+                // Fix non-UTF format shit
                 name = this.isoFix(name);
                 name = name.replaceAll('&', "a");
-                stops.push({'id': parseInt(line[0]), 'n': name.replaceAll("'", ""), 'p': {}});
 
-                let positions: any = [];
+                // Prepare single stop sign data
+                // Be careful, there can be more signs on with same position
+                let stopSigns: {[latLng: string]: string []} = {};
                 i++;
-                line = content[i].split(" ");
-                while (line[0] === "" && line[1] === "") {
-                    positions.push({'n': line[2].replaceAll("S", ""), 'p': [parseInt(line[4])/100000/60, parseInt(line[3])/100000/60]});
+                inputLine = input[i].split(" ");
+                while (inputLine[0] === "" && inputLine[1] === "") {
+                    let latLng = (parseInt(inputLine[4])/100000/60).toFixed(5).toString() + '_' + (parseInt(inputLine[3])/100000/60).toFixed(5).toString();
+                    let signCode = parseInt(inputLine[2].replaceAll("S", "")).toString();
+                
+                    if (stopSigns[latLng] === undefined)  {
+                        stopSigns[latLng] = [signCode];
+                    } else {
+                        stopSigns[latLng] = stopSigns[latLng].concat(signCode);
+                    }
+
                     i++;
-                    line = content[i].split(" ");
+                    inputLine = input[i].split(" ");
                 }
                 
-                stops[stops.length - 1].p = positions;
+                // Check if stop already exists and store stopSigns
+                let existStop = stops.find((stop) => {return stop.code === stopCode});
+                if (existStop !== undefined) {
+                    let newSigns = Object.keys(stopSigns);
+                    for (const sign in newSigns) {
+                        if (existStop.signs[sign] !== undefined) {
+                            existStop.signs[sign] = existStop.signs[sign].concat(stopSigns[sign]);
+                        }
+                    }
+                } else if (Object.keys(stopSigns).length > 0) {
+                    stops.push({code: stopCode, name: name.replaceAll("'", ""), signs: stopSigns});
+                }
             } else {
                 i++;
             }
         }
         
+        // Upload data to DB
         let upIndex = 10;
         for (let i = 0; i < stops.length; i+=10) {
             if (upIndex > (stops.length - 1)) {
@@ -197,6 +221,7 @@ export class FilesManipulationComponent {
 
         let content = this.acLinesFileContent.split('\r\n');
         let lines: any = [];
+        let savedLines: any = [];
 
         for (let i = 1; i < content.length;) {
             let line = content[i].split(";");
@@ -254,17 +279,20 @@ export class FilesManipulationComponent {
 
             record.routeA = routeA;
             record.routeB = routeB;
+
             if (record.type === 'Vlak') {
                 record.type = 'rail';
-                lines.push(record);
             } else if (record.type === 'Bus') {
-                // TO DO
+                record.type = 'road';
             } else if (record.type === 'Trolej') {
                 record.type = 'road';
-                lines.push(record);
             } else if (record.type === 'Tram') {
                 record.type = 'tram';
+            }
+
+            if (savedLines.indexOf(record.lc) === -1 && parseInt(record.lc) < 100) {
                 lines.push(record);
+                savedLines.push(record.lc);
             }
         }
         
@@ -280,16 +308,6 @@ export class FilesManipulationComponent {
 
         this.progressText = "Zpracování dat je dokončeno"
         this.progress = 100;
-    }
-
-    isoFix(input: string) {
-        input = input.replaceAll('\u009a', "š");
-        input = input.replaceAll('\u009e', "ž");
-        input = input.replaceAll('\u009d', "ť");
-        input = input.replaceAll('\u008a', "Š");
-        input = input.replaceAll('\u008e', "Ž");
-        input = input.replaceAll('\u008d', "Ť");
-        return input;
     }
 
     async importLineCodesIntroDB() {
@@ -334,7 +352,7 @@ export class FilesManipulationComponent {
         let content = JSON.parse(this.acMidPointFileContent);
         if (content.type === 'midpoints') {
             for (let i = 0; i < content.records.length; i++) {
-                await this.dataService.addMidpoint(content.records[i].endcodea, content.records[i].endcodeb, content.records[i].midpoints);
+                await this.dataService.addMidpoint(content.records[i].endcodesa, content.records[i].endcodesb, content.records[i].midpoints);
                 this.progress = Math.round(i / content.records.length * 100);
             }
         }
@@ -388,5 +406,15 @@ export class FilesManipulationComponent {
 
         this.progressText = "Exportování dat je dokončeno"
         this.progress = 100;
+    }
+
+    isoFix(input: string) {
+        input = input.replaceAll('\u009a', "š");
+        input = input.replaceAll('\u009e', "ž");
+        input = input.replaceAll('\u009d', "ť");
+        input = input.replaceAll('\u008a', "Š");
+        input = input.replaceAll('\u008e', "Ž");
+        input = input.replaceAll('\u008d', "Ť");
+        return input;
     }
 }

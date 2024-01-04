@@ -6,9 +6,9 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     let result, endStopA, endStopB;
     try {
         endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-            " WHERE code=" + parseInt(endCodeA.split('_')[0]) + " AND subcode='" + parseInt(endCodeA.split('_')[1]) + "'");
+            " WHERE code=" + parseInt(endCodeA.split('_')[0]) + " AND '" + parseInt(endCodeA.split('_')[1]) + "'=ANY(subcodes)");
         endStopB = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-            " WHERE code=" + parseInt(endCodeB.split('_')[0]) + " AND subcode='" + parseInt(endCodeB.split('_')[1]) + "'");
+            " WHERE code=" + parseInt(endCodeB.split('_')[0]) + " AND '" + parseInt(endCodeB.split('_')[1]) + "'=ANY(subcodes)");
     } catch(err) {
         console.log(err);
         return false;
@@ -19,7 +19,7 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     }
 
     try {
-        result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" + endCodeA + "' AND endCodeB='" + endCodeB + "'");
+        result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE '" + endCodeA + "'=ANY(endCodesA) AND '" + endCodeB + "'=ANY(endCodesB)");
     } catch(err) {
         console.log(err);
         return false;
@@ -57,26 +57,14 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     return {'stopPoss': stops, 'points': points};
 }
 
-async function getMidPointByOneStopCode(db, endCodeA) {
-    if (endCodeA === undefined) {
-        return false;
-    }
-
-    let result, endStopA, endStopB;
-    try {
-        endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-            " WHERE code=" + parseInt(endCodeA.split('_')[0]) + " AND subcode='" + parseInt(endCodeA.split('_')[1]) + "'");
-    } catch(err) {
-        console.log(err);
-        return false;
-    }
-
-    if (endStopA.rows.length !== 1) {
-        return false;
-    }
+async function getAllMidpoints(db, point) {
+    let result, endStopA, endStopB
 
     try {
-        result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" + endCodeA + "'");
+        result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE +
+            " WHERE ST_DistanceSphere(midpoints, ST_MakePoint(" + point[0] + "," + point[1] + ")) <= 2000 " + 
+            "ORDER BY ST_DistanceSphere(midpoints, ST_MakePoint(" + point[0] + "," + point[1] + "))" +
+            "LIMIT 10");
     } catch(err) {
         console.log(err);
         return false;
@@ -92,8 +80,10 @@ async function getMidPointByOneStopCode(db, endCodeA) {
         let points = [];
 
         try {
+            endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(result[i].endcodesa[0].split('_')[0]) + " AND '" + parseInt(result[i].endcodesa[0].split('_')[1]) + "'=ANY(subcodes)");
             endStopB = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-                " WHERE code=" + parseInt(result[i].endcodeb.split('_')[0]) + " AND subcode='" + parseInt(result[i].endcodeb.split('_')[1]) + "'");
+                " WHERE code=" + parseInt(result[i].endcodesb[0].split('_')[0]) + " AND '" + parseInt(result[i].endcodesb[0].split('_')[1]) + "'=ANY(subcodes)");
         } catch(err) {
             console.log(err);
             return false;
@@ -111,29 +101,22 @@ async function getMidPointByOneStopCode(db, endCodeA) {
         delete result[i].geom;
         delete result[i].st_asgeojson;
         delete result[i].midpoints;
-        delete result[i].id;
+        delete result[i].endcodesa;
+        delete result[i].endcodesb;
     }
 
     return result;
 }
 
 async function createMidPoint(db, params) {
-    if (params.endCodeA === undefined || params.endCodeB === undefined || params.midPoints === undefined) {
+    if (params.endCodesA === undefined || params.endCodesB === undefined || params.midPoints === undefined) {
         return false;
     }
 
-    let endStopA, endStopB;
-    try {
-        endStopA = await db.query("SELECT id FROM " + process.env.DB_SIGNS_TABLE +
-            " WHERE code=" + parseInt(params.endCodeA.split('_')[0]) + " AND subcode='" + parseInt(params.endCodeA.split('_')[1]) + "'");
-        endStopB = await db.query("SELECT id FROM " + process.env.DB_SIGNS_TABLE +
-            " WHERE code=" + parseInt(params.endCodeB.split('_')[0]) + " AND subcode='" + parseInt(params.endCodeB.split('_')[1]) + "'");
-    } catch(err) {
-        console.log(err);
-        return false;
-    }
+    let codesA = JSON.parse(params.endCodesA);
+    let codesB = JSON.parse(params.endCodesB);
 
-    if (endStopA.rows.length !== 1 || endStopB.rows.length !== 1) {
+    if (!(await checkIfStopCodesExists(db, codesA)) || !(await checkIfStopCodesExists(db, codesB)) || !(await checkIfMidPointExists(db, codesA, codesB))) {
         return false;
     }
     
@@ -144,8 +127,54 @@ async function createMidPoint(db, params) {
     }
 
     try {
-        let result = await db.query("SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" +
-            params.endCodeA + "' AND endCodeB='" + params.endCodeB + "')");
+        let id = await db.query("INSERT INTO " + process.env.DB_MIDPOINTS_TABLE +
+        " (endCodesA, endCodesB, midpoints) VALUES (ARRAY " + params.endCodesA.replaceAll('"', "'") +
+        ", ARRAY " + params.endCodesB.replaceAll('"', "'") + ", '{" + '"type": "LineString", "coordinates": ' + params.midPoints + "}') RETURNING id");
+        return id.rows[0];
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+async function checkIfStopCodesExists(db, codes) {
+    for (const stopCode of codes) {
+        let stop;
+        try {
+            stop = await db.query("SELECT id FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(stopCode.split('_')[0]) + " AND '" + stopCode.split('_')[1] + "'=ANY(subcodes)");
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+
+        if (stop.rows.length !== 1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+async function checkIfMidPointExists(db, codesA, codesB) {
+    let query = "SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE ";
+    for (let i = 0; i < codesA.length; i++) {
+        query += "'" + codesA[i] + "'=ANY(endCodesA)";
+        query += " AND ";
+    }
+
+    for (let i = 0; i < codesB.length; i++) {
+        query += "'" + codesB[i] + "'=ANY(endCodesB)";
+        if (i < (codesB.length - 1)) {
+            query += " AND ";
+        }
+    }
+
+    query += ")";
+
+    try {
+        let result = await db.query(query);
         if (result.rows[0].exists) {
             return false;
         }
@@ -154,24 +183,16 @@ async function createMidPoint(db, params) {
         return false;
     }
 
-    try {
-        let id = await db.query("INSERT INTO " + process.env.DB_MIDPOINTS_TABLE +
-        " (endCodeA, endCodeB, midpoints) VALUES ('" + params.endCodeA + "', '" + params.endCodeB + "', '{" + '"type": "LineString", "coordinates": ' + params.midPoints + "}') RETURNING id");
-        return id.rows[0];
-    } catch(err) {
-        console.log(err);
-        return false;
-    }
+    return true;
 }
 
 async function updateMidPoint(db, params) {
-    if (params.endCodeA === undefined || params.endCodeB === undefined || params.midPoints === undefined) {
+    if (params.id === undefined || params.midPoints === undefined) {
         return false;
     }
 
     try {
-        let result = await db.query("SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" +
-            params.endCodeA + "' AND endCodeB='" + params.endCodeB + "')");
+        let result = await db.query("SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE id='" + params.id + "')");
         if (!result.rows[0].exists) {
             return false;
         }
@@ -187,8 +208,7 @@ async function updateMidPoint(db, params) {
     }
 
     try {
-        await db.query("UPDATE " + process.env.DB_MIDPOINTS_TABLE + " SET midpoints='{" + '"type": "LineString", "coordinates": ' + params.midPoints + "}' WHERE endCodeA='" +
-            params.endCodeA + "' AND endCodeB='" + params.endCodeB + "'");
+        await db.query("UPDATE " + process.env.DB_MIDPOINTS_TABLE + " SET midpoints='{" + '"type": "LineString", "coordinates": ' + params.midPoints + "}' WHERE id='" + params.id + "'");
         return true;
     } catch(err) {
         console.log(err);
@@ -197,13 +217,12 @@ async function updateMidPoint(db, params) {
 }
 
 async function deleteMidPoint(db, params) {
-    if (params.endCodeA === undefined || params.endCodeB === undefined) {
+    if (params.id === undefined) {
         return false;
     }
 
     try {
-        let result = await db.query("SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" +
-        params.endCodeA + "' AND endCodeB='" + params.endCodeB + "')");
+        let result = await db.query("SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE id='" + params.id + "')");
         if (!result.rows[0].exists) {
             return false;
         }
@@ -213,8 +232,7 @@ async function deleteMidPoint(db, params) {
     }
 
     try {
-        await db.query("DELETE FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE endCodeA='" +
-        params.endCodeA + "' AND endCodeB='" + params.endCodeB + "'");
+        await db.query("DELETE FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE id='" + params.id + "'");
         return true;
     } catch(err) {
         console.log(err);
@@ -242,4 +260,4 @@ async function getMidPointsByID(db, params) {
     }
 }
 
-module.exports = { getMidPointByTwoStopCodes, getMidPointByOneStopCode, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };
+module.exports = { getMidPointByTwoStopCodes, getAllMidpoints, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };

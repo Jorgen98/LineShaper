@@ -255,14 +255,6 @@ async function getStats(db) {
     }
 
     try {
-        let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_SIGNS_TABLE);
-        stats['signs'] = parseInt(result.rows[0].count);
-    } catch(err) {
-        console.log(err);
-        return false;
-    }
-
-    try {
         let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_LINES_TABLE);
         stats['lines'] = parseInt(result.rows[0].count);
     } catch(err) {

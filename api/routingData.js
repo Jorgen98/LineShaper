@@ -1,4 +1,4 @@
-const { getMidPointByOneStopCode, getMidPointByTwoStopCodes } = require("./mapMidPoint");
+const { getAllMidpoints, getMidPointByTwoStopCodes } = require("./mapMidPoint");
 const { computeRoute } = require("./routing");
 
 async function createStops(db, params) {
@@ -6,36 +6,39 @@ async function createStops(db, params) {
         return false;
     }
 
-    let query = "";
-    let data = JSON.parse(params.stops);
+    let stopsQuery = "";
     let signsQuery = "";
 
-    for (let i = 0; i < data.length; i++) {
-        query += "(" + data[i].id + ", '" + data[i].n + "')";
+    let inputData = JSON.parse(params.stops);
 
-        if (data.length > 0 && i < (data.length - 1)) {
-            query += ",";
-        }
+    for (let i = 0; i < inputData.length; i++) {
+        stopsQuery += "(" + inputData[i].code + ",'" + inputData[i].name + "'";
 
-        for (let j = 0; j < data[i].p.length; j++) {
-            signsQuery += "(" + data[i].id + ", '" + data[i].p[j].n + "', '{" +
-                '"type": "Point", "coordinates": ' + JSON.stringify(data[i].p[j].p) + "}')";
-            
-            if (data[i].p.length > 0 && j < (data[i].p.length - 1)) {
-                signsQuery += ",";
+        let inspSign = Object.keys(inputData[i].signs);
+        for (let j = 0; j < inspSign.length; j++) {
+            let latLng = [parseFloat(inspSign[j].split('_')[0]), parseFloat(inspSign[j].split('_')[1])];
+            signsQuery += "('{" + '"type": "Point", "coordinates": ' + JSON.stringify(latLng) + "}'";
+            signsQuery += ", " + inputData[i].code + ", ARRAY " + JSON.stringify(inputData[i].signs[inspSign[j]]).replaceAll('"', "'");
+
+            if (inspSign.length > 0 && j < (inspSign.length - 1)) {
+                signsQuery += "),";
             }
         }
 
-        if (data[i].p.length > 0 && i < (data.length - 1)) {
-            signsQuery += ",";
+        if (inputData.length > 0 && i < (inputData.length - 1)) {
+            stopsQuery += "),";
+            signsQuery += "),";
         }
     }
 
+    stopsQuery += ")";
+    signsQuery += ")";
+
     try {
         await db.query("INSERT INTO " + process.env.DB_STOPS_TABLE +
-        ' (code, name) VALUES ' + query);
+        ' (code, name) VALUES ' + stopsQuery);
         await db.query("INSERT INTO " + process.env.DB_SIGNS_TABLE +
-        ' (code, subCode, geom) VALUES ' + signsQuery);
+        ' (geom, code, subCodes) VALUES ' + signsQuery);
         return true;
     } catch(err) {
         console.log(err);
@@ -50,8 +53,7 @@ async function clearData(db, params) {
     try {
         if (params.type === 'stops') {
             await db.query("TRUNCATE TABLE " + process.env.DB_STOPS_TABLE + " RESTART IDENTITY");
-            await db.query("DROP TABLE signs");
-            await db.query("CREATE TABLE IF NOT EXISTS signs (id SERIAL PRIMARY KEY, code INT, subCode INT, geom GEOMETRY);");
+            await db.query("TRUNCATE TABLE " + process.env.DB_SIGNS_TABLE + " RESTART IDENTITY");
         }
 
         if (params.type === 'lines') {
@@ -104,14 +106,9 @@ async function getStopsInRad(db, params) {
                 result.rows[i]['name'] = name.rows[0].name;
             }
             delete result.rows[i]['id'];
-
-            if (params.midPoints === 'true') {
-                let midpoint = await getMidPointByOneStopCode(db, result.rows[i]['code'] + '_' + result.rows[i]['subcode']);
-
-                if (midpoint) {
-                    midpoints = midpoints.concat(midpoint);
-                }
-            }
+        }
+        if (params.midPoints === 'true') {
+            midpoints = await getAllMidpoints(db, point);
         }
         return {'stops': result.rows, 'midpoints': midpoints};
     } catch(err) {
@@ -145,7 +142,7 @@ async function getStopsGeom(db, stops) {
     for (let i = 0; i < stops.length; i++) {
         try {
             let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-                " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND subcode='" + parseInt(stops[i].split('_')[1]) + "'");
+                " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND '" + stops[i].split('_')[1] + "'=ANY(subcodes)");
             if (stop.rows !== undefined && stop.rows[0] !== undefined) {
                 stopsPoss.push(JSON.parse(stop.rows[0].st_asgeojson).coordinates);
                 if (stops[i].split('_').length > 2) {

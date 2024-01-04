@@ -112,21 +112,22 @@ export class DataService {
     }
 
     queryPostCreateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
-        return this.httpClient.post(this.whoToAsk + "/midPoint?endCodeA=" + endCodeA + "&endCodeB=" + endCodeB + "&midPoints=" + JSON.stringify(midpoints), {})
+        return this.httpClient.post(this.whoToAsk + "/midPoint?endCodesA=" + JSON.stringify(endCodeA) + "&endCodesB=" + JSON.stringify(endCodeB) +
+            "&midPoints=" + JSON.stringify(midpoints), {})
         .pipe(
             retry(3)
           );
     }
 
-    queryPutUpdateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
-        return this.httpClient.put(this.whoToAsk + "/midPoint?endCodeA=" + endCodeA + "&endCodeB=" + endCodeB + "&midPoints=" + JSON.stringify(midpoints), {})
+    queryPutUpdateMidPoint(id: any, midpoints: any) {
+        return this.httpClient.put(this.whoToAsk + "/midPoint?id=" + id + "&midPoints=" + JSON.stringify(midpoints), {})
         .pipe(
             retry(3)
           );
     }
 
-    queryDeleteMidPoint(endCodeA: any, endCodeB: any) {
-        return this.httpClient.delete(this.whoToAsk + "/midPoint?endCodeA=" + endCodeA + "&endCodeB=" + endCodeB, {})
+    queryDeleteMidPoint(id: any) {
+        return this.httpClient.delete(this.whoToAsk + "/midPoint?id=" + id, {})
         .pipe(
             retry(3)
           );
@@ -312,9 +313,9 @@ export class DataService {
     }
 
     // Update midpoint
-    updateMidpoint(endCodeA: any, endCodeB: any, midpoints: any): Promise<any> {
+    updateMidpoint(id: any, midpoints: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryPutUpdateMidPoint(endCodeA, endCodeB, midpoints).subscribe(response => {
+            this.queryPutUpdateMidPoint(id, midpoints).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
@@ -325,9 +326,9 @@ export class DataService {
     }
 
     // Delete midpoint
-    deleteMidpoint(endCodeA: any, endCodeB: any): Promise<any> {
+    deleteMidpoint(id: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryDeleteMidPoint(endCodeA, endCodeB).subscribe(response => {
+            this.queryDeleteMidPoint(id).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

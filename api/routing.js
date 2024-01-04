@@ -18,7 +18,7 @@ let configs = [
     {
         'maxWorstJumps': 30,
         'maxWorstJumpsWithTwoPoss': 30,
-        'stopsFindRadius': 100,
+        'stopsFindRadius': 120,
         'subNetRadius': 4,
         'maxIterations': 80,
         'canReturn': true
@@ -66,7 +66,7 @@ async function computeRoute(db, stops, layer) {
     if (stops[stopBIndex] !== undefined && stops[stopBIndex].specCode === 'k') {
         state = 2;
     }
-    while (-1 < stopAIndex && 0 < stopBIndex && //11 > stopBIndex &&
+    while (-1 < stopAIndex && 0 < stopBIndex && //35 > stopBIndex &&
         stopAIndex < (stops.length - 1) && stopBIndex < stops.length) {
         if (stops[stopAIndex].geom === stops[stopBIndex].geom) {
             stopAIndex = JSON.parse(JSON.stringify(stopBIndex));
@@ -144,8 +144,6 @@ async function computeRoute(db, stops, layer) {
                 if (connection.indexOf(result[i - 1]) !== -1 && connection.indexOf(result[i + 1]) !== -1) {
                     duplicate = true;
                 }
-
-                console.log(duplicate);
 
                 if (duplicate) {
                     while(stepsBack > 2) {
@@ -479,8 +477,12 @@ async function findConnection(db, stopA, stopB, layer){
 
     let j = 0;
     while (j < possibilities.length) {
-        possibilities[j].toEnd = countDistance(subNet[possibilities[j].current].pos, stopB.pos);
-        j++;
+        if (subNet[possibilities[j].current] !== undefined) {
+            possibilities[j].toEnd = countDistance(subNet[possibilities[j].current].pos, stopB.pos);
+            j++;
+        } else {
+            possibilities.splice(j, 1);
+        }
     }
 
     let bestToEnd = Infinity;
@@ -523,6 +525,12 @@ async function findConnection(db, stopA, stopB, layer){
 
         do {
             let lastPointCode = possibilities[curIndx].visited[possibilities[curIndx].visited.length - 1];
+
+            if (subNet[possibilities[curIndx].current] === undefined || subNet[lastPointCode] === undefined) {
+                nextHubs = [];
+                break;
+            }
+
             possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[lastPointCode].pos);
 
             // Check if current position is finish
@@ -625,7 +633,7 @@ async function findConnection(db, stopA, stopB, layer){
             numOfPoss ++;
             possNum ++;
         }
-        possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[nextHubs[0]].pos);
+        //possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[nextHubs[0]].pos);
         possibilities[curIndx].toEnd = countDistance(subNet[nextHubs[0]].pos, stopB.pos);
         possibilities[curIndx].current = nextHubs[0];
     }
@@ -670,7 +678,7 @@ async function getStopsData(db, stops) {
 
     let i = 1;
     while (i < stops.length) {
-        if (stops[i - 1].id === stops[i].id) {
+        if (stops[i - 1].id === stops[i].id && stops[i].id !== undefined) {
             stops.splice(i, 1);
         } else {
             i++;
@@ -834,7 +842,7 @@ async function decode(db, codes, layer) {
             return false;
         }
 
-        if (response.rows === undefined) {
+        if (response.rows === undefined || response.rows[0] === undefined || response.rows[0].st_asgeojson === undefined) {
             continue;
         }
 
