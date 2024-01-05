@@ -18,6 +18,7 @@ export class MapService {
         'rail': false,
         'road': false,
         'tram': false,
+        'stops': true,
         'midPoint': true
     }
     

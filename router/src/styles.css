@@ -29,9 +29,13 @@ button {
     color: var(--white);
 }
 
-button:hover, .selBtn {
-    background-color: var(--black);
+button:hover {
     border: solid var(--mark) 0.2rem;
+}
+
+.selBtn {
+    border: solid var(--mark) 0.2rem;
+    background-color: var(--black);
 }
 
 button:disabled {

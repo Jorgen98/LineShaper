@@ -132,6 +132,21 @@ export class DataService {
           );
     }
 
+    queryGetStopsInRad(latLng: [number, number]) {
+        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+
+    queryGetMidPointsInRad(latLng: [number, number]) {
+        return this.httpClient.get(this.whoToAsk + "/midPointsInRad?geom=" + JSON.stringify(latLng), {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     // Callable functions
     // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
@@ -301,6 +316,32 @@ export class DataService {
                     resolve(response);
                 } else {
                     resolve(false);
+                }
+            });
+        });
+    }
+
+    // Get stops and its names around some point
+    getStopsInRad(latLng: [number, number]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetStopsInRad(latLng).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    // Get midpoints around some point
+    getMidPointsInRad(latLng: [number, number]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetMidPointsInRad(latLng).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
                 }
             });
         });

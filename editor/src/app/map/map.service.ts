@@ -15,7 +15,9 @@ export class MapService {
     private backgroundLayers: {[name: string]: boolean} = {
         'rail': false,
         'road': false,
-        'tram': false
+        'tram': false,
+        'midPoints': false,
+        'stops': false
     }
     
     zoomIn() {

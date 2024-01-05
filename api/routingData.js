@@ -1,4 +1,4 @@
-const { getAllMidpoints, getMidPointByTwoStopCodes } = require("./mapMidPoint");
+const { getMidPointByTwoStopCodes } = require("./mapMidPoint");
 const { computeRoute } = require("./routing");
 
 async function createStops(db, params) {
@@ -85,17 +85,11 @@ async function getStopsInRad(db, params) {
         return false;
     }
 
-    if (params.midPoints === undefined) {
-        params.midPoints = false;
-    }
-
     try {
         let result = await db.query("SELECT *, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
         " WHERE ST_DistanceSphere(geom, ST_MakePoint(" + point[0] + "," + point[1] + ")) <= 2000 " + 
         "ORDER BY ST_DistanceSphere(geom, ST_MakePoint(" + point[0] + "," + point[1] + "))" +
         "LIMIT " + process.env.MAX_LOAD_POINTS * 3);
-
-        let midpoints = [];
 
         for (let i = 0; i < result.rows.length; i++) {
             result.rows[i]['geom'] = JSON.parse(result.rows[i]['st_asgeojson']).coordinates;
@@ -107,10 +101,7 @@ async function getStopsInRad(db, params) {
             }
             delete result.rows[i]['id'];
         }
-        if (params.midPoints === 'true') {
-            midpoints = await getAllMidpoints(db, point);
-        }
-        return {'stops': result.rows, 'midpoints': midpoints};
+        return result.rows;
     } catch(err) {
         console.log(err);
         return false;

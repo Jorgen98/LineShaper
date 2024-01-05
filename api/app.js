@@ -100,7 +100,7 @@ app.get('/api/route', async (req, res) => {
     res.send(await dbRoutingData.getRoute(db, req.query));
 })
 
-// Get whole line route based on code and direction
+// Get whole line route based on its code and direction
 app.get('/api/lineRoute', async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
@@ -118,6 +118,11 @@ app.get('/api/midPoint', async (req, res) => {
     .delete('/api/midPoint', async (req, res) => {
         res.send(await dbMidPoint.deleteMidPoint(db, req.query));
     });
+
+// Get existing midpoints around some point
+app.get('/api/midPointsInRad', async (req, res) => {
+    res.send(await dbMidPoint.getMidPointsInRad(db, req.query));
+})
 
 app.get('/api/midPointsByGid', async (req, res) => {
     res.send(await dbMidPoint.getMidPointsByID(db, req.query));

@@ -256,35 +256,20 @@ export class MapComponent {
         this.layers['stops'] = L.layerGroup();
         this.layers['stops'].addTo(this.map);
 
-        let response = await this.dataService.getStopsInRad([latLng.lat, latLng.lng], this.mapService.getBackgroundLayersState()['midPoint']);
+        if (this.layers['midPoint'] !== undefined) {
+            this.map.removeLayer(this.layers['midPoint']);
+        }
+        this.layers['midPoint'] = L.layerGroup();
+        this.layers['midPoint'].addTo(this.map);
 
         //Midpoints
-        this.createMidpoint(response.midpoints);
+        if (this.mapService.getBackgroundLayersState()['midPoint']) {
+            this.createMidpoint(await this.dataService.getMidPointsInRad([latLng.lat, latLng.lng]));
+        }
 
         //Stops
-        let stopsOnMap: {[id: string]: {geom: L.LatLng, label: string, keys: string []}} = {};
-        for (const stop of response.stops) {
-            let key = stop.geom[0].toString() + stop.geom[1].toString();
-            let label = stop.name;
-            let codes = [];
-            for (const sign of stop.subcodes) {
-                label += ' ' + sign;
-                codes.push(stop.code + '_' + sign);
-            }
-
-            if (stopsOnMap[key] !== undefined) {
-                stopsOnMap[key].label += ', ' + label;
-                stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
-            } else {
-                stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
-            }
-        }
-
-        for (let i = 0; i < response.stops.length; i++) {
-            this.createPoint(response.stops[i].geom, 'stop', response.stops[i]);
-        }
-        for (const stop in stopsOnMap) {
-            this.createPoint(stopsOnMap[stop].geom, 'stop', stopsOnMap[stop]);
+        if (this.mapService.getBackgroundLayersState()['stops']) {
+            this.createStops(await this.dataService.getStopsInRad([latLng.lat, latLng.lng]));
         }
 
         // Non editable layers
@@ -415,15 +400,33 @@ export class MapComponent {
         this.loadContext(this.map.getCenter());
     }
 
+    createStops(input: any) {
+        let stopsOnMap: {[id: string]: {geom: L.LatLng, label: string, keys: string []}} = {};
+        for (const stop of input) {
+            let key = stop.geom[0].toString() + stop.geom[1].toString();
+            let label = stop.name;
+            let codes = [];
+            for (const sign of stop.subcodes) {
+                label += ' ' + sign;
+                codes.push(stop.code + '_' + sign);
+            }
+
+            if (stopsOnMap[key] !== undefined) {
+                stopsOnMap[key].label += ', ' + label;
+                stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
+            } else {
+                stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
+            }
+        }
+
+        for (const stop in stopsOnMap) {
+            this.createPoint(stopsOnMap[stop].geom, 'stop', stopsOnMap[stop]);
+        }
+    }
+
     createMidpoint(input: any) {
         this.midPoints = [];
         this.selMidPoint = undefined;
-
-        if (this.layers['midPoint'] !== undefined) {
-            this.map.removeLayer(this.layers['midPoint']);
-        }
-        this.layers['midPoint'] = L.layerGroup();
-        this.layers['midPoint'].addTo(this.map);
 
         for (let i = 0; i < input.length; i++) {
             let lines = [];

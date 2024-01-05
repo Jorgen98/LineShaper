@@ -241,9 +241,13 @@ export class MapComponent {
             objColor = "var(--road)";
         } else if (layer === 'tram') {
             objColor = "var(--tram)";
+        } else if (layer === 'stop') {
+            objColor = "var(--black)";
+        } else if (layer === 'midPoint') {
+            objColor = "var(--midPoint)";
         }
 
-        if (editable) {
+        if (editable || layer === 'stop') {
             objOpacity = 1;
         } else {
             objOpacity = 0.4;
@@ -347,6 +351,17 @@ export class MapComponent {
             if (keys[i] === this.dataService.getCurLayer() || !backgroundLayers[keys[i]]) {
                 continue;
             }
+
+            if (keys[i] === 'stops') {
+                this.createStops(await this.dataService.getStopsInRad([latLng.lat, latLng.lng]));
+                continue;
+            }
+
+            if (keys[i] === 'midPoints') {
+                this.createMidpoint(await this.dataService.getMidPointsInRad([latLng.lat, latLng.lng]));
+                continue;
+            }
+
             let response = await this.dataService.getPointsInRad([latLng.lat, latLng.lng], keys[i]);
             let conns: any = {};
             let geoms: any = {};
@@ -374,7 +389,7 @@ export class MapComponent {
         }
     }
 
-    createPoint(latLng: L.LatLng, gid: number, layer: string, editable: boolean) {
+    createPoint(latLng: L.LatLng, gid: number, layer: string, editable: boolean, popup: string = "") {
         let t = this;
         let point = L.circle(latLng, this.setObjStyle(layer, editable));
         if (editable) {
@@ -398,6 +413,10 @@ export class MapComponent {
             this.curObjects[gid].point = point;
         } else {
             point.addTo(this.layers['background']);
+
+            if (layer === 'stop') {
+                point.bindTooltip(popup);
+            }
         }
     }
 
@@ -444,6 +463,37 @@ export class MapComponent {
         newLine.bringToBack();
 
         return;
+    }
+
+    createStops(input: any) {
+        let stopsOnMap: {[id: string]: {geom: L.LatLng, label: string, keys: string []}} = {};
+        for (const stop of input) {
+            let key = stop.geom[0].toString() + stop.geom[1].toString();
+            let label = stop.name;
+            let codes = [];
+            for (const sign of stop.subcodes) {
+                label += ' ' + sign;
+                codes.push(stop.code + '_' + sign);
+            }
+
+            if (stopsOnMap[key] !== undefined) {
+                stopsOnMap[key].label += ', ' + label;
+                stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
+            } else {
+                stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
+            }
+        }
+
+        for (const stop in stopsOnMap) {
+            this.createPoint(stopsOnMap[stop].geom, 0, 'stop', false, stopsOnMap[stop].label);
+        }
+    }
+
+    createMidpoint(input: any) {
+        for (let i = 0; i < input.length; i++) {
+            this.createLine("", "midPoint", true, );
+            L.polyline(input[i].points, this.setObjStyle("midPoint", false)).addTo(this.layers['background']);
+        }
     }
 
     async onPointClick(gid: number) {

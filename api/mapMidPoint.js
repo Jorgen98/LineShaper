@@ -57,7 +57,17 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     return {'stopPoss': stops, 'points': points};
 }
 
-async function getAllMidpoints(db, point) {
+async function getMidPointsInRad(db, params) {
+    if (params.geom === undefined) {
+        return false;
+    }
+
+    let point = JSON.parse(params.geom);
+
+    if (point[0] === undefined || point[1] === undefined ) {
+        return false;
+    }
+
     let result, endStopA, endStopB
 
     try {
@@ -260,4 +270,4 @@ async function getMidPointsByID(db, params) {
     }
 }
 
-module.exports = { getMidPointByTwoStopCodes, getAllMidpoints, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };
+module.exports = { getMidPointByTwoStopCodes, getMidPointsInRad, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };

@@ -4,6 +4,7 @@
     border: solid transparent 0.2rem;
     border-radius: 0.5rem;
     margin: auto;
+    display: flex;
     opacity: 0.5;
 }
 
@@ -13,8 +14,21 @@ img {
     border-radius: 0.5rem;
 }
 
-.img:hover, .opt_selected {
+.icons {
+    width: 80%;
+    height: 80%;
+    border-radius: 0.5rem;
+    margin: auto;
+    filter: invert(90%);
+}
+
+.img:hover {
     border: solid var(--mark) 0.2rem;
-    background-color: var(--mark);
+    opacity: 1;
+}
+
+.opt_selected {
+    border: solid var(--mark) 0.2rem !important;
+    background-color: var(--black);
     opacity: 1;
 }
