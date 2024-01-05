@@ -9,7 +9,17 @@ import { MapService } from '../map/map.service';
 })
 
 export class RoutingComponent implements OnInit {
-    constructor(private dataService: DataService, private mapService: MapService) {}
+    constructor(private dataService: DataService, private mapService: MapService) {
+        this.mapService.onStopClickEvent().subscribe((stop) => {
+            if (this.stops.length === 0 || this.stops[0].label !== stop.label.toString()) {
+                this.stops.push(stop);
+            }
+
+            if (this.state === 'stopToStop0' || this.state === 'stopToStop1' || this.state === 'stopToStopWarning') {
+                this.routeStopToStop();
+            }
+        })
+    }
     state = 'menu';
     curLine = '';
     curLines: any = [];
@@ -18,6 +28,7 @@ export class RoutingComponent implements OnInit {
     progress = 0;
     progressText = '';
     routing = false;
+    stops: any = [];
 
     async ngOnInit() {
         this.curLines = await this.dataService.getLinesInfo();
@@ -185,4 +196,44 @@ export class RoutingComponent implements OnInit {
         a.download = filename;
         a.click();
     }
+
+    stopToStopRoutingStart() {
+        this.state = 'stopToStop0';
+        this.stops = [];
+    }
+
+    async routeStopToStop(transportMode: string = "") {
+        if (this.stops.length === 1 && this.state === 'stopToStop0') {
+            this.state = 'stopToStop1';
+            return;
+        } else if (this.stops.length === 1) {
+            this.state = 'stopToStopWarning';
+            return;
+        }
+
+        if (this.stops.length === 2) {
+            if (transportMode !== "") {
+                this.mapService.onRouting(true);
+                this.state = 'routingProgress';
+
+                let route = await this.dataService.getRoute([this.stops[0].keys[0], this.stops[1].keys[0]], transportMode);
+
+                if (!route) {
+                    this.defaultMenu();
+                    return;
+                }
+
+                this.mapService.putRouteOnMap(route);
+                this.mapService.onRouting(false);
+            } else {
+                this.state = 'stopToStop2';
+                return;
+            }
+        } else {
+            return;
+        }
+        
+        this.defaultMenu();
+    }
+    
 }

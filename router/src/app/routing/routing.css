@@ -86,3 +86,24 @@ select {
     max-width: calc(100% - 1rem);
     text-align: center;
 }
+
+.img {
+    width: 4rem;
+    height: 4rem;
+    border: solid transparent 0.2rem;
+    border-radius: 0.5rem;
+    margin: auto;
+    opacity: 0.5;
+}
+
+img {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.5rem;
+}
+
+.img:hover, .opt_selected {
+    border: solid var(--mark) 0.2rem;
+    background-color: var(--mark);
+    opacity: 1;
+}

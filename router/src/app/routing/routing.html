@@ -2,8 +2,9 @@
     <!-- Default menu screen -->
     <p class="header" *ngSwitchCase="'menu'">Trasování linek</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="routeOneLine()">Trasování jedné linky</button>
         <button (click)="routeAllRoutes()">Trasování všech linek</button>
+        <button (click)="routeOneLine()">Trasování jedné linky</button>
+        <button (click)="stopToStopRoutingStart()">Trasování</button>
     </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
@@ -34,5 +35,44 @@
         </div>
         <button class="mark" *ngIf="progress === 100" (click)="defaultMenu()">Zavřít</button>
         <button *ngIf="progress !== 100 && progress !== 0" (click)="cancelRouting()">Zrušit</button>
+    </div>
+    <!-- Stop to stop routing screen 1 -->
+    <p class="header" *ngSwitchCase="'stopToStop0'">Zvolte si výchozí zastávku.</p>
+    <div *ngSwitchCase="'stopToStop0'">
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Stop to stop routing screen 2 -->
+    <p class="header" *ngSwitchCase="'stopToStop1'">Vyberte si konečnou zastávku.</p>
+    <div *ngSwitchCase="'stopToStop1'">
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Stop to stop routing screen 3 -->
+    <p class="header" *ngSwitchCase="'stopToStop2'">Zvolte si druh dopravy.</p>
+    <div *ngSwitchCase="'stopToStop2'">
+        <div class="optionsGroup">
+            <div class="option">
+                <div class="img">
+                    <img src="assets/icons/train.svg" (click)="routeStopToStop('rail')">
+                </div>
+            </div>
+        
+            <div class="option">
+                <div class="img">
+                    <img src="assets/icons/road.svg" (click)="routeStopToStop('road')">
+                </div>
+            </div>
+        
+            <div class="option">
+                <div class="img">
+                    <img src="assets/icons/tram.svg" (click)="routeStopToStop('tram')">
+                </div>
+            </div>
+        </div>
+        <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Stop to stop routing screen warning -->
+    <p class="header" *ngSwitchCase="'stopToStopWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
+    <div *ngSwitchCase="'stopToStopWarning'">
+        <button (click)="defaultMenu()">Zrušit</button>
     </div>
 </div>
