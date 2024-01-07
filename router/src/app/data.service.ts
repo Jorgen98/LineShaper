@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, retry } from 'rxjs';
+import { Observable, Subject, retry, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
 
 @Injectable({
@@ -102,13 +102,16 @@ export class DataService {
 
     queryGetWholeLine(code: number, dir: string) {
         return this.httpClient.get(this.whoToAsk + "/lineRoute?code=" + code + "&dir=" + dir, {})
+        .pipe(
+            timeout(70 * 1000)
+          );
     }
 
     queryPostSaveLineCodes(lineCodes: any) {
         return this.httpClient.post(this.whoToAsk + "/saveLineCodes?lineCodes=" + JSON.stringify(lineCodes), {})
-                .pipe(
-                    retry(3)
-                );
+        .pipe(
+            retry(3)
+          );
     }
 
     queryPostCreateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
@@ -289,6 +292,10 @@ export class DataService {
                 } else {
                     resolve({});
                 }
+            },
+            error => {
+                console.log(error);
+                resolve({});
             });
         });
     }

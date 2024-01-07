@@ -54,14 +54,19 @@ export class RoutingComponent implements OnInit {
         this.mapService.onRouting(true);
         this.state = 'routingProgress';
 
-        let route = await this.dataService.getWholeLine(parseInt(this.curLine), this.curDir);
+        let route;
+        let round = 0;
+        do {
+            route = await this.dataService.getWholeLine(parseInt(this.curLine), this.curDir);
+            round++;
+        } while (route.stops === undefined && round < 3);
 
-        if (!route) {
-            this.defaultMenu();
-            return;
+        if (route.stops !== undefined) {
+            this.mapService.putRouteOnMap(route);
+        } else {
+            console.log(this.curLine, this.curDir);
         }
 
-        this.mapService.putRouteOnMap(route);
         this.mapService.onRouting(false);
         this.defaultMenu();
     }

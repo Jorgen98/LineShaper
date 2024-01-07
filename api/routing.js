@@ -30,7 +30,7 @@ let configs = [
         'stopsFindRadius': 200,
         'subNetRadius': 100,
         'maxIterations': 50,
-        'canReturn': false
+        'canReturn': true
     }
 ]
 let configIndex = 0;

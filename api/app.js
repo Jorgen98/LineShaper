@@ -53,8 +53,7 @@ app.get('/api/pointsInRad', async (req, res) => {
     })
 
 app.get('/api/pointsByGid', async (req, res) => {
-        return false;
-        //res.send(await dbPoint.getPointsByGID(db, req.query));
+        res.send(await dbPoint.getPointsByGID(db, req.query));
     })
 
 app.put('/api/changeDirection', async (req, res) => {
