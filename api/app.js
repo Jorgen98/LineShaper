@@ -104,6 +104,14 @@ app.get('/api/lineRoute', async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
 
+app.get('/api/routing', async (req, res) => {
+    res.send(await dbRoutingData.routing(db, req.query));
+})
+
+app.get('/api/routedLine', async (req, res) => {
+    res.send(await dbRoutingData.getRoutedLine(db, req.query));
+})
+
 // Mid points CRUD operations
 app.get('/api/midPoint', async (req, res) => {
     res.send(await dbMidPoint.getMidPointByOneStopCode(db, req.query.endCodeA));

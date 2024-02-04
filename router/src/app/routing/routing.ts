@@ -29,6 +29,9 @@ export class RoutingComponent implements OnInit {
     progressText = '';
     routing = false;
     stops: any = [];
+    routingState = {state: '', date: '', progress: 0};
+    interval: any = undefined;
+    dataAvailable: boolean = false;
 
     async ngOnInit() {
         this.curLines = await this.dataService.getLinesInfo();
@@ -42,7 +45,6 @@ export class RoutingComponent implements OnInit {
 
     async defaultMenu() {
         this.state = 'menu';
-        this.routing  = false;
     }
 
     async routeOneLine() {
@@ -87,12 +89,29 @@ export class RoutingComponent implements OnInit {
     }
 
     async routeAllRoutes() {
-        if (this.progress === 100) {
+        this.routingState = await this.dataService.routing();
+        this.state = 'routeAllRoutes';
+        if (this.routingState.state === "no_data") {
+            this.state = 'routeAllRoutes';
+            return;
+        } else if (this.routingState.state === "routing") {
+            this.state = 'progress';
+            this.routeAll();
+            return;
+        } else if (this.routingState.state === "data_available") {
+            this.dataAvailable = true;
+            let date = new Date(this.routingState.date);
+            this.progressText = 'Platnost údajů:\n' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        } else {
+            return;
+        }
+
+        /*if (this.progress === 100) {
             this.progress = 0;
             this.defaultMenu();
             return;
         }
-        const start = Date.now();
+
         this.state = 'progress';
         this.progress = 0;
         this.progressText = 'Probíhá výpočet tras. Vyčkejte prosím.';
@@ -133,22 +152,80 @@ export class RoutingComponent implements OnInit {
             this.getShapeFile(1, lines, result);
         }
 
-        const end = Date.now();
-        console.log(`Routing time: ${(end - start) / 1000} s`);
-
         if (this.routing) {
             this.progressText = "Exportování dat je dokončeno";
         } else {
             this.progressText = "Trasování linek bylo zrušeno";
         }
         this.progress = 100;
-        this.mapService.onRouting(false);
+        this.mapService.onRouting(false);*/
     }
 
-    cancelRouting() {
+    async routeAll() {
+        this.state = 'progress';
+        await this.dataService.routing(true);
+
+        clearInterval(this.interval);
+        this.interval = setInterval(() => this.renewProgress(), 5000);
+
+        this.routing = true;
+        if (this.routingState.progress > 1) {
+            this.progress = this.routingState.progress;
+        } else {
+            this.progress = 1;
+        }
+        this.progressText = 'Probíhá výpočet tras. Vyčkejte prosím.';
+    }
+
+    async renewProgress() {
+        this.routingState = await this.dataService.routing();
+        if (this.routingState.state === 'routing' && this.routingState.progress !== -1) {
+            if (this.routingState.progress > 1) {
+                this.progress = this.routingState.progress;
+            }
+        } else {
+            clearInterval(this.interval);
+            this.routeAllRoutes();
+        }
+    }
+
+    async cancelRouting() {
         this.routing = false;
+        this.dataAvailable = false;
+        this.routingState = await this.dataService.routing(false, true);
         this.progressText = "Trasování linek bylo zrušeno. Vyčkejte prosím.";
+    }
+
+    async downloadData() {
+        let lines = await this.dataService.getLinesInfo();
+        let result: any = {};
+        this.state = 'progress';
         this.progress = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+            if (result[lines[i].code] === undefined) {
+                result[lines[i].code] = {'a': [], 'b': []};
+            }
+
+            try {
+                result[lines[i].code].a = await this.dataService.getRoutedLine(lines[i].code, 'a');
+            } catch(err) {
+                console.log(err);
+            }
+            this.progress = Math.round(i / lines.length * 100);
+
+            try {
+                result[lines[i].code].b = await this.dataService.getRoutedLine(lines[i].code, 'b');
+            } catch(err) {
+                console.log(err);
+            }
+            this.progress = Math.round((i + 0.5) / lines.length * 100);
+        }
+
+        this.getShapeFile(0, lines, result);
+        this.getShapeFile(1, lines, result);
+
+        this.state = 'routeAllRoutes';
     }
 
     getShapeFile(type: number = 0, lines: any, result: any) {

@@ -277,6 +277,18 @@ async function getStats(db) {
         console.log(err);
         return false;
     }
+
+    try {
+        let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_ROUTES_TABLE);
+        stats['routes'] = parseInt(result.rows[0].count);
+
+        if (stats['routes'] > 1) {
+            stats['routes'] -= 1;
+        }
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
     
     return stats;
 }

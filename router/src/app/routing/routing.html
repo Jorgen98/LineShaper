@@ -6,6 +6,21 @@
         <button (click)="routeOneLine()">Trasování jedné linky</button>
         <button (click)="stopToStopRoutingStart()">Trasování mezi dvěma zastávkami</button>
     </div>
+    <!-- Route all lines screen -->
+    <p class="header" *ngSwitchCase="'routeAllRoutes'">Trasování všech linek</p>
+    <div *ngSwitchCase="'routeAllRoutes'">
+        <p *ngIf="dataAvailable" class="header">{{ progressText }}</p>
+        <button *ngIf="dataAvailable" (click)="state = 'routeAllRoutesConfirm'; progressText='Novým trasováním se přepíší aktuálně vypočítaná data.'">Znovu vypočítat trasy</button>
+        <button *ngIf="!dataAvailable" (click)="routeAll()">Vypočítat trasy</button>
+        <button *ngIf="dataAvailable" (click)="downloadData()">Stáhnout trasy linek</button>
+        <button (click)="defaultMenu()">Menu</button>
+    </div>
+    <!-- Route all confirm screen -->
+    <p class="header" *ngSwitchCase="'routeAllRoutesConfirm'">{{ progressText }}</p>
+    <div *ngSwitchCase="'routeAllRoutesConfirm'">
+        <button (click)="routeAllRoutes()">Menu</button>
+        <button (click)="routeAll()">Znovu vypočítat trasy</button>
+    </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
         <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si linku</p>
@@ -33,8 +48,8 @@
         <div class="progress" [style.width]="progress+'%'" *ngIf="progress !== 100 && progress !== 0">
             {{ progress + '%'}}
         </div>
-        <button class="mark" *ngIf="progress === 100" (click)="defaultMenu()">Zavřít</button>
-        <button *ngIf="progress !== 100 && progress !== 0" (click)="cancelRouting()">Zrušit</button>
+        <button *ngIf="routing" (click)="defaultMenu()">Zavřít</button>
+        <button *ngIf="routing && progress !== 100 && progress !== 0" (click)="cancelRouting()">Zrušit</button>
     </div>
     <!-- Stop to stop routing screen 1 -->
     <p class="header" *ngSwitchCase="'stopToStop0'">Zvolte si výchozí zastávku.</p>

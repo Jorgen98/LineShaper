@@ -290,19 +290,19 @@ export class FilesManipulationComponent {
                 record.type = 'tram';
             }
 
-            if (savedLines.indexOf(record.lc) === -1 && parseInt(record.lc) < 100) {
+            if (savedLines.indexOf(record.lc) === -1) {
                 lines.push(record);
                 savedLines.push(record.lc);
             }
         }
         
-        let upIndex = 10;
-        for (let i = 0; i < lines.length; i+=10) {
+        let upIndex = 5;
+        for (let i = 0; i < lines.length; i+=5) {
             if (upIndex > (lines.length - 1)) {
                 upIndex = lines.length;
             }
             await this.dataService.saveLines(lines.slice(i, upIndex));
-            upIndex += 10;
+            upIndex += 5;
             this.progress = Math.round(i / lines.length * 100);
         }
 

@@ -150,6 +150,20 @@ export class DataService {
           );
     }
 
+    queryGetRouting(reroute: boolean = false, cancel: boolean = false) {
+        return this.httpClient.get(this.whoToAsk + "/routing?reroute=" + reroute + "&cancel=" + cancel, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetRoutedLine(code: number, dir: string) {
+        return this.httpClient.get(this.whoToAsk + "/routedLine?code=" + code + "&dir=" + dir, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     // Callable functions
     // Is DB connected to frontend?
     isDBConnected(attempt: number): void {
@@ -369,6 +383,30 @@ export class DataService {
     getMidPointsById(id: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetMidPointsById(id).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    routing(reroute: boolean = false, cancel: boolean = false): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetRouting(reroute, cancel).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    getRoutedLine(code: number, dir: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetRoutedLine(code, dir).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

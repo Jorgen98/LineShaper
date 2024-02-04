@@ -1,6 +1,10 @@
 const { getMidPointByTwoStopCodes } = require("./mapMidPoint");
 const { computeRoute } = require("./routing");
 
+let routingState = {'state': 'no_data'};
+let routingProgress = 0;
+let routingIsRunning = false;
+
 async function createStops(db, params) {
     if (params.stops === undefined) {
         return false;
@@ -67,6 +71,8 @@ async function clearData(db, params) {
         if (params.type === 'midpoints') {
             await db.query("TRUNCATE TABLE " + process.env.DB_MIDPOINTS_TABLE + " RESTART IDENTITY");
         }
+
+        await db.query("TRUNCATE TABLE " + process.env.DB_ROUTES_TABLE + " RESTART IDENTITY");
         return true;
     } catch(err) {
         console.log(err);
@@ -135,20 +141,24 @@ async function getStopsGeom(db, stops) {
             let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
                 " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND '" + stops[i].split('_')[1] + "'=ANY(subcodes)");
             if (stop.rows !== undefined && stop.rows[0] !== undefined) {
-                stopsPoss.push(JSON.parse(stop.rows[0].st_asgeojson).coordinates);
-                if (stops[i].split('_').length > 2) {
-                    points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
-                } else {
-                    points.push({'geom': stop.rows[0].geom, 'specCode': ''});
-                }
+                let acStopPoss = JSON.parse(stop.rows[0].st_asgeojson).coordinates;
+                if (acStopPoss[0] !== 0 && acStopPoss[1] !== 0) {
+                    stopsPoss.push(acStopPoss);
 
-                if (i < (stops.length - 1)) {
-                    let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
-                        stops[i + 1].split('_')[0] + '_' + stops[i + 1].split('_')[1]);
-
-                    if (midpoint) {
-                        stopsPoss = stopsPoss.concat(midpoint.stopPoss);
-                        points = points.concat(midpoint.points);
+                    if (stops[i].split('_').length > 2 && stop.rows[0].geom[0] !== 0 && stop.rows[0].geom[1] !== 0) {
+                        points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
+                    } else {
+                        points.push({'geom': stop.rows[0].geom, 'specCode': ''});
+                    }
+    
+                    if (i < (stops.length - 1)) {
+                        let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
+                            stops[i + 1].split('_')[0] + '_' + stops[i + 1].split('_')[1]);
+    
+                        if (midpoint) {
+                            stopsPoss = stopsPoss.concat(midpoint.stopPoss);
+                            points = points.concat(midpoint.points);
+                        }
                     }
                 }
             }
@@ -290,6 +300,127 @@ async function getLineRoute(db, params) {
     return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer)};
 }
 
+async function routing(db, params) {
+    if (routingState.state === 'routing' && params.cancel === 'true') {
+        routingIsRunning = false;
+        return routingState;
+    } 
+
+    if (routingState.state === 'routing') {
+        routingState.progress = routingProgress;
+        return routingState;
+    }
+
+    if (params.reroute === undefined || params.reroute !== 'true') {
+        try {
+            let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_ROUTES_TABLE);
+            if (parseInt(result.rows[0].count) === 0) {
+                routingState.state = "no_data";
+            } else {
+                routingState.state = 'data_available';
+                try {
+                    let date = (await db.query("SELECT * FROM " + process.env.DB_ROUTES_TABLE + " WHERE (routecode='time')")).rows[0];
+                    routingState.date = date.points[0];                 
+                } catch(err) {
+                    console.log(err);
+                    return false;
+                }
+            };
+    
+            return routingState;
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+    }
+
+    new Promise(async function() {
+        try {
+            await db.query("TRUNCATE TABLE " + process.env.DB_ROUTES_TABLE + " RESTART IDENTITY");
+
+            let result = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " ORDER BY code");
+            routingState.state = 'routing';
+            routingState.progress = 0;
+            routingIsRunning = true;
+    
+            const start = Date.now();
+            for (let i = 0; i < result.rows.length; i++) {
+                if (result.rows[i].routea !== undefined && result.rows[i].routea.length > 1) {
+                    let route = (await getLineRoute(db, {code: result.rows[i].code, dir: 'a'})).route;
+                    try {
+                        await db.query("INSERT INTO " + process.env.DB_ROUTES_TABLE + " (routeCode, points) VALUES ('" +
+                        result.rows[i].code + "_a', '{" + JSON.stringify(route) + "}')");
+                    } catch(err) {
+                        console.log(err);
+                    }
+                }
+
+                if (!routingIsRunning) {
+                    await db.query("TRUNCATE TABLE " + process.env.DB_ROUTES_TABLE + " RESTART IDENTITY");
+                    routingState = {state: 'no_data', progress: -1};
+                    return;
+                }
+
+                if (result.rows[i].routeb !== undefined && result.rows[i].routeb.length > 1) {
+                    let route = (await getLineRoute(db, {code: result.rows[i].code, dir: 'b'})).route;
+                    try {
+                        await db.query("INSERT INTO " + process.env.DB_ROUTES_TABLE + " (routeCode, points) VALUES ('" +
+                        result.rows[i].code + "_b', '{" + JSON.stringify(route) + "}')");
+                    } catch(err) {
+                        console.log(err);
+                    }
+                }
+
+                if (!routingIsRunning) {
+                    await db.query("TRUNCATE TABLE " + process.env.DB_ROUTES_TABLE + " RESTART IDENTITY");
+                    routingState = {state: 'no_data', progress: -1};
+                    return;
+                }
+
+                routingProgress = Math.round(i / result.rows.length * 100);
+            }
+    
+            routingState.state = 'data_available';
+            routingState.progress = undefined;
+
+            try {
+                await db.query("INSERT INTO " + process.env.DB_ROUTES_TABLE + " (routeCode, points) VALUES ('time', '{" + new Date() + "}')");
+            } catch(err) {
+                console.log(err);
+            }
+
+            const end = Date.now();
+            console.log(`Routing time: ${(end - start) / 1000} s`);
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+    });
+
+    routingState.state = 'routing';
+    routingState.progress = 0;
+
+    return routingState;
+}
+
+async function getRoutedLine(db, params) {
+    if (params.code === undefined) {
+        return false;
+    }
+
+    if (params.dir === undefined) {
+        return false;
+    }
+
+    let route = await db.query("SELECT * FROM " + process.env.DB_ROUTES_TABLE + " WHERE routecode='" + params.code + '_' + params.dir + "'");
+
+    if (route.rows === undefined || route.rows[0] === undefined || route.rows[0].points === undefined) {
+        return false;
+    }
+
+    return JSON.parse(route.rows[0].points);
+}
+
 async function saveLineCodes(db, params) {
     if (params.lineCodes === undefined) {
         return false;
@@ -316,4 +447,4 @@ async function saveLineCodes(db, params) {
     }
 }
 
-module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute, saveLineCodes };
+module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute, saveLineCodes, routing, getRoutedLine };
