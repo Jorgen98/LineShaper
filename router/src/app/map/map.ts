@@ -38,6 +38,7 @@ export class MapComponent {
     private midPoints: any = [];
     private selMidPoint: any = undefined;
     private selMidPointIndx: any = 0;
+    private renderedStops: any = [];
     private move = false;
 
     private initMap(): void {
@@ -90,6 +91,10 @@ export class MapComponent {
 
         this.mapService.putRouteOnMapEvent().subscribe((stops) => {
             this.createRoute(stops);
+        })
+
+        this.mapService.cleanWhatIsOnMapEvent().subscribe(() => {
+            this.clearRouteData();
         })
     }
 
@@ -166,6 +171,7 @@ export class MapComponent {
                 t.onLineClick(props);
                 L.DomEvent.stop(event);
             })
+            .bringToBack()
             .addTo(this.layers['midPoint']);
         } else {
             triangle.addTo(this.layers['background']);
@@ -262,14 +268,14 @@ export class MapComponent {
         this.layers['midPoint'] = L.layerGroup();
         this.layers['midPoint'].addTo(this.map);
 
-        //Midpoints
-        if (this.mapService.getBackgroundLayersState()['midPoint']) {
-            this.createMidpoint(await this.dataService.getMidPointsInRad([latLng.lat, latLng.lng]));
-        }
-
         //Stops
         if (this.mapService.getBackgroundLayersState()['stops']) {
             this.createStops(await this.dataService.getStopsInRad([latLng.lat, latLng.lng]));
+        }
+
+        //Midpoints
+        if (this.mapService.getBackgroundLayersState()['midPoint']) {
+            this.createMidpoint(await this.dataService.getMidPointsInRad([latLng.lat, latLng.lng]));
         }
 
         // Non editable layers
@@ -317,7 +323,8 @@ export class MapComponent {
                     t.mapService.onStopClick(props);
                     L.DomEvent.stop(event);
                 })
-                .bindTooltip(props.label);
+                .bindTooltip(props.label)
+                .bringToBack();
         } else if (layer === 'midPoint') {
             point.addTo(this.layers['midPoint'])
                 .on('click', (event) => {
@@ -336,9 +343,11 @@ export class MapComponent {
                         t.saveMidPointChanges();
                     }
                     L.DomEvent.stop(event);
-                })
+                });
         } else if (layer === 'route') {
-            point.addTo(this.layers['route']);
+            point.addTo(this.layers['route'])
+                .bindTooltip(props.label)
+                .openTooltip();
         } else {
             point.addTo(this.layers['background']);
         }
@@ -363,10 +372,13 @@ export class MapComponent {
                     L.DomEvent.stop(event);
                 })
                 .addTo(this.layers['midPoint'])
+                .bringToBack();
         } else if (layer === 'route') {
-            newLine.addTo(this.layers['route']);
+            newLine.addTo(this.layers['route'])
+                .bringToBack();
         } else {
-            newLine.addTo(this.layers['background']);
+            newLine.addTo(this.layers['background'])
+                .bringToBack();
         }
 
         let newTriangle;
@@ -386,6 +398,7 @@ export class MapComponent {
         if (this.layers['route'] !== undefined) {
             this.map.removeLayer(this.layers['route']);
         }
+
         this.layers['route'] = L.layerGroup();
         this.layers['route'].addTo(this.map);
 
@@ -393,10 +406,19 @@ export class MapComponent {
             this.createLine(input.route[i], input.route[i + 1], 'route', true);
         }
 
+        this.renderedStops = [];
         for (let i = 0; i < input.stops.length; i++) {
-            this.createPoint(input.stops[i], 'route');
+            this.renderedStops.push(input.stops[i][0].toString() + input.stops[i][1].toString());
+            this.createPoint(input.stops[i], 'route', {label: (i + 1) + ': ' + input.stopNames[i]});
         }
 
+        this.loadContext(this.map.getCenter());
+    }
+
+    clearRouteData() {
+        if (this.layers['route'] !== undefined) {
+            this.map.removeLayer(this.layers['route']);
+        }
         this.loadContext(this.map.getCenter());
     }
 
@@ -414,6 +436,8 @@ export class MapComponent {
             if (stopsOnMap[key] !== undefined) {
                 stopsOnMap[key].label += ', ' + label;
                 stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
+            } else if (this.renderedStops.indexOf(key) !== -1) {
+                continue;
             } else {
                 stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
             }

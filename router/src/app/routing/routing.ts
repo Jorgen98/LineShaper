@@ -28,33 +28,67 @@ export class RoutingComponent implements OnInit {
     progress = 0;
     progressText = '';
     routing = false;
+    transportMode = '';
     stops: any = [];
     routingState = {state: '', date: '', progress: 0};
     interval: any = undefined;
     dataAvailable: boolean = false;
 
     async ngOnInit() {
+        if (Object.keys(this.mapService.getWhatIsOnMap()['line']).length === 2) {
+            this.state = 'routeOneLineRes';
+            this.curLine = this.mapService.getWhatIsOnMap()['line'].lineCode;
+            this.curDir = this.mapService.getWhatIsOnMap()['line'].dir;
+        }
+
+        if (Object.keys(this.mapService.getWhatIsOnMap()['stopToStop']).length === 2) {
+            this.state = 'stopToStopRes';
+            this.transportMode = this.mapService.getWhatIsOnMap()['stopToStop'].transportMode;
+            this.stops = this.mapService.getWhatIsOnMap()['stopToStop'].stops;
+        }
+
         this.curLines = await this.dataService.getLinesInfo();
 
-        if (this.curLines.length > 0) {
+        if (this.curLines.length > 0 && this.curLine === '') {
             this.curLine = this.curLines[0].code;
 
             this.setLineEnds();
         }
+
+        if (Object.keys(this.mapService.getWhatIsOnMap()['line']).length === 2) {
+            this.curLines.find((line: any) => {
+                if (line.code === parseInt(this.curLine)) {
+                    if (this.curDir === 'a') {
+                        this.progressText = line.name + ': ' + line.routeA.s + ' -> ' + line.routeA.e;
+                    } else {
+                        this.progressText = line.name + ': ' + line.routeB.s + ' -> ' + line.routeB.e;
+                    }
+                }
+            });
+        }
+
+        if (Object.keys(this.mapService.getWhatIsOnMap()['stopToStop']).length === 2) {
+            this.progressText = this.stops[0].label + '->' + this.stops[1].label;
+        }
     }
 
-    async defaultMenu() {
+    defaultMenu() {
         this.state = 'menu';
+        this.mapService.cleanWhatIsOnMap();
     }
 
-    async routeOneLine() {
+    routeOneLine() {
         if (this.state !== 'routeOneLine') {
             this.state = 'routeOneLine';
             return;
         }
-        
+    }
+
+    async getRoute() {
         this.mapService.onRouting(true);
         this.state = 'routingProgress';
+
+        this.mapService.setWhatIsOnMap('line', {lineCode: this.curLine, dir: this.curDir});
 
         let route;
         let round = 0;
@@ -65,12 +99,19 @@ export class RoutingComponent implements OnInit {
 
         if (route.stops !== undefined) {
             this.mapService.putRouteOnMap(route);
-        } else {
-            console.log(this.curLine, this.curDir);
         }
 
         this.mapService.onRouting(false);
-        this.defaultMenu();
+        this.curLines.find((line: any) => {
+            if (line.code === parseInt(this.curLine)) {
+                if (this.curDir === 'a') {
+                    this.progressText = line.name + ': ' + line.routeA.s + ' -> ' + line.routeA.e;
+                } else {
+                    this.progressText = line.name + ': ' + line.routeB.s + ' -> ' + line.routeB.e;
+                }
+            }
+        });
+        this.state = 'routeOneLineRes';
     }
 
     setLineEnds() {
@@ -105,60 +146,6 @@ export class RoutingComponent implements OnInit {
         } else {
             return;
         }
-
-        /*if (this.progress === 100) {
-            this.progress = 0;
-            this.defaultMenu();
-            return;
-        }
-
-        this.state = 'progress';
-        this.progress = 0;
-        this.progressText = 'Probíhá výpočet tras. Vyčkejte prosím.';
-        this.routing  = true;
-        this.mapService.onRouting(true);
-
-        let lines = await this.dataService.getLinesInfo();
-        let result: any = {};
-
-        for (let i = 0; i < lines.length; i++) {
-            if (result[lines[i].code] === undefined) {
-                result[lines[i].code] = {'a': [], 'b': []};
-            }
-
-            try {
-                result[lines[i].code].a = (await this.dataService.getWholeLine(lines[i].code, 'a')).route;
-            } catch(err) {
-                console.log(err);
-            }
-            if (!this.routing) {
-                break;
-            }
-            this.progress = Math.round(i / lines.length * 100);
-
-            try {
-                result[lines[i].code].b = (await this.dataService.getWholeLine(lines[i].code, 'b')).route;
-            } catch(err) {
-                console.log(err);
-            }
-            if (!this.routing) {
-                break;
-            }
-            this.progress = Math.round((i + 0.5) / lines.length * 100);
-        }
-
-        if (this.routing) {
-            this.getShapeFile(0, lines, result);
-            this.getShapeFile(1, lines, result);
-        }
-
-        if (this.routing) {
-            this.progressText = "Exportování dat je dokončeno";
-        } else {
-            this.progressText = "Trasování linek bylo zrušeno";
-        }
-        this.progress = 100;
-        this.mapService.onRouting(false);*/
     }
 
     async routeAll() {
@@ -228,6 +215,44 @@ export class RoutingComponent implements OnInit {
         this.state = 'routeAllRoutes';
     }
 
+    async exportOneLine(full = false) {
+        this.mapService.onRouting(true);
+        this.state = 'routingProgress';
+
+        let lines = await this.dataService.getLinesInfo();
+        let data: any = {};
+        data[this.curLine] = {};
+
+        let result;
+        let round = 0;
+        do {
+            result = await this.dataService.getWholeLine(parseInt(this.curLine), this.curDir);
+            round++;
+        } while (result.stops === undefined && round < 3);
+
+        if (result.stops !== undefined) {
+            data[this.curLine][this.curDir] = result.route;
+        }
+
+        if (full) {
+            let dir = this.curDir === 'a' ? 'b' : 'a';
+            do {
+                result = await this.dataService.getWholeLine(parseInt(this.curLine), dir);
+                round++;
+            } while (result.stops === undefined && round < 3);
+    
+            if (result.stops !== undefined) {
+                data[this.curLine][dir] = result.route;
+            }
+        }
+
+        this.getShapeFile(0, lines, data);
+        this.getShapeFile(1, lines, data);
+
+        this.mapService.onRouting(false);
+        this.state = 'routeOneLineRes';
+    }
+
     getShapeFile(type: number = 0, lines: any, result: any) {
         this.progress = 0;
         let text = 'shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\r\n';
@@ -284,7 +309,7 @@ export class RoutingComponent implements OnInit {
         this.stops = [];
     }
 
-    async routeStopToStop(transportMode: string = "") {
+    async routeStopToStop(selTransportMode: string = "") {
         if (this.stops.length === 1 && this.state === 'stopToStop0') {
             this.state = 'stopToStop1';
             return;
@@ -293,12 +318,17 @@ export class RoutingComponent implements OnInit {
             return;
         }
 
+        this.transportMode = selTransportMode;
+        await this.getStopToStop();
+    }
+    
+    async getStopToStop() {
         if (this.stops.length === 2) {
-            if (transportMode !== "") {
+            if (this.transportMode !== "") {
                 this.mapService.onRouting(true);
                 this.state = 'routingProgress';
 
-                let route = await this.dataService.getRoute([this.stops[0].keys[0], this.stops[1].keys[0]], transportMode);
+                let route = await this.dataService.getRoute([this.stops[0].keys[0], this.stops[1].keys[0]], this.transportMode);
 
                 if (!route) {
                     this.defaultMenu();
@@ -306,7 +336,11 @@ export class RoutingComponent implements OnInit {
                 }
 
                 this.mapService.putRouteOnMap(route);
+                this.mapService.setWhatIsOnMap('stopToStop', {transportMode: this.transportMode, stops: this.stops});
                 this.mapService.onRouting(false);
+
+                this.progressText = this.stops[0].label + '->' + this.stops[1].label;
+                this.state = 'stopToStopRes';
             } else {
                 this.state = 'stopToStop2';
                 return;
@@ -314,8 +348,5 @@ export class RoutingComponent implements OnInit {
         } else {
             return;
         }
-        
-        this.defaultMenu();
     }
-    
 }

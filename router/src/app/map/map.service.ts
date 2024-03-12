@@ -13,6 +13,7 @@ export class MapService {
     private putRouteOnMapObj = new Subject<any>();
     private onStopClickObj = new Subject<any>();
     private onRoutingObj = new Subject<any>();
+    private cleanWhatIsOnMapObj = new Subject<any>();
 
     private backgroundLayers: {[name: string]: boolean} = {
         'rail': false,
@@ -20,6 +21,11 @@ export class MapService {
         'tram': false,
         'midPoint': true,
         'stops': true
+    }
+
+    private whatIsOnMap: {[name: string]: any } = {
+        'line': {},
+        'stopToStop': {}
     }
     
     zoomIn() {
@@ -78,6 +84,10 @@ export class MapService {
         return this.onRoutingObj.asObservable();
     }
 
+    cleanWhatIsOnMapEvent(): Observable<any>{
+        return this.cleanWhatIsOnMapObj.asObservable();
+    }
+
     getBackgroundLayersState() {
         return this.backgroundLayers;
     }
@@ -85,5 +95,26 @@ export class MapService {
     flipBackgroundLayersState(layer: string) {
         this.backgroundLayers[layer] = !this.backgroundLayers[layer];
         this.visibilityUpdate();
+    }
+
+    cleanWhatIsOnMap() {
+        this.whatIsOnMap['line'] = {};
+        this.whatIsOnMap['stopToStop'] = {};
+
+        this.cleanWhatIsOnMapObj.next(0);
+    }
+
+    setWhatIsOnMap(type: string, props: any) {
+        if (type === 'line') {
+            this.whatIsOnMap[type].lineCode = props.lineCode;
+            this.whatIsOnMap[type].dir = props.dir;
+        } else {
+            this.whatIsOnMap[type].transportMode = props.transportMode;
+            this.whatIsOnMap[type].stops = props.stops;
+        }
+    }
+
+    getWhatIsOnMap() {
+        return this.whatIsOnMap;
     }
 }

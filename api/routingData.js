@@ -130,12 +130,13 @@ async function getRoute(db, params) {
         return false;
     }
 
-    return {'stops': result.stops, 'route': await computeRoute(db, result.points, params.layer)};
+    return {'stops': result.stops, 'route': await computeRoute(db, result.points, params.layer), 'stopNames': result.stopNames};
 }
 
 async function getStopsGeom(db, stops) {
     let points = [];
     let stopsPoss = [];
+    let stopNames = [];
     for (let i = 0; i < stops.length; i++) {
         try {
             let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
@@ -150,6 +151,8 @@ async function getStopsGeom(db, stops) {
                     } else {
                         points.push({'geom': stop.rows[0].geom, 'specCode': ''});
                     }
+
+                    stopNames.push(await getStopName(db, stops, i) + ' ' + stops[i].split('_')[1]);
     
                     if (i < (stops.length - 1)) {
                         let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
@@ -158,6 +161,7 @@ async function getStopsGeom(db, stops) {
                         if (midpoint) {
                             stopsPoss = stopsPoss.concat(midpoint.stopPoss);
                             points = points.concat(midpoint.points);
+                            stopNames.push('Medzibod');
                         }
                     }
                 }
@@ -167,7 +171,7 @@ async function getStopsGeom(db, stops) {
         }
     }
 
-    return {'stops': stopsPoss, 'points': points};
+    return {stops: stopsPoss, points: points, stopNames: stopNames};
 }
 
 async function saveLines(db, params) {
@@ -203,16 +207,16 @@ async function getLines(db) {
 
         for (let i = 0; i < result.rows.length; i++) {
             let route_start = undefined, route_end = undefined;
-            route_start = await getRouteStartName(db, result.rows[i].routea);
-            route_end = await getRouteEndName(db, result.rows[i].routea);
+            route_start = await getStopName(db, result.rows[i].routea, 0);
+            route_end = await getStopName(db, result.rows[i].routea, result.rows[i].routea.length - 1);
 
             delete result.rows[i]['routea'];
             if (route_start !== undefined && route_end !== undefined) {
                 result.rows[i]['routeA'] = {'s': route_start, 'e': route_end};
             }
 
-            route_start = await getRouteStartName(db, result.rows[i].routeb);
-            route_end = await getRouteEndName(db, result.rows[i].routeb);
+            route_start = await getStopName(db, result.rows[i].routeb, 0);
+            route_end = await getStopName(db, result.rows[i].routeb, result.rows[i].routeb.length - 1);
 
             delete result.rows[i]['routeb'];
             if (route_start !== undefined && route_end !== undefined) {
@@ -244,24 +248,11 @@ async function getLines(db) {
 
 }
 
-async function getRouteStartName(db, codes) {
+async function getStopName(db, codes, idx) {
     let result = undefined;
-    if (codes !== undefined && codes.length > 0 && codes[0].split('_').length  > 1) {
+    if (codes !== undefined && codes[idx] !== undefined && codes[idx].split('_').length > 1) {
         result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-            " WHERE code=" + parseInt(codes[0].split('_')[0]));
-        if (result.rows !== undefined) {
-            return result.rows[0].name;
-        }
-    } else {
-        return undefined;
-    }
-}
-
-async function getRouteEndName(db, codes) {
-    let result = undefined;
-    if (codes !== undefined && codes.length > 0 && codes[codes.length - 1].split('_').length > 1) {
-        result = await db.query("SELECT * FROM " + process.env.DB_STOPS_TABLE +
-            " WHERE code=" + parseInt(codes[codes.length - 1].split('_')[0]));
+            " WHERE code=" + parseInt(codes[idx].split('_')[0]));
         if (result.rows !== undefined) {
             return result.rows[0].name;
         }
@@ -286,6 +277,7 @@ async function getLineRoute(db, params) {
     }
 
     let result;
+    let stopName;
 
     if (params.dir === 'a') {
         result = await getStopsGeom(db, line.rows[0].routea);
@@ -297,7 +289,7 @@ async function getLineRoute(db, params) {
         return false;
     }
 
-    return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer)};
+    return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer), 'stopNames': result.stopNames};
 }
 
 async function routing(db, params) {

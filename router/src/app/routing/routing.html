@@ -23,9 +23,9 @@
     </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
-        <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si linku</p>
+        <p class="header">Zvolte si linku</p>
         <div class="option" (change)="setLineEnds()">
-            <select [(ngModel)]="curLine">
+            <select [(ngModel)]="curLine" class="js-example-basic-single">
                 <option *ngFor="let item of curLines" [value]="item.code">{{ item.name + '/' + item.code }}</option>
             </select>
         </div>
@@ -35,12 +35,20 @@
                 <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
             </select>
         </div>
-        <button (click)="routeOneLine()">Vypočítat trasu</button>
+        <button (click)="getRoute()">Vypočítat trasu</button>
         <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- One route progress screen -->
     <div *ngSwitchCase="'routingProgress'">
         <p class="header" *ngSwitchCase="'routingProgress'">Probíhá výpočet trasy. Vyčkejte prosím.</p>
+    </div>
+    <!-- Route one result screen -->
+    <div *ngSwitchCase="'routeOneLineRes'">
+        <p class="header">{{ progressText }}</p>
+        <button (click)="getRoute()">Znovu vypočítat trasu</button>
+        <button (click)="exportOneLine()">Exportovat vybraný směr trasy</button>
+        <button (click)="exportOneLine(true)">Exportovat všechny směry trasy</button>
+        <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- Progress screen -->
     <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
@@ -84,6 +92,12 @@
             </div>
         </div>
         <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Stop to stop result screen -->
+    <div *ngSwitchCase="'stopToStopRes'">
+        <p class="header">{{ progressText }}</p>
+        <button (click)="getStopToStop()">Znovu vypočítat trasu</button>
+        <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- Stop to stop routing screen warning -->
     <p class="header" *ngSwitchCase="'stopToStopWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
