@@ -1,9 +1,10 @@
 <div class="content" [ngSwitch]="state">
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">Trasování linek</p>
+    <p class="header" *ngSwitchCase="'menu'">Linky</p>
     <div *ngSwitchCase="'menu'">
         <button (click)="routeAllRoutes()">Trasování všech linek</button>
         <button (click)="routeOneLine()">Trasování jedné linky</button>
+        <button (click)="state='selectRoute'">Úprava struktury linky</button>
         <button (click)="stopToStopRoutingStart()">Trasování mezi dvěma zastávkami</button>
     </div>
     <!-- Route all lines screen -->
@@ -25,11 +26,10 @@
     <div *ngSwitchCase="'routeOneLine'">
         <p class="header">Zvolte si linku</p>
         <div class="option" (change)="setLineEnds()">
-            <select [(ngModel)]="curLine" class="js-example-basic-single">
-                <option *ngFor="let item of curLines" [value]="item.code">{{ item.name + '/' + item.code }}</option>
-            </select>
+            <select2 [data]="curLines" [value]="curLine" (update)="setLineEnds($event)" styleMode="noStyle">
+            </select2>
         </div>
-        <p class="header" *ngSwitchCase="'routeOneLine'">Zvolte si směr</p>
+        <p class="header">Zvolte si směr</p>
         <div class="option">
             <select [(ngModel)]="curDir">
                 <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
@@ -48,6 +48,7 @@
         <button (click)="getRoute()">Znovu vypočítat trasu</button>
         <button (click)="exportOneLine()">Exportovat vybraný směr trasy</button>
         <button (click)="exportOneLine(true)">Exportovat všechny směry trasy</button>
+        <button (click)="editRoute()">Upravit strukturu trasy</button>
         <button (click)="defaultMenu()">Menu</button>
     </div>
     <!-- Progress screen -->
@@ -103,5 +104,38 @@
     <p class="header" *ngSwitchCase="'stopToStopWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
     <div *ngSwitchCase="'stopToStopWarning'">
         <button (click)="defaultMenu()">Zrušit</button>
+    </div>
+    <!-- Choose route to edit screen -->
+    <div *ngSwitchCase="'selectRoute'">
+        <p class="header">Zvolte si linku</p>
+        <div class="option" (change)="setLineEnds()">
+            <select2 [data]="curLines" [value]="curLine" (update)="setLineEnds($event)" styleMode="noStyle">
+            </select2>
+        </div>
+        <p class="header">Zvolte si směr</p>
+        <div class="option">
+            <select [(ngModel)]="curDir">
+                <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
+            </select>
+        </div>
+        <button (click)="editRoute()">Upravit trasu</button>
+        <button (click)="defaultMenu()">Menu</button>
+    </div>
+    <div *ngSwitchCase="'editRoute'">
+        <p class="header">{{ progressText }}</p>
+        <div class="routeStopsMainDiv">
+            <div *ngFor="let stop of curRouteStops; let index = index; let first = first; let last = last; let odd = odd"
+                class="routeStopsElem" [ngClass]="{'routeStopsElemOdd': odd, 'routeStopsElemDis': stop.dis}">
+                <p class="routeStopsName">{{ (index + 1) + ': ' + stop.label }}</p>
+                <button class="routeStopsButton"[disabled]="first" (click)="switchStops(index, 'up')">
+                    <mat-icon>keyboard_arrow_up</mat-icon></button>
+                <button class="routeStopsButton" [disabled]="last" (click)="switchStops(index, 'down')">
+                    <mat-icon>keyboard_arrow_down</mat-icon></button>
+                <input class="routeStopsInput" [(checked)]="!stop.dis" type="checkbox" (change)="disableStop(index)">
+            </div>
+        </div>
+        <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
+        <button (click)="getRoute()">Vypočítat trasu</button>
+        <button (click)="defaultMenu()">Menu</button>
     </div>
 </div>

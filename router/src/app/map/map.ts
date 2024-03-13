@@ -171,7 +171,6 @@ export class MapComponent {
                 t.onLineClick(props);
                 L.DomEvent.stop(event);
             })
-            .bringToBack()
             .addTo(this.layers['midPoint']);
         } else {
             triangle.addTo(this.layers['background']);
@@ -256,17 +255,17 @@ export class MapComponent {
         this.layers['background'] = L.layerGroup();
         this.layers['background'].addTo(this.map);
 
-        if (this.layers['stops'] !== undefined) {
-            this.map.removeLayer(this.layers['stops']);
-        }
-        this.layers['stops'] = L.layerGroup();
-        this.layers['stops'].addTo(this.map);
-
         if (this.layers['midPoint'] !== undefined) {
             this.map.removeLayer(this.layers['midPoint']);
         }
         this.layers['midPoint'] = L.layerGroup();
         this.layers['midPoint'].addTo(this.map);
+
+        if (this.layers['stops'] !== undefined) {
+            this.map.removeLayer(this.layers['stops']);
+        }
+        this.layers['stops'] = L.layerGroup();
+        this.layers['stops'].addTo(this.map);
 
         //Stops
         if (this.mapService.getBackgroundLayersState()['stops']) {
@@ -322,9 +321,11 @@ export class MapComponent {
                 .on('click', (event) => {
                     t.mapService.onStopClick(props);
                     L.DomEvent.stop(event);
-                })
-                .bindTooltip(props.label)
-                .bringToBack();
+                });
+            if (this.renderedStops.indexOf(point.getLatLng().lat.toString() +
+                point.getLatLng().lng.toString()) === -1) {
+                point.bindTooltip(props.label);
+            }
         } else if (layer === 'midPoint') {
             point.addTo(this.layers['midPoint'])
                 .on('click', (event) => {
@@ -375,10 +376,8 @@ export class MapComponent {
                 .bringToBack();
         } else if (layer === 'route') {
             newLine.addTo(this.layers['route'])
-                .bringToBack();
         } else {
             newLine.addTo(this.layers['background'])
-                .bringToBack();
         }
 
         let newTriangle;
@@ -436,8 +435,6 @@ export class MapComponent {
             if (stopsOnMap[key] !== undefined) {
                 stopsOnMap[key].label += ', ' + label;
                 stopsOnMap[key].keys = stopsOnMap[key].keys.concat(codes);
-            } else if (this.renderedStops.indexOf(key) !== -1) {
-                continue;
             } else {
                 stopsOnMap[key] = {geom: stop.geom, label: label, keys: codes};
             }

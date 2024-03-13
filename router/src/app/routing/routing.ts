@@ -33,6 +33,7 @@ export class RoutingComponent implements OnInit {
     routingState = {state: '', date: '', progress: 0};
     interval: any = undefined;
     dataAvailable: boolean = false;
+    curRouteStops: any = [];
 
     async ngOnInit() {
         if (Object.keys(this.mapService.getWhatIsOnMap()['line']).length === 2) {
@@ -50,7 +51,7 @@ export class RoutingComponent implements OnInit {
         this.curLines = await this.dataService.getLinesInfo();
 
         if (this.curLines.length > 0 && this.curLine === '') {
-            this.curLine = this.curLines[0].code;
+            this.curLine = this.curLines[0].value;
 
             this.setLineEnds();
         }
@@ -114,7 +115,10 @@ export class RoutingComponent implements OnInit {
         this.state = 'routeOneLineRes';
     }
 
-    setLineEnds() {
+    setLineEnds(l:any = undefined) {
+        if (l !== undefined) {
+            this.curLine = l.value;
+        }
         let idx = this.curLines.map((e: { code: any; }) => e.code).indexOf(parseInt(this.curLine));
         this.curLineEnds = [];
 
@@ -348,5 +352,72 @@ export class RoutingComponent implements OnInit {
         } else {
             return;
         }
+    }
+
+    async editRoute() {
+        if (this.state !== 'editRoute') {
+            this.curRouteStops = await this.dataService.getWholeLineInfo(parseInt(this.curLine), this.curDir);
+
+            let idx = 0;
+            while (idx < this.curRouteStops.length) {
+                if (this.curRouteStops[idx].label === 'Medzibod') {
+                    this.curRouteStops = this.curRouteStops.slice(idx, 1);
+                    continue;
+                }
+                if (this.curRouteStops[idx].code.split('_')[3] === 'd') {
+                    this.curRouteStops[idx].dis = true;
+                } else {
+                    this.curRouteStops[idx].dis = false;
+                }
+
+                idx++;
+            }
+
+            this.curLines.find((line: any) => {
+                if (line.code === parseInt(this.curLine)) {
+                    if (this.curDir === 'a') {
+                        this.progressText = line.name + ': ' + line.routeA.s + ' -> ' + line.routeA.e;
+                    } else {
+                        this.progressText = line.name + ': ' + line.routeB.s + ' -> ' + line.routeB.e;
+                    }
+                }
+            });
+            this.state = 'editRoute';
+            return;
+        }
+    }
+
+    disableStop(idx: number) {
+        if (this.curRouteStops[idx].code.split('_')[3] === 'd') {
+            this.curRouteStops[idx].dis = false;
+            this.curRouteStops[idx].code = this.curRouteStops[idx].code.slice(0, -1);
+        } else {
+            this.curRouteStops[idx].dis = true;
+            this.curRouteStops[idx].code += 'd';
+        }
+
+        let codes = [];
+        for (const stop of this.curRouteStops) {
+            codes.push(stop.code);
+        }
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify(codes));
+    }
+
+    switchStops(idx: number, dir: string) {
+        if (dir === 'up') {
+            let tmp = JSON.parse(JSON.stringify(this.curRouteStops[idx - 1]));
+            this.curRouteStops[idx - 1] = this.curRouteStops[idx];
+            this.curRouteStops[idx] = tmp;
+        } else {
+            let tmp = JSON.parse(JSON.stringify(this.curRouteStops[idx + 1]));
+            this.curRouteStops[idx + 1] = this.curRouteStops[idx];
+            this.curRouteStops[idx] = tmp;
+        }
+
+        let codes = [];
+        for (const stop of this.curRouteStops) {
+            codes.push(stop.code);
+        }
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify(codes));
     }
 }

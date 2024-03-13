@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Select2Module } from 'ng-select2-component';
 
 import { AppComponent } from './app';
 import { MapComponent } from './map/map';
@@ -26,7 +27,8 @@ import { MidPointsComponent } from './mid-points/mid-points';
     BrowserModule,
     MatIconModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    Select2Module
   ],
   providers: [],
   bootstrap: [AppComponent]

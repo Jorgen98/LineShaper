@@ -53,9 +53,17 @@ div.warning {
     border-radius: 0.5rem;
 }
 
+select, select2 {
+    width: calc(100% - 1.5rem);
+    margin: auto;
+    background-color: var(--white);
+    font-size: inherit;
+    border: none;
+    border-radius: 0.25rem;
+}
+
 select {
-    width: calc(100% - 1rem);
-    margin: 0.5rem;
+    padding: 0.25rem;
 }
 
 .propsOption {
@@ -106,4 +114,45 @@ img {
     border: solid var(--mark) 0.2rem;
     background-color: var(--mark);
     opacity: 1;
+}
+
+.routeStopsMainDiv {
+    width: calc(100% - 1rem);
+    margin: auto;
+}
+
+.routeStopsElem {
+    display: flex;
+    margin: 0.25rem 0;
+}
+
+.routeStopsElemOdd {
+    background-color: var(--border);
+}
+
+.routeStopsElemDis {
+    opacity: 0.5;
+}
+
+.routeStopsButton {
+    margin: auto 0;
+    width: 2rem;
+    height: 2rem;
+}
+
+.routeStopsInput {
+    margin: auto 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    accent-color: var(--mark);
+    border: solid var(--mark) 0.2rem;
+}
+
+.routeStopsName {
+    margin: auto auto auto 0;
+}
+
+mat-icon {
+    margin: auto;
+    display: flex;
 }

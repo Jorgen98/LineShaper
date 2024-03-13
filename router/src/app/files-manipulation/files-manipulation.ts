@@ -23,6 +23,8 @@ export class FilesManipulationComponent {
     progress = 0;
     progressText = "";
     loadState = 0;
+    waitForPressResolve: any;
+    replace = true;
 
     async defaultMenu() {
         this.warning = false;
@@ -217,7 +219,7 @@ export class FilesManipulationComponent {
         this.state = 'progress';
         this.progress = 0;
         this.progressText = "Zpracování dat";
-        await this.dataService.clearData('lines');
+        //await this.dataService.clearData('lines');
 
         let content = this.acLinesFileContent.split('\r\n');
         let lines: any = [];
@@ -235,17 +237,17 @@ export class FilesManipulationComponent {
 
                     if (line[3] === "konečná") {
                         if (line[5].split(',').length > 1) {
-                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_k');
-                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_k');
+                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_k_');
+                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_k_');
                         } else {
-                            routeA.push(line[4] + '_' + line[5] + '_k');
+                            routeA.push(line[4] + '_' + line[5] + '_k_');
                         }
                     } else {
                         if (line[5].split(',').length > 1) {
-                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_p');
-                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_p');
+                            routeA.push(line[4] + '_' + line[5].split(',')[0] + '_p_');
+                            routeA.push(line[4] + '_' + line[5].split(',')[1] + '_p_');
                         } else {
-                            routeA.push(line[4] + '_' + line[5]);
+                            routeA.push(line[4] + '_' + line[5] + '__');
                         }
                     }
                 }
@@ -254,17 +256,17 @@ export class FilesManipulationComponent {
                     
                     if (line[3] === "konečná") {
                         if (line[6].split(',').length > 1) {
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_k');
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_k');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_k_');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_k_');
                         } else {
-                            routeB.unshift(line[4] + '_' + line[6] + '_k');
+                            routeB.unshift(line[4] + '_' + line[6] + '_k_');
                         }
                     } else {
                         if (line[6].split(',').length > 1) {
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_p');
-                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_p');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[0] + '_p_');
+                            routeB.unshift(line[4] + '_' + line[6].split(',')[1] + '_p_');
                         } else {
-                            routeB.unshift(line[4] + '_' + line[6]);
+                            routeB.unshift(line[4] + '_' + line[6] + '__');
                         }
                     }
                 }
@@ -301,13 +303,48 @@ export class FilesManipulationComponent {
             if (upIndex > (lines.length - 1)) {
                 upIndex = lines.length;
             }
-            await this.dataService.saveLines(lines.slice(i, upIndex));
+
+            let whatToSave = [];
+
+            for (const line of lines.slice(i, upIndex)) {
+                let curLine = await this.dataService.getLineRoutesInfo(parseInt(line.lc));
+
+                if (line.routeA !== undefined && curLine.a !== undefined) {
+                    if (line.routeA.toString() !== curLine.a.toString()) {
+                        this.replace = true;
+                        this.warningText = "Nově vložená data pro linku " + curLine.lc
+                            + " se liší od aktuálně používaných dat. Chcete tato data nahradit?";
+                        this.state = 'replaceDecision';
+
+                        await this.waitForConfirm();
+
+                        if (this.replace) {
+                            whatToSave.push(line);
+                        }
+
+                        this.state = 'progress';
+                    } else {
+                        whatToSave.push(line);
+                    }
+                }
+            }
+            await this.dataService.saveLines(whatToSave);
             upIndex += 5;
             this.progress = Math.round(i / lines.length * 100);
         }
 
         this.progressText = "Zpracování dat je dokončeno"
         this.progress = 100;
+    }
+
+
+    waitForConfirm() {
+        return new Promise(resolve => this.waitForPressResolve = resolve);
+    }
+
+    waitForPress(decision: boolean) {
+        this.replace = decision;
+        if (this.waitForPressResolve) this.waitForPressResolve();
     }
 
     async importLineCodesIntroDB() {

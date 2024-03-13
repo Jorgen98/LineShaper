@@ -146,10 +146,12 @@ async function getStopsGeom(db, stops) {
                 if (acStopPoss[0] !== 0 && acStopPoss[1] !== 0) {
                     stopsPoss.push(acStopPoss);
 
-                    if (stops[i].split('_').length > 2 && stop.rows[0].geom[0] !== 0 && stop.rows[0].geom[1] !== 0) {
-                        points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
-                    } else {
-                        points.push({'geom': stop.rows[0].geom, 'specCode': ''});
+                    if (stops[i].split('_')[3] !== 'd') {
+                        if (stops[i].split('_').length > 2 && stop.rows[0].geom[0] !== 0 && stop.rows[0].geom[1] !== 0) {
+                            points.push({'geom': stop.rows[0].geom, 'specCode': stops[i].split('_')[2]});
+                        } else {
+                            points.push({'geom': stop.rows[0].geom, 'specCode': ''});
+                        }
                     }
 
                     stopNames.push(await getStopName(db, stops, i) + ' ' + stops[i].split('_')[1]);
@@ -158,7 +160,7 @@ async function getStopsGeom(db, stops) {
                         let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
                             stops[i + 1].split('_')[0] + '_' + stops[i + 1].split('_')[1]);
     
-                        if (midpoint) {
+                        if (midpoint && stops[i].split('_')[3] !== 'd' && stops[i + 1].split('_')[3] !== 'd') {
                             stopsPoss = stopsPoss.concat(midpoint.stopPoss);
                             points = points.concat(midpoint.points);
                             stopNames.push('Medzibod');
@@ -189,6 +191,8 @@ async function saveLines(db, params) {
         if (data.length > 0 && i < (data.length - 1)) {
             query += ",";
         }
+        
+        await db.query("DELETE FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + data[i].lc);
     }
 
     try {
@@ -238,6 +242,9 @@ async function getLines(db) {
             } else {
                 result.rows[i]['name'] = result.rows[i]['code'].toString();
             }
+
+            result.rows[i]['label'] = result.rows[i]['code'] + '/' + result.rows[i]['name'];
+            result.rows[i]['value'] = result.rows[i]['code'];
         }
 
         return result.rows;
@@ -277,7 +284,6 @@ async function getLineRoute(db, params) {
     }
 
     let result;
-    let stopName;
 
     if (params.dir === 'a') {
         result = await getStopsGeom(db, line.rows[0].routea);
@@ -290,6 +296,117 @@ async function getLineRoute(db, params) {
     }
 
     return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer), 'stopNames': result.stopNames};
+}
+
+async function getLineRouteInfo(db, params) {
+    if (params.code === undefined) {
+        return false;
+    }
+
+    if (params.dir === undefined) {
+        return false;
+    }
+
+    let line = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + params.code);
+
+    if (line.rows === undefined || line.rows[0] === undefined) {
+        return false;
+    }
+
+    let result = [];
+    let stopNames;
+
+    if (params.dir === 'a') {
+        stopNames = (await getStopsGeom(db, line.rows[0].routea)).stopNames;
+    } else if (params.dir === 'b') {
+        stopNames = (await getStopsGeom(db, line.rows[0].routeb)).stopNames;
+    }
+
+    if (stopNames.length < 1) {
+        return false;
+    }
+
+    let idx = 0;
+    if (params.dir === 'a') {
+        for (const name of stopNames) {
+            if (name === 'Medzibod') {
+                continue;
+            }
+            result.push({code: line.rows[0].routea[idx], label: name});
+            idx++;
+        }
+    } else {
+        for (let name of stopNames) {
+            if (name === 'Medzibod') {
+                continue;
+            }
+            result.push({code: line.rows[0].routeb[idx], label: name});
+            idx++;
+        }
+    }
+
+    return result;
+}
+
+async function updateLineRouteInfo(db, params) {
+    if (params.code === undefined) {
+        return false;
+    }
+
+    if (params.dir === undefined) {
+        return false;
+    }
+
+    if (params.route === undefined) {
+        return false;
+    }
+
+    let line = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + params.code);
+
+    if (line.rows === undefined || line.rows[0] === undefined) {
+        return false;
+    }
+
+    try {
+        if (params.dir === 'a') {
+            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routea = '{" + JSON.parse(params.route) +
+            "}' WHERE code=" + params.code);
+        } else {
+            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routeb = '{" + JSON.parse(params.route) +
+            "}' WHERE code=" + params.code);
+        }
+        return true;
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
+}
+
+async function getLineRoutesInfo(db, params) {
+    if (params.code === undefined) {
+        return false;
+    }
+
+    let line = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + params.code);
+
+    if (line.rows === undefined || line.rows[0] === undefined) {
+        return false;
+    }
+
+    let lineName;
+    try {
+        lineName = await db.query("SELECT code, name FROM " + process.env.DB_LINE_CODES_TABLE + " WHERE code=" + params.code);
+    } catch(err) {
+        console.log(err);
+    }
+    
+    if (lineName.rows[0] !== undefined) {
+        lineName = lineName.rows[0].name;
+    } else {
+        lineName = params.code;
+    }
+
+    return {a: line.rows[0].routea, b: line.rows[0].routeb, lc: lineName};
 }
 
 async function routing(db, params) {
@@ -439,4 +556,5 @@ async function saveLineCodes(db, params) {
     }
 }
 
-module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute, saveLineCodes, routing, getRoutedLine };
+module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute,
+    saveLineCodes, routing, getRoutedLine, getLineRouteInfo, updateLineRouteInfo, getLineRoutesInfo };

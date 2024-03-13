@@ -104,6 +104,18 @@ app.get('/api/lineRoute', async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
 
+app.get('/api/lineRouteInfo', async (req, res) => {
+    res.send(await dbRoutingData.getLineRouteInfo(db, req.query));
+})
+
+app.get('/api/updateLineRouteInfo', async (req, res) => {
+    res.send(await dbRoutingData.updateLineRouteInfo(db, req.query));
+})
+
+app.get('/api/lineRoutesInfo', async (req, res) => {
+    res.send(await dbRoutingData.getLineRoutesInfo(db, req.query));
+})
+
 app.get('/api/routing', async (req, res) => {
     res.send(await dbRoutingData.routing(db, req.query));
 })

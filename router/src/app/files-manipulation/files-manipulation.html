@@ -41,4 +41,10 @@
         </div>
         <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">Zavřít</button>
     </div>
+    <!-- On route replace screen -->
+    <p class="header" *ngSwitchCase="'replaceDecision'">{{ warningText }}</p>
+    <div *ngSwitchCase="'replaceDecision'">
+        <button class="mark" (click)="waitForPress(true)">Nahradit data</button>
+        <button class="mark" (click)="waitForPress(false)">Ponechat stávající data</button>
+    </div>
 </div>

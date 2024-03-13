@@ -107,6 +107,27 @@ export class DataService {
           );
     }
 
+    queryGetWholeLineInfo(code: number, dir: string) {
+        return this.httpClient.get(this.whoToAsk + "/lineRouteInfo?code=" + code + "&dir=" + dir, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryUpdateLineInfo(code: number, dir: string, route: string) {
+        return this.httpClient.get(this.whoToAsk + "/updateLineRouteInfo?code=" + code + "&dir=" + dir + "&route=" + route, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetLineRoutesInfo(code: number) {
+        return this.httpClient.get(this.whoToAsk + "/lineRoutesInfo?code=" + code, {})
+        .pipe(
+            retry(3)
+          );
+    }
+
     queryPostSaveLineCodes(lineCodes: any) {
         return this.httpClient.post(this.whoToAsk + "/saveLineCodes?lineCodes=" + JSON.stringify(lineCodes), {})
         .pipe(
@@ -310,6 +331,42 @@ export class DataService {
             error => {
                 console.log(error);
                 resolve({});
+            });
+        });
+    }
+
+    getLineRoutesInfo(code: number): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetLineRoutesInfo(code).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    getWholeLineInfo(code: number, dir: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetWholeLineInfo(code, dir).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
+            });
+        });
+    }
+
+    updateLineRouteInfo(code: number, dir: string, route: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryUpdateLineInfo(code, dir, route).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve({});
+                }
             });
         });
     }
