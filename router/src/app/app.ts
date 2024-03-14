@@ -6,6 +6,7 @@ import { DataService } from './data.service';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { RoutingComponent } from './routing/routing';
 import { MidPointsComponent } from './mid-points/mid-points';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-root',
@@ -14,7 +15,7 @@ import { MidPointsComponent } from './mid-points/mid-points';
 })
 
 export class AppComponent implements OnInit {
-    constructor(private mapService: MapService) {
+    constructor(private mapService: MapService, private dataService:DataService, private translate: TranslateService) {
         this.mapService.onRoutingEvent().subscribe((state) => {
             this.btnDisabled = state;
         })
@@ -24,11 +25,40 @@ export class AppComponent implements OnInit {
     newItems = false;
     btnDisabled = false;
     mapDisabledZIndex = 0;
+    acLang = 'EN';
+    loginScreen = true;
+    loginWarning = false;
+    logInName = '';
+    logInPassword = '';
     
-    ngOnInit(): void {
+    async ngOnInit() {
+        let lang = await this.dataService.getLang();
+        if (lang === 'en') {
+            this.acLang = 'CZ';
+            this.translate.use('en');
+        } else {
+            this.acLang = 'EN';
+            this.translate.use('cz');
+        }
+        
         this.openMenuItem(2);
         this.closeMenuItem();
         this.menuIndexBtn[2] = "";
+
+        if (await this.dataService.connectToDB('', '')) {
+            this.loginScreen = false;
+            this.mapService.cleanWhatIsOnMap();
+        }
+    }
+
+    async logIn() {
+        let result = await this.dataService.connectToDB(this.logInName, this.logInPassword);
+        if (result) {
+            this.loginScreen = false;
+            this.mapService.cleanWhatIsOnMap();
+        } else {
+            this.loginWarning = true;
+        }
     }
 
     zoomIn(): void {
@@ -66,5 +96,19 @@ export class AppComponent implements OnInit {
     closeMenuItem(): void {
         const viewContainerRef = this.mapTiles.viewContainerRef;
         viewContainerRef.clear();
+    }
+
+    changeLang() {
+        if (this.acLang === 'EN') {
+            this.acLang = 'CZ';
+            this.translate.use('en');
+            this.dataService.setLang('en');
+        } else {
+            this.acLang = 'EN';
+            this.translate.use('cz');
+            this.dataService.setLang('cz');
+        }
+
+        this.loginWarning = false;
     }
 }

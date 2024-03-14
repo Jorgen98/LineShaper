@@ -12,9 +12,27 @@
             <div class="verticalSpace"></div>
         </div>
         <div id="middleControl"><ng-template mapTiles></ng-template></div>
-        <div id="rigthControl"></div>
+        <div id="rightControl">
+            <button (click)="changeLang()" class="languageBtn"><p class="languageBtn">{{ acLang }}</p></button>
+        </div>
     </div>
 </div>
 <div id="mapDisabled" [ngStyle]="{'z-index': (btnDisabled==true) ? 999 : 0}">
 </div>
 <map-component #appDashboard></map-component>
+<div id="login" *ngIf="loginScreen">
+    <div class="outerMenu">
+        <div class="innerMenu">
+            <div class="title">
+                <p class="text">{{ "header" | translate }}</p>
+            </div>
+            <input class="login loginText" type="text" [(ngModel)]="logInName">
+            <input class="login loginText" type="password" [(ngModel)]="logInPassword">
+            <button class="login" (click)="logIn()">{{ "logIn" | translate }}</button>
+            <input type="button" onclick="location.href='/'" value="{{ 'menu' | translate }}" class="login"/>
+            <div class="warning" *ngIf="loginWarning">
+                <p class="warning">{{ "wrongCredentials" | translate }}</p>
+            </div>
+        </div>
+    </div>
+</div>

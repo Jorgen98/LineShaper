@@ -21,16 +21,7 @@
 
 #middleControl {
     margin: 0 auto 0 0;
-    height: calc(100vh - 2.25rem);
     display: flex;
-}
-
-#tail {
-    height: 1.25rem;
-    display: flex;
-    margin: auto;
-    color: var(--white);
-    background-color: var(--black);
 }
 
 div.tailInfo {
@@ -45,4 +36,34 @@ mat-icon.tailInfo {
     height: 1rem;
     margin: auto 0.25rem auto 0;
     font-feature-settings: "smcp" on;
+}
+
+#rightControl {
+    display: flex;
+    flex-direction: column;
+    z-index: 2500;
+}
+
+.languageBtn {
+    background-color: var(--grey);
+}
+
+p.languageBtn {
+    margin: auto;
+    font-size: large;
+    font-weight: 700;
+}
+
+p.warning {
+    text-align: center;
+    margin: 0.5rem auto 0.5rem auto;
+}
+
+div.warning {
+    width: calc(100% - 1rem);
+    background-color: var(--warning);
+    font-size: 0.75rem;
+    margin: 0.5rem auto 0 auto;
+    padding: 0.25rem 0;
+    border-radius: 0.5rem;
 }

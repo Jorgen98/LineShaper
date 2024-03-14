@@ -60,7 +60,7 @@ button:disabled {
     margin: 0.5rem;
     display: flex;
     flex-direction: column;
-    width: 20rem;
+    width: 18vw;
     height: 100%;
     overflow: scroll;
     border-radius: 0.5rem;
@@ -134,4 +134,76 @@ p.mapBtnTxt {
 
 .mat-icon {
     color: var(--white);
+}
+
+#login {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--grey);
+    z-index: 2000;
+}
+
+.outerMenu {
+    display: flex;
+    width: 100vw;
+    margin: auto;
+    height: 100vh;
+}
+
+.innerMenu {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    padding: 2rem;
+    width: 20vw;
+    background-color: var(--black);
+    border-radius: 0.5rem;
+}
+
+p.text {
+    font-family: verdana;
+    font-size: 1.25rem;
+    color: var(--white);
+    margin: auto;
+    text-align: center;
+}
+
+input.login, button.login {
+    font-family: verdana;
+    font-size: 1rem;
+    width: 10rem;
+    color: var(--white);
+    background-color: var(--grey);
+    border: solid transparent 0.2rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin: 0.5rem auto auto auto;
+}
+
+input.login:hover, button.login:hover {
+    background-color: var(--grey);
+    border: solid var(--mark) 0.2rem;
+}
+
+input.loginText {
+    background-color: var(--white);
+    border: transparent;
+    color: var(--black);
+    width: 100%;
+}
+
+input.loginText:hover {
+    background-color: var(--white);
+    border: transparent;
+}
+
+.title {
+    display: flex;
+    margin: auto auto 2rem auto;
+    width: 25rem;
+    align-items: center;
+    justify-content: center;
 }

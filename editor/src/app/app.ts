@@ -2,9 +2,10 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MapService } from './map/map.service';
 import { AppDirective } from './app.directive';
 import { TileSelectComponent } from './tile-select/tile-select';
-import { DataService } from './data.service';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { LayerSelectComponent } from './layer-select/layer-select';
+import { TranslateService } from "@ngx-translate/core";
+import { DataService } from './data.service';
 
 @Component({
     selector: 'app-root',
@@ -13,15 +14,46 @@ import { LayerSelectComponent } from './layer-select/layer-select';
 })
 
 export class AppComponent implements OnInit {
-    constructor(private mapService: MapService, private dataService: DataService) {}
+    constructor(private mapService: MapService, private dataService:DataService, private translate: TranslateService) {
+        translate.addLangs(['cz', 'en']);
+        translate.setDefaultLang('cz');
+        translate.use('cz');
+    }
     @ViewChild(AppDirective, { static: true}) mapTiles!: AppDirective;
     menuIndexBtn = ["", "", "", "", ""];
     newItems = false;
+    acLang = 'EN';
+    loginScreen = true;
+    loginWarning = false;
+    logInName = '';
+    logInPassword = '';
 
-    ngOnInit(): void {
+    async ngOnInit() {
+        let lang = await this.dataService.getLang();
+        if (lang === 'en') {
+            this.acLang = 'CZ';
+            this.translate.use('en');
+        } else {
+            this.acLang = 'EN';
+            this.translate.use('cz');
+        }
+        
         this.openMenuItem(2);
         this.closeMenuItem();
         this.menuIndexBtn[2] = "";
+
+        if (await this.dataService.connectToDB('', '')) {
+            this.loginScreen = false;
+        }
+    }
+
+    async logIn() {
+        let result = await this.dataService.connectToDB(this.logInName, this.logInPassword);
+        if (result) {
+            this.loginScreen = false;
+        } else {
+            this.loginWarning = true;
+        }
     }
 
     zoomIn(): void {
@@ -73,5 +105,19 @@ export class AppComponent implements OnInit {
     cancelCreate() {
         this.mapService.onNewItemAdd('cancel');
         this.newItems = false;
+    }
+
+    changeLang() {
+        if (this.acLang === 'EN') {
+            this.acLang = 'CZ';
+            this.translate.use('en');
+            this.dataService.setLang('en');
+        } else {
+            this.acLang = 'EN';
+            this.translate.use('cz');
+            this.dataService.setLang('en');
+        }
+
+        this.loginWarning = false;
     }
 }

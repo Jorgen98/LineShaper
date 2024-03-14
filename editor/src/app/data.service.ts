@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -10,15 +10,12 @@ import { environment } from '../environments/environment';
 export class DataService {
     private curTitleIndex = 0;
     private layerChangeObj = new Subject<any>();
-    private DBConnected: Boolean | undefined = false;
     private curLayer = '';
-    private DBGuard: NodeJS.Timer | undefined;
 
-    constructor(private httpClient: HttpClient) {
-        this.isDBConnected(0);
-    }
+    constructor(private httpClient: HttpClient) {}
 
     private whoToAsk = environment.apiUrl;
+    private headers = new HttpHeaders();
 
     // Inner functions
     setTileIndex(id: number) {
@@ -45,14 +42,23 @@ export class DataService {
 
     // Query functions
     queryIsDbAlive() {
-        return this.httpClient.get(this.whoToAsk + "/mapStats")
+        return this.httpClient.get(this.whoToAsk + "/mapStats", {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
+    queryLogIn(name: string, password: string) {
+        let logInHeader = new HttpHeaders();
+        logInHeader = logInHeader.set('Authorization', 'Basic ' + btoa(name + ':' + password));
+        return this.httpClient.get(this.whoToAsk + "/login?type=editor", {headers: logInHeader})
+        .pipe(
+            retry(1)
+          );
+    }
+
     queryGetPoint(gid: number) {
-        return this.httpClient.get(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.get(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -61,7 +67,7 @@ export class DataService {
     queryPostPutPoint(gid: number, reqType:string, geom?: number[], conns?: number[]) {
         if (reqType === 'post') {
             return this.httpClient.post(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() +
-                "&geom=" + JSON.stringify(geom) + "&conns=" + JSON.stringify(conns), {})
+                "&geom=" + JSON.stringify(geom) + "&conns=" + JSON.stringify(conns), {}, {headers: this.headers})
                 .pipe(
                     retry(3)
                 );
@@ -74,7 +80,7 @@ export class DataService {
                 params += "&conns=" + JSON.stringify(conns);
             }
 
-            return this.httpClient.put(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid + params, {})
+            return this.httpClient.put(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid + params, {}, {headers: this.headers})
             .pipe(
                 retry(3)
             );
@@ -83,35 +89,35 @@ export class DataService {
 
     queryPostPoints(hubs: any) {
         return this.httpClient.post(this.whoToAsk + "/createPoints?layer=" + this.getCurLayer() +
-                "&hubs=" + JSON.stringify(hubs), {})
+                "&hubs=" + JSON.stringify(hubs), {}, {headers: this.headers})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryDeletePoint(gid:number) {
-        return this.httpClient.delete(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.delete(this.whoToAsk + "/mapPoint?layer=" + this.getCurLayer() + "&gid=" + gid, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryDeleteLayer() {
-        return this.httpClient.delete(this.whoToAsk + "/layer?layer=" + this.getCurLayer(), {})
+        return this.httpClient.delete(this.whoToAsk + "/layer?layer=" + this.getCurLayer(), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsInRad(latLng: [number, number], layer: string) {
-        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsByGid(gid: number) {
-        return this.httpClient.get(this.whoToAsk + "/pointsByGid?layer=" + this.getCurLayer() + "&gid=" + gid, {})
+        return this.httpClient.get(this.whoToAsk + "/pointsByGid?layer=" + this.getCurLayer() + "&gid=" + gid, {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -119,21 +125,21 @@ export class DataService {
 
     querySetLineDirection(gidA: number, gidB: number, mode: number) {
         return this.httpClient.put(this.whoToAsk + "/changeDirection?layer=" + this.getCurLayer() + "&gidA=" + gidA
-            + "&gidB=" + gidB + "&mode=" + mode, {})
+            + "&gidB=" + gidB + "&mode=" + mode, {}, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryDeleteSection(gidA:number, gidB:number) {
-        return this.httpClient.delete(this.whoToAsk + "/section?layer=" + this.getCurLayer() + "&gidA=" + gidA + "&gidB=" + gidB, {})
+        return this.httpClient.delete(this.whoToAsk + "/section?layer=" + this.getCurLayer() + "&gidA=" + gidA + "&gidB=" + gidB, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetStopsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -141,29 +147,51 @@ export class DataService {
 
 
     queryGetMidPointsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + "/midPointsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/midPointsInRad?geom=" + JSON.stringify(latLng), {headers: this.headers})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetLang() {
+        return this.httpClient.get(this.whoToAsk + "/lang")
+        .pipe(
+            retry(1)
+          );
+    }
+
+    querySetLang(lang: string) {
+        return this.httpClient.put(this.whoToAsk + "/lang?lang=" + lang, {})
         .pipe(
             retry(3)
           );
     }
 
     // Callable functions
+    getToken(name: string, password: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryLogIn(name, password).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            }, error => {
+                resolve(false);
+            });
+        });
+    }
+
     // Is DB connected to frontend?
-    isDBConnected(attempt: number): void {
-        if (attempt > 5) {
-            console.log("Can not connect to DB. Please try to restart client.")
-            return;
-        }
-        this.queryIsDbAlive().subscribe(response => {
-            if (response) {
-                this.DBConnected = true;
+    connectToDB(name: string, password: string): Promise<any> {
+        return new Promise(async (resolve, reject) => {
+            let token = await this.getToken(name, password);
+            if (token) {
+                this.headers = this.headers.set('Authorization', token);
                 this.openLayer('rail');
-                attempt = 0;
+                resolve(token);
             } else {
-                let t = this;
-                setTimeout(function() {
-                    t.isDBConnected(attempt + 1);
-                }, 2000);
+                resolve(token);
             }
         });
     }
@@ -174,7 +202,7 @@ export class DataService {
     }
 
     // Change map tiles layer
-    layerChange(): Observable<any>{
+    layerChange(): Observable<any> {
         return this.layerChangeObj.asObservable();
     }
 
@@ -342,6 +370,30 @@ export class DataService {
                     resolve(response);
                 } else {
                     resolve({});
+                }
+            });
+        });
+    }
+
+    getLang(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetLang().subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    setLang(lang: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.querySetLang(lang).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
                 }
             });
         });

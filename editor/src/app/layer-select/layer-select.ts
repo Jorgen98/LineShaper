@@ -1,5 +1,4 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { MapService } from '../map/map.service';
 import { DataService } from '../data.service';
 
 @Component({
@@ -9,7 +8,7 @@ import { DataService } from '../data.service';
 })
 
 export class LayerSelectComponent implements OnInit {
-    constructor(private mapService: MapService, private dataService: DataService) {}
+    constructor(private dataService: DataService) {}
     @ViewChild('option', { static: true}) tiles!: ElementRef;
     layerStyles = ["layerBtn", "layerBtn", "layerBtn"]
 

@@ -1,6 +1,8 @@
-run:
+fullAuth:
+	ROUTER_AUTH=true EDITOR_AUTH=true docker compose --env-file ./api/.env up --build
+noAuth:
 	docker compose --env-file ./api/.env up --build
-api-development:
-	docker compose --env-file ./api/.env up postgis --build
-ui-development:
-	docker compose --env-file ./api/.env up postgis api --build
+editorAuth:
+	EDITOR_AUTH=true docker compose --env-file ./api/.env up --build
+routerAuth:
+	ROUTER_AUTH=true docker compose --env-file ./api/.env up --build

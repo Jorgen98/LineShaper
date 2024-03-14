@@ -18,6 +18,8 @@
     "@angular/material": "^17.2.2",
     "@angular/platform-browser": "^17.2.4",
     "@angular/platform-browser-dynamic": "^17.2.4",
+    "@ngx-translate/core": "^15.0.0",
+    "@ngx-translate/http-loader": "^8.0.0",
     "Buffer": "^0.0.0",
     "leaflet": "^1.9.4",
     "ng-select2-component": "^14.0.1",

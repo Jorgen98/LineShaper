@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -15,10 +15,9 @@ export class DataService {
     private DBGuard: NodeJS.Timer | undefined;
 
     private whoToAsk = environment.apiUrl;
+    private headers = new HttpHeaders();
 
-    constructor(private httpClient: HttpClient) {
-        this.isDBConnected(0);
-    }
+    constructor(private httpClient: HttpClient) {}
 
     // Inner functions
     setTileIndex(id: number) {
@@ -51,85 +50,94 @@ export class DataService {
           );
     }
 
+    queryLogIn(name: string, password: string) {
+        let logInHeader = new HttpHeaders();
+        logInHeader = logInHeader.set('Authorization', 'Basic ' + btoa(name + ':' + password));
+        return this.httpClient.get(this.whoToAsk + "/login?type=router", {headers: logInHeader})
+        .pipe(
+            retry(1)
+          );
+    }
+
     queryClearData(type: string) {
-        return this.httpClient.post(this.whoToAsk + "/clearRoutingData?type=" + type, {})
+        return this.httpClient.post(this.whoToAsk + "/clearRoutingData?type=" + type, {}, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetPointsInRad(latLng: [number, number], layer: string) {
-        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/pointsInRad?layer=" + layer + "&geom=" + JSON.stringify(latLng), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryPostCreateStops(stops: any) {
-        return this.httpClient.post(this.whoToAsk + "/createStops?stops=" + JSON.stringify(stops), {})
+        return this.httpClient.post(this.whoToAsk + "/createStops?stops=" + JSON.stringify(stops), {}, {headers: this.headers})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryPostSaveLines(lines: any) {
-        return this.httpClient.post(this.whoToAsk + "/saveLines?lines=" + JSON.stringify(lines), {})
+        return this.httpClient.post(this.whoToAsk + "/saveLines?lines=" + JSON.stringify(lines), {}, {headers: this.headers})
                 .pipe(
                     retry(3)
                 );
     }
 
     queryGetStopsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/stopsInRad?geom=" + JSON.stringify(latLng), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetRoute(stops: any, layer: string) {
-        return this.httpClient.get(this.whoToAsk + "/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {})
+        return this.httpClient.get(this.whoToAsk + "/route?layer=" + layer + "&stops=" + JSON.stringify(stops), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetLinesInfo() {
-        return this.httpClient.get(this.whoToAsk + "/lines", {})
+        return this.httpClient.get(this.whoToAsk + "/lines", {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetWholeLine(code: number, dir: string) {
-        return this.httpClient.get(this.whoToAsk + "/lineRoute?code=" + code + "&dir=" + dir, {})
+        return this.httpClient.get(this.whoToAsk + "/lineRoute?code=" + code + "&dir=" + dir, {headers: this.headers})
         .pipe(
             timeout(70 * 1000)
           );
     }
 
     queryGetWholeLineInfo(code: number, dir: string) {
-        return this.httpClient.get(this.whoToAsk + "/lineRouteInfo?code=" + code + "&dir=" + dir, {})
+        return this.httpClient.get(this.whoToAsk + "/lineRouteInfo?code=" + code + "&dir=" + dir, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryUpdateLineInfo(code: number, dir: string, route: string) {
-        return this.httpClient.get(this.whoToAsk + "/updateLineRouteInfo?code=" + code + "&dir=" + dir + "&route=" + route, {})
+        return this.httpClient.get(this.whoToAsk + "/updateLineRouteInfo?code=" + code + "&dir=" + dir + "&route=" + route, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetLineRoutesInfo(code: number) {
-        return this.httpClient.get(this.whoToAsk + "/lineRoutesInfo?code=" + code, {})
+        return this.httpClient.get(this.whoToAsk + "/lineRoutesInfo?code=" + code, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryPostSaveLineCodes(lineCodes: any) {
-        return this.httpClient.post(this.whoToAsk + "/saveLineCodes?lineCodes=" + JSON.stringify(lineCodes), {})
+        return this.httpClient.post(this.whoToAsk + "/saveLineCodes?lineCodes=" + JSON.stringify(lineCodes), {}, {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -137,71 +145,92 @@ export class DataService {
 
     queryPostCreateMidPoint(endCodeA: any, endCodeB: any, midpoints: any) {
         return this.httpClient.post(this.whoToAsk + "/midPoint?endCodesA=" + JSON.stringify(endCodeA) + "&endCodesB=" + JSON.stringify(endCodeB) +
-            "&midPoints=" + JSON.stringify(midpoints), {})
+            "&midPoints=" + JSON.stringify(midpoints), {}, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryPutUpdateMidPoint(id: any, midpoints: any) {
-        return this.httpClient.put(this.whoToAsk + "/midPoint?id=" + id + "&midPoints=" + JSON.stringify(midpoints), {})
+        return this.httpClient.put(this.whoToAsk + "/midPoint?id=" + id + "&midPoints=" + JSON.stringify(midpoints), {}, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryDeleteMidPoint(id: any) {
-        return this.httpClient.delete(this.whoToAsk + "/midPoint?id=" + id, {})
+        return this.httpClient.delete(this.whoToAsk + "/midPoint?id=" + id, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetMidPointsInRad(latLng: [number, number]) {
-        return this.httpClient.get(this.whoToAsk + "/midPointsInRad?geom=" + JSON.stringify(latLng), {})
+        return this.httpClient.get(this.whoToAsk + "/midPointsInRad?geom=" + JSON.stringify(latLng), {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetMidPointsById(id: number) {
-        return this.httpClient.get(this.whoToAsk + "/midPointsByGid?id=" + id, {})
+        return this.httpClient.get(this.whoToAsk + "/midPointsByGid?id=" + id, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetRouting(reroute: boolean = false, cancel: boolean = false) {
-        return this.httpClient.get(this.whoToAsk + "/routing?reroute=" + reroute + "&cancel=" + cancel, {})
+        return this.httpClient.get(this.whoToAsk + "/routing?reroute=" + reroute + "&cancel=" + cancel, {headers: this.headers})
         .pipe(
             retry(3)
           );
     }
 
     queryGetRoutedLine(code: number, dir: string) {
-        return this.httpClient.get(this.whoToAsk + "/routedLine?code=" + code + "&dir=" + dir, {})
+        return this.httpClient.get(this.whoToAsk + "/routedLine?code=" + code + "&dir=" + dir, {headers: this.headers})
+        .pipe(
+            retry(3)
+          );
+    }
+
+    queryGetLang() {
+        return this.httpClient.get(this.whoToAsk + "/lang")
+        .pipe(
+            retry(1)
+          );
+    }
+
+    querySetLang(lang: string) {
+        return this.httpClient.put(this.whoToAsk + "/lang?lang=" + lang, {})
         .pipe(
             retry(3)
           );
     }
 
     // Callable functions
+    getToken(name: string, password: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryLogIn(name, password).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            }, error => {
+                resolve(false);
+            });
+        });
+    }
+
     // Is DB connected to frontend?
-    isDBConnected(attempt: number): void {
-        if (attempt > 5) {
-            console.log("Can not connect to DB. Please try to restart client.")
-            return;
-        }
-        this.queryIsDbAlive().subscribe(response => {
-            if (response) {
-                this.DBConnected = true;
-                this.openLayer('rail');
-                attempt = 0;
+    connectToDB(name: string, password: string): Promise<any> {
+        return new Promise(async (resolve, reject) => {
+            let token = await this.getToken(name, password);
+            if (token) {
+                this.headers = this.headers.set('Authorization', token);
+                resolve(token);
             } else {
-                let t = this;
-                setTimeout(function() {
-                    t.isDBConnected(attempt + 1);
-                }, 2000);
+                resolve(token);
             }
         });
     }
@@ -464,6 +493,30 @@ export class DataService {
     getRoutedLine(code: number, dir: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetRoutedLine(code, dir).subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    getLang(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.queryGetLang().subscribe(response => {
+                if (response) {
+                    resolve(response);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    setLang(lang: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.querySetLang(lang).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

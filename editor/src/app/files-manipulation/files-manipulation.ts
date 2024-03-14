@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { DataService } from '../data.service';
-import { MapService } from '../map/map.service';
 import { formatDate } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'files-manipulation',
@@ -10,7 +10,7 @@ import { formatDate } from '@angular/common';
 })
 
 export class FilesManipulationComponent {
-    constructor(private dataService: DataService, private mapService: MapService) {}
+    constructor(private dataService: DataService, private translate: TranslateService) {}
     state = 'menu';
     warning = false;
     warningText = "";
@@ -19,7 +19,9 @@ export class FilesManipulationComponent {
     acFileContent: any = undefined;
     progress = 0;
     progressText = "";
-    layers = [{'name': 'Železniční síť', 'id': 'rail'}, {'name': 'Silniční síť', 'id': 'road'}, {'name': 'Tramvajová síť', 'id': 'tram'}];
+    layers = [{'name': this.translate.instant("layer-select.railLayer"), 'id': 'rail'},
+        {'name': this.translate.instant("layer-select.roadLayer"), 'id': 'road'},
+        {'name': this.translate.instant("layer-select.tramLayer"), 'id': 'tram'}];
     curLayer = 'rail';
 
     async defaultMenu() {
@@ -34,7 +36,7 @@ export class FilesManipulationComponent {
     readFileContent(event: any) {
         if (event.target.files[0] === undefined) {
             this.warningType = true;
-            this.warningTypeText = "Vybraný soubor se nepodařilo načíst";
+            this.warningTypeText = this.translate.instant("files-manipulation.warnings.loadError");
             return;
         }
 
@@ -43,13 +45,13 @@ export class FilesManipulationComponent {
             try {
                 if (fileReader.result === null) {
                     this.warningType = true;
-                    this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
+                    this.warningTypeText = this.translate.instant("files-manipulation.warnings.unknownFormat");
                 } else {
                     this.acFileContent = JSON.parse(fileReader.result.toString());
                 }
             } catch {
                 this.warningType = true;
-                this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
+                this.warningTypeText = this.translate.instant("files-manipulation.warnings.unknownFormat");
                 return;
             }
             this.warningType = false;
@@ -74,7 +76,7 @@ export class FilesManipulationComponent {
 
         if (this.acFileContent === undefined) {
             this.warningType = true;
-            this.warningTypeText = "Nenahráli jste žádný soubor";
+            this.warningTypeText = this.translate.instant("files-manipulation.warnings.noFile");
             return;
         }
         this.warningType = false;
@@ -82,13 +84,13 @@ export class FilesManipulationComponent {
         if (this.acFileContent === undefined || this.acFileContent.type === undefined ||
             this.acFileContent.hubs === undefined || this.acFileContent.valid === undefined) {
             this.warning = true;
-            this.warningText = "Načtený soubor není ve správném formátu";
+            this.warningText = this.translate.instant("files-manipulation.warnings.wrongFormat");
             return;
         }
 
         if (this.acFileContent.type !== 'rail' && this.acFileContent.type != 'road' && this.acFileContent.type != 'tram') {
             this.warning = true;
-            this.warningText = "Načtený soubor není ve správném formátu";
+            this.warningText = this.translate.instant("files-manipulation.warnings.wrongFormat");
         };
 
         let stats = await this.dataService.getStats();
@@ -109,7 +111,7 @@ export class FilesManipulationComponent {
         }
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Zpracování dat";
+        this.progressText = this.translate.instant("files-manipulation.progress.importHeader");
 
         let layer = JSON.parse(JSON.stringify(this.dataService.getCurLayer()));
         this.dataService.setCurLayer(this.acFileContent.type);
@@ -133,7 +135,7 @@ export class FilesManipulationComponent {
         }
 
         this.dataService.openLayer(layer);
-        this.progressText = "Zpracování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.progress.importDone")
         this.progress = 100;
     }
 
@@ -145,7 +147,7 @@ export class FilesManipulationComponent {
         }
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Export dat";
+        this.progressText = this.translate.instant("files-manipulation.progress.exportHeader");
 
         let layer = JSON.parse(JSON.stringify(this.dataService.getCurLayer()));
         this.dataService.setCurLayer(this.curLayer);
@@ -193,7 +195,7 @@ export class FilesManipulationComponent {
         a.click();
 
         this.dataService.setCurLayer(layer);
-        this.progressText = "Exportování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.progress.exportDone");
         this.progress = 100;
     }
 }

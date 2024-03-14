@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import * as L from 'leaflet';
 import { MapService } from './map.service';
 import { DataService } from '../data.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'map-component',
@@ -77,7 +78,7 @@ export class MapComponent {
         })
     }
 
-    constructor(private mapService: MapService, private dataService: DataService) {
+    constructor(private mapService: MapService, private dataService: DataService, private translate: TranslateService) {
         this.mapService.zoomInEvent().subscribe(() => {
             this.map.zoomIn();
         })
@@ -697,7 +698,7 @@ export class MapComponent {
                 div.appendChild(btnTwoDir);
             } else if (type === 'delete') {
                 let btnConn = document.createElement("button");
-                btnConn.innerHTML = '<p class="mapBtnTxt">Smazat jednu část</p>';
+                btnConn.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.deleteOne") + '</p>';
                 btnConn.className = "mapBtnTxt";
                 btnConn.onclick = function() {
                     t.deleteLine();
@@ -705,7 +706,7 @@ export class MapComponent {
                 div.appendChild(btnConn);
 
                 let btnConns = document.createElement("button");
-                btnConns.innerHTML = '<p class="mapBtnTxt">Smazat celou sekci</p>';
+                btnConns.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.deleteSection") + '</p>';
                 btnConns.className = "mapBtnTxt";
                 btnConns.onclick = function() {
                     t.deleteSection();
@@ -713,7 +714,7 @@ export class MapComponent {
                 div.appendChild(btnConns);
             } else if (type === 'direction') {
                 let btnTwoDir = document.createElement("button");
-                btnTwoDir.innerHTML = '<p class="mapBtnTxt">Sobousměnit</p>';
+                btnTwoDir.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.bothway") + '</p>';
                 btnTwoDir.className = "mapBtnTxt";
                 btnTwoDir.onclick = function() {
                     t.makeLineBothWay();
@@ -722,9 +723,9 @@ export class MapComponent {
 
                 let btnOneDir = document.createElement("button");
                 if (this.acLine.t === 0) {
-                    btnOneDir.innerHTML = '<p class="mapBtnTxt">Změnit směr</p>';
+                    btnOneDir.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.changeDir") + '</p>';
                 } else {
-                    btnOneDir.innerHTML = '<p class="mapBtnTxt">Sjednosměrnit</p>';
+                    btnOneDir.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.oneway") + '</p>';
                 }
                 btnOneDir.className = "mapBtnTxt";
                 btnOneDir.onclick = function() {

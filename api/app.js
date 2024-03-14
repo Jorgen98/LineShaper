@@ -3,11 +3,16 @@ const dotenv = require('dotenv');
 const app = express();
 const cors = require('cors');
 const Pool = require('pg').Pool;
+const jwt = require('jsonwebtoken');
+const auth = require('basic-auth');
 
 // .env file include
 dotenv.config();
 // CORS setup
 app.use(cors());
+
+const secret = require('crypto').randomBytes(256).toString('base64');
+let lang = 'cz';
 
 const dbPoint = require('./mapPoint.js');
 const dbRoutingData = require('./routingData.js');
@@ -20,130 +25,145 @@ const db = new Pool({
     database: process.env.DB_DATABASE,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT
-  })
+});
 
-app.get('/api/mapStats', async (req, res) => {
+app.get('/api/lang', async (req, res) => {
+    res.send(JSON.stringify(lang));
+    });
+
+app.put('/api/lang', async (req, res) => {
+    if (req.query.lang !== undefined) {
+        lang = req.query.lang;
+    }
+    res.send();
+    });
+
+app.get('/api/login', async (req, res) => {
+    verifyCredentials(req, res);
+    });
+
+app.get('/api/mapStats', verifyToken, async (req, res) => {
     res.send(await dbPoint.getStats(db));
     });
 
-app.delete('/api/layer', async (req, res) => {
+app.delete('/api/layer', verifyEditorToken, async (req, res) => {
     res.send(await dbPoint.deleteLayer(db, req.query));
     });
 
 // Map points CRUD operations
-app.get('/api/mapPoint', async (req, res) => {
+app.get('/api/mapPoint', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.getPoint(db, req.query));
     })
-    .post('/api/mapPoint', async (req, res) => {
+    .post('/api/mapPoint', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.createPoint(db, req.query));
     })
-    .put('/api/mapPoint', async (req, res) => {
+    .put('/api/mapPoint', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.updatePoint(db, req.query));
     })
-    .delete('/api/mapPoint', async (req, res) => {
+    .delete('/api/mapPoint', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.deletePoint(db, req.query));
     });
 
-app.post('/api/createPoints', async (req, res) => {
+app.post('/api/createPoints', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.createPoints(db, req.query));
     })
 
-app.get('/api/pointsInRad', async (req, res) => {
+app.get('/api/pointsInRad', verifyToken, async (req, res) => {
         res.send(await dbPoint.getPointsInRad(db, req.query));
     })
 
-app.get('/api/pointsByGid', async (req, res) => {
+app.get('/api/pointsByGid', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.getPointsByGID(db, req.query));
     })
 
-app.put('/api/changeDirection', async (req, res) => {
+app.put('/api/changeDirection', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.changeDirection(db, req.query));
     })
 
-app.delete('/api/section', async (req, res) => {
+app.delete('/api/section', verifyEditorToken, async (req, res) => {
     res.send(await dbPoint.deleteSection(db, req.query));
 })
 
 // Clean data in stop, line or line code tables
-app.post('/api/clearRoutingData', async (req, res) => {
+app.post('/api/clearRoutingData', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.clearData(db, req.query));
 })
 
 // Import stop data
-app.post('/api/createStops', async (req, res) => {
+app.post('/api/createStops', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.createStops(db, req.query));
 })
 
 // Import line data
-app.post('/api/saveLines', async (req, res) => {
+app.post('/api/saveLines', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.saveLines(db, req.query));
 })
 
 // Import line codes data
-app.post('/api/saveLineCodes', async (req, res) => {
+app.post('/api/saveLineCodes', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.saveLineCodes(db, req.query));
 })
 
 // Get stop and its info around some point
-app.get('/api/stopsInRad', async (req, res) => {
+app.get('/api/stopsInRad', verifyToken, async (req, res) => {
     res.send(await dbRoutingData.getStopsInRad(db, req.query));
 })
 
 // Get lines info
-app.get('/api/lines', async (req, res) => {
+app.get('/api/lines', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLines(db, req.query));
 })
 
 // Get route based on stop codes
-app.get('/api/route', async (req, res) => {
+app.get('/api/route', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getRoute(db, req.query));
 })
 
 // Get whole line route based on its code and direction
-app.get('/api/lineRoute', async (req, res) => {
+app.get('/api/lineRoute', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
 
-app.get('/api/lineRouteInfo', async (req, res) => {
+app.get('/api/lineRouteInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRouteInfo(db, req.query));
 })
 
-app.get('/api/updateLineRouteInfo', async (req, res) => {
+app.get('/api/updateLineRouteInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.updateLineRouteInfo(db, req.query));
 })
 
-app.get('/api/lineRoutesInfo', async (req, res) => {
+app.get('/api/lineRoutesInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRoutesInfo(db, req.query));
 })
 
-app.get('/api/routing', async (req, res) => {
+app.get('/api/routing', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.routing(db, req.query));
 })
 
-app.get('/api/routedLine', async (req, res) => {
+app.get('/api/routedLine', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getRoutedLine(db, req.query));
 })
 
 // Mid points CRUD operations
-app.get('/api/midPoint', async (req, res) => {
+app.get('/api/midPoint', verifyRouterToken, async (req, res) => {
     res.send(await dbMidPoint.getMidPointByOneStopCode(db, req.query.endCodeA));
     })
-    .post('/api/midPoint', async (req, res) => {
+    .post('/api/midPoint', verifyRouterToken, async (req, res) => {
         res.send(await dbMidPoint.createMidPoint(db, req.query));
     })
-    .put('/api/midPoint', async (req, res) => {
+    .put('/api/midPoint', verifyRouterToken, async (req, res) => {
         res.send(await dbMidPoint.updateMidPoint(db, req.query));
     })
-    .delete('/api/midPoint', async (req, res) => {
+    .delete('/api/midPoint', verifyRouterToken, async (req, res) => {
         res.send(await dbMidPoint.deleteMidPoint(db, req.query));
     });
 
 // Get existing midpoints around some point
-app.get('/api/midPointsInRad', async (req, res) => {
+app.get('/api/midPointsInRad', verifyToken, async (req, res) => {
     res.send(await dbMidPoint.getMidPointsInRad(db, req.query));
 })
 
-app.get('/api/midPointsByGid', async (req, res) => {
+app.get('/api/midPointsByGid', verifyRouterToken, async (req, res) => {
     res.send(await dbMidPoint.getMidPointsByID(db, req.query));
 })
 
@@ -160,3 +180,93 @@ app.listen(process.env.API_PORT, async () => {
     // API is ready
     console.log(`App listening on port ${process.env.API_PORT}`);
 })
+
+function verifyCredentials(req, res, next) {
+    const user = auth.parse(req.header('Authorization'));
+    if (req.query.type === 'editor') {
+        if (process.env.EDITOR_AUTH) {
+            let editorUsers;
+            try {
+                editorUsers = JSON.parse(process.env.EDITOR_USERS);
+            } catch(err) {
+                editorUsers = {};
+            }
+            if (editorUsers[user['name']] === user['pass']) {
+                res.send(JSON.stringify(jwt.sign('editor', secret)));
+                return;
+            } else {
+                res.status(401).json({ error: 'Wrong name or password' });
+                return;
+            }
+        } else {
+            res.send(JSON.stringify(jwt.sign('editor', secret)));
+        }
+    } else if (req.query.type === 'router') {
+        if (process.env.ROUTER_AUTH) {
+            let routerUsers;
+            try {
+                routerUsers = JSON.parse(process.env.ROUTER_USERS);
+            } catch(err) {
+                routerUsers = {};
+            }
+            if (routerUsers[user['name']] === user['pass']) {
+                res.send(JSON.stringify(jwt.sign('router', secret)));
+                return;
+            } else {
+                res.status(401).json({ error: 'Wrong name or password' });
+                return;
+            }
+        } else {
+            res.send(JSON.stringify(jwt.sign('router', secret)));
+        }
+    }
+}
+
+function verifyEditorToken(req, res, next) {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(401).json({ error: 'Access denied' })
+    }
+    try {
+        if ('editor' === jwt.verify(token, secret)) {
+            next();
+        } else {
+            res.status(401).json({ error: 'Invalid token' });
+        }
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+};
+
+function verifyRouterToken(req, res, next) {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(401).json({ error: 'Access denied' })
+    }
+    try {
+        if ('router' === jwt.verify(token, secret)) {
+            next();
+        } else {
+            res.status(401).json({ error: 'Invalid token' });
+        }
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+};
+
+function verifyToken(req, res, next) {
+    const token = req.header('Authorization');
+    if (!token) {
+        return res.status(401).json({ error: 'Access denied' })
+    }
+    try {
+        if ('editor' === jwt.verify(token, secret) ||
+            'router' === jwt.verify(token, secret)) {
+            next();
+        } else {
+            res.status(401).json({ error: 'Invalid token' });
+        }
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+};

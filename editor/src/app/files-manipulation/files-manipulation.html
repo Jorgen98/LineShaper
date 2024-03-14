@@ -1,43 +1,43 @@
 <div class="content" [ngSwitch]="state">
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">Import a export map</p>
+    <p class="header" *ngSwitchCase="'menu'">{{ "files-manipulation.header" | translate }}</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="importMaps()">Načtení mapových podkladů</button>
-        <button (click)="exportMaps()">Export mapových podkladů</button>
+        <button (click)="importMaps()">{{ "files-manipulation.importBtn" | translate }}</button>
+        <button (click)="exportMaps()">{{ "files-manipulation.exportBtn" | translate }}</button>
     </div>
     <!-- Import maps screen -->
-    <p class="header" *ngSwitchCase="'impMap'">Import mapových podkladů</p>
+    <p class="header" *ngSwitchCase="'impMap'">{{ "files-manipulation.import.header" | translate }}</p>
     <div *ngSwitchCase="'impMap'">
         <div class="option">
-            <p class="option">Vstupní soubor</p>
+            <p class="option">{{ "files-manipulation.import.file" | translate }}</p>
             <input class="fileInput" type="file" (change)="readFileContent($event)" accept=".geojson">
         </div>
         <div *ngIf="warningType" class="warning">
             <p class="warning">{{ warningTypeText }}</p>
         </div>
-        <button class="mark" (click)="importMaps()">Importuj data</button>
+        <button class="mark" (click)="importMaps()">{{ "files-manipulation.import.importBtn" | translate }}</button>
         <div *ngIf="warning" class="warning">
             <p class="warning">{{ warningText }}</p>
         </div>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.menuBtn" | translate }}</button>
     </div>
     <!-- Import maps screen warning -->
-    <p class="header" *ngSwitchCase="'impMapWar'">Pozor!</p>
-    <p class="header" *ngSwitchCase="'impMapWar'">Importem načteného souboru se přepíší aktuálně používaná data.</p>
+    <p class="header" *ngSwitchCase="'impMapWar'">{{ "files-manipulation.warnings.attention" | translate }}</p>
+    <p class="header" *ngSwitchCase="'impMapWar'">{{ "files-manipulation.warnings.rewrite" | translate }}</p>
     <div *ngSwitchCase="'impMapWar'">
-        <button class="mark" (click)="importMapIntroDB()">Pokračovat</button>
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button class="mark" (click)="importMapIntroDB()">{{ "files-manipulation.warnings.contBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.warnings.cancelBtn" | translate }}</button>
     </div>
     <!-- Export collection screen -->
-    <p class="header" *ngSwitchCase="'exMap'">Vyberte vrstvu, kterou chcete exportovat</p>
+    <p class="header" *ngSwitchCase="'exMap'">{{ "files-manipulation.export.header" | translate }}</p>
     <div *ngSwitchCase="'exMap'">
         <div class="option">
             <select [(ngModel)]="curLayer">
                 <option *ngFor="let item of layers" [value]="item.id">{{ item.name }}</option>
             </select>
         </div>
-        <button (click)="exportMaps()">Exportovat tuto vrstvu</button>
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="exportMaps()">{{ "files-manipulation.export.exportBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.export.cancelBtn" | translate }}</button>
     </div>
     <!-- Progress screen -->
     <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
@@ -45,6 +45,6 @@
         <div class="progress" [style.width]="progress+'%'">
             {{ progress + '%'}}
         </div>
-        <button class="mark" *ngIf="progress === 100" (click)="importMapIntroDB()">Zavřít</button>
+        <button class="mark" *ngIf="progress === 100" (click)="importMapIntroDB()">{{ "files-manipulation.closeBtn" | translate }}</button>
     </div>
 </div>

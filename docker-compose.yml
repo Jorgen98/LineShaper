@@ -63,6 +63,8 @@ services:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
+      EDITOR_AUTH: $EDITOR_AUTH
+      ROUTER_AUTH: $ROUTER_AUTH
     deploy:
       restart_policy:
         condition: on-failure
