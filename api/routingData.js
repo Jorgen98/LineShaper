@@ -1,3 +1,7 @@
+/*
+ * API Routing and transport system structure files handle functions
+ */
+
 const { getMidPointByTwoStopCodes } = require("./mapMidPoint");
 const { computeRoute } = require("./routing");
 
@@ -5,6 +9,7 @@ let routingState = {'state': 'no_data'};
 let routingProgress = 0;
 let routingIsRunning = false;
 
+// Used in import user case, create more stops in one query
 async function createStops(db, params) {
     if (params.stops === undefined) {
         return false;
@@ -50,6 +55,7 @@ async function createStops(db, params) {
     }
 }
 
+// Clear selected DB table
 async function clearData(db, params) {
     if (params.type === undefined) {
         return false;
@@ -80,6 +86,7 @@ async function clearData(db, params) {
     }
 }
 
+// Return stops around some coords
 async function getStopsInRad(db, params) {
     if (params.geom === undefined) {
         return false;
@@ -114,6 +121,7 @@ async function getStopsInRad(db, params) {
     }
 }
 
+// Get one route structure
 async function getRoute(db, params) {
     if (params.layer === undefined) {
         return false;
@@ -133,6 +141,7 @@ async function getRoute(db, params) {
     return {'stops': result.stops, 'route': await computeRoute(db, result.points, params.layer), 'stopNames': result.stopNames};
 }
 
+// Get route stops geometry and prepare them for routing
 async function getStopsGeom(db, stops) {
     let points = [];
     let stopsPoss = [];
@@ -176,6 +185,7 @@ async function getStopsGeom(db, stops) {
     return {stops: stopsPoss, points: points, stopNames: stopNames};
 }
 
+// Used in import use case, lines structure
 async function saveLines(db, params) {
     if (params.lines === undefined) {
         return false;
@@ -205,6 +215,7 @@ async function saveLines(db, params) {
     }
 }
 
+// Return lines with its codes and end stops
 async function getLines(db) {
     try {
         let result = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " ORDER BY code");
@@ -268,6 +279,7 @@ async function getStopName(db, codes, idx) {
     }
 }
 
+// Compute one route (line in one direction)
 async function getLineRoute(db, params) {
     if (params.code === undefined) {
         return false;
@@ -298,6 +310,7 @@ async function getLineRoute(db, params) {
     return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer), 'stopNames': result.stopNames};
 }
 
+// Get info about whole line and all its routes
 async function getLineRouteInfo(db, params) {
     if (params.code === undefined) {
         return false;
@@ -348,6 +361,7 @@ async function getLineRouteInfo(db, params) {
     return result;
 }
 
+// Update route's structure
 async function updateLineRouteInfo(db, params) {
     if (params.code === undefined) {
         return false;
@@ -382,6 +396,7 @@ async function updateLineRouteInfo(db, params) {
     }
 }
 
+// Get simplified info about whole line and all its routes
 async function getLineRoutesInfo(db, params) {
     if (params.code === undefined) {
         return false;
@@ -409,6 +424,7 @@ async function getLineRoutesInfo(db, params) {
     return {a: line.rows[0].routea, b: line.rows[0].routeb, lc: lineName};
 }
 
+// Main function, compute geographically precise routes for all lines in DB
 async function routing(db, params) {
     if (routingState.state === 'routing' && params.cancel === 'true') {
         routingIsRunning = false;
@@ -420,6 +436,7 @@ async function routing(db, params) {
         return routingState;
     }
 
+    // If routing is running, return progress state
     if (params.reroute === undefined || params.reroute !== 'true') {
         try {
             let result = await db.query("SELECT COUNT(id) FROM " + process.env.DB_ROUTES_TABLE);
@@ -443,6 +460,7 @@ async function routing(db, params) {
         }
     }
 
+    // Routing itself
     new Promise(async function() {
         try {
             await db.query("TRUNCATE TABLE " + process.env.DB_ROUTES_TABLE + " RESTART IDENTITY");
@@ -512,6 +530,7 @@ async function routing(db, params) {
     return routingState;
 }
 
+// Used in export use case, return computed route from DB
 async function getRoutedLine(db, params) {
     if (params.code === undefined) {
         return false;
@@ -530,6 +549,7 @@ async function getRoutedLine(db, params) {
     return JSON.parse(route.rows[0].points);
 }
 
+// Used in import use case, save line codes
 async function saveLineCodes(db, params) {
     if (params.lineCodes === undefined) {
         return false;

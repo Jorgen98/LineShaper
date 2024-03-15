@@ -53,6 +53,8 @@ export class MapComponent {
 
         this.setTiles(this.dataService.getTileIndex());
         let t = this;
+
+        // Map interaction events handlings
         this.map.on('dragend', function(event) {
             t.setDefault();
         })
@@ -134,6 +136,7 @@ export class MapComponent {
         this.initMap();
     }
 
+    // Set background tile layers
     setTiles(id: number): void {
         let t = this;
         if (this.layers['tiles'] !== undefined) {
@@ -150,6 +153,7 @@ export class MapComponent {
         this.dataService.setTileIndex(id);
     }
 
+    // Set map to default state
     setDefault() {
         this.acPoint = undefined;
         this.acLine = undefined;
@@ -230,6 +234,7 @@ export class MapComponent {
         }
     }
 
+    // Set map object style according to feature layer which its belongs
     setObjStyle(layer: string, editable: boolean) {
         let objColor = "";
         let objOpacity = 0;
@@ -285,7 +290,9 @@ export class MapComponent {
         }
     }
 
+    // Load and create map objects around some coordinates
     async loadContext(latLng: L.LatLng) {
+        // Recreate layers
         if (this.layers['background'] !== undefined) {
             this.map.removeLayer(this.layers['background']);
         }
@@ -390,6 +397,7 @@ export class MapComponent {
         }
     }
 
+    // Create map point object
     createPoint(latLng: L.LatLng, gid: number, layer: string, editable: boolean, popup: string = "") {
         let t = this;
         let point = L.circle(latLng, this.setObjStyle(layer, editable));
@@ -421,6 +429,7 @@ export class MapComponent {
         }
     }
 
+    // Create map line object
     createLine(key: string, layer: string, triangle: boolean, p_A?: any, p_B?: any) {
         let line, pointA, pointB;
         if (key !== '') {
@@ -466,6 +475,7 @@ export class MapComponent {
         return;
     }
 
+    // Process loaded stops data
     createStops(input: any) {
         let stopsOnMap: {[id: string]: {geom: L.LatLng, label: string, keys: string []}} = {};
         for (const stop of input) {
@@ -490,6 +500,7 @@ export class MapComponent {
         }
     }
 
+    // Process loaded waypoint data
     createMidpoint(input: any) {
         for (let i = 0; i < input.length; i++) {
             this.createLine("", "midPoint", true, );
@@ -497,6 +508,7 @@ export class MapComponent {
         }
     }
 
+    // Map object manipulation functions
     async onPointClick(gid: number) {
         if (this.acPoint === undefined && this.editMode === 'mouse') {
             this.acPoint = this.curObjects[gid];

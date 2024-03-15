@@ -1,6 +1,8 @@
+<!-- Controls div -->
 <div id="control">
     <div id="head"></div>
     <div id="mainControl">
+        <!-- Tool tabs -->
         <div id="leftControl" *ngIf="!newItems">
             <button onclick="window.location.href='/lineShaper';"><mat-icon>home</mat-icon></button>
             <button (click)="zoomIn()"><mat-icon>zoom_in</mat-icon></button>
@@ -19,12 +21,15 @@
             <button [class]="menuIndexBtn[5]" (click)="cancelCreate()"><mat-icon>cancel</mat-icon></button>
         </div>
         <div id="middleControl"><ng-template mapTiles></ng-template></div>
+        <!-- Language button -->
         <div id="rightControl">
             <button (click)="changeLang()" class="languageBtn"><p class="languageBtn">{{ acLang }}</p></button>
         </div>
     </div>
 </div>
+<!-- Leaflet map -->
 <map-component #appDashboard></map-component>
+<!-- LogIn screen -->
 <div id="login" *ngIf="loginScreen">
     <div class="outerMenu">
         <div class="innerMenu">

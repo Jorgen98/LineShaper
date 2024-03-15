@@ -33,6 +33,7 @@ export class FilesManipulationComponent {
         this.state = 'menu';
     }
 
+    // Load net files content
     readFileContent(event: any) {
         if (event.target.files[0] === undefined) {
             this.warningType = true;
@@ -59,6 +60,7 @@ export class FilesManipulationComponent {
         fileReader.readAsText(event.target.files[0]);
     }
 
+    // Export net to file
     async exportMaps() {
         if (this.state !== "exMap") {
             this.state = "exMap";
@@ -68,6 +70,7 @@ export class FilesManipulationComponent {
         this.exportMapFromDB();
     }
 
+    // Import net from file into DB, first check
     async importMaps() {
         if (this.state !== "impMap") {
             this.state = "impMap";
@@ -103,6 +106,7 @@ export class FilesManipulationComponent {
         this.importMapIntroDB();
     }
 
+    // Import net from file into DB, load intro DB
     async importMapIntroDB() {
         if (this.progress === 100) {
             this.progress = 0;
@@ -139,6 +143,7 @@ export class FilesManipulationComponent {
         this.progress = 100;
     }
 
+    // Export net to file
     async exportMapFromDB() {
         if (this.progress === 100) {
             this.progress = 0;

@@ -1,3 +1,7 @@
+/*
+ * API Main File
+ */
+
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
@@ -11,6 +15,7 @@ dotenv.config();
 // CORS setup
 app.use(cors());
 
+// JWT secret string
 const secret = require('crypto').randomBytes(256).toString('base64');
 
 const dbPoint = require('./mapPoint.js');
@@ -26,14 +31,17 @@ const db = new Pool({
     port: process.env.DB_PORT
 });
 
+// Get new JWT for user:password
 app.get('/api/login', async (req, res) => {
     verifyCredentials(req, res);
     });
 
+// Current DB stats
 app.get('/api/mapStats', verifyToken, async (req, res) => {
     res.send(await dbPoint.getStats(db));
     });
 
+// Delete one transport mode layer from DB
 app.delete('/api/layer', verifyEditorToken, async (req, res) => {
     res.send(await dbPoint.deleteLayer(db, req.query));
     });
@@ -52,22 +60,27 @@ app.get('/api/mapPoint', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.deletePoint(db, req.query));
     });
 
+// Used when uploading whole layer data
 app.post('/api/createPoints', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.createPoints(db, req.query));
     })
 
+// Get all features(stops, net points, waypoint ...) around some coordinates
 app.get('/api/pointsInRad', verifyToken, async (req, res) => {
         res.send(await dbPoint.getPointsInRad(db, req.query));
     })
 
+// Used in export use case
 app.get('/api/pointsByGid', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.getPointsByGID(db, req.query));
     })
 
+// Change direction of net section between two crossings
 app.put('/api/changeDirection', verifyEditorToken, async (req, res) => {
         res.send(await dbPoint.changeDirection(db, req.query));
     })
 
+// Delete whole section between two crossings
 app.delete('/api/section', verifyEditorToken, async (req, res) => {
     res.send(await dbPoint.deleteSection(db, req.query));
 })
@@ -112,22 +125,27 @@ app.get('/api/lineRoute', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRoute(db, req.query));
 })
 
+// Get whole line route info based on its code and direction
 app.get('/api/lineRouteInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRouteInfo(db, req.query));
 })
 
+// Update line's route structure based on its code and direction
 app.get('/api/updateLineRouteInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.updateLineRouteInfo(db, req.query));
 })
 
+// Get info about all line routes based on its code
 app.get('/api/lineRoutesInfo', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getLineRoutesInfo(db, req.query));
 })
 
+// Start routing process for all lines
 app.get('/api/routing', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.routing(db, req.query));
 })
 
+// Download computed route, which is saved in DB
 app.get('/api/routedLine', verifyRouterToken, async (req, res) => {
     res.send(await dbRoutingData.getRoutedLine(db, req.query));
 })
@@ -151,6 +169,7 @@ app.get('/api/midPointsInRad', verifyToken, async (req, res) => {
     res.send(await dbMidPoint.getMidPointsInRad(db, req.query));
 })
 
+// Used in export use case
 app.get('/api/midPointsByGid', verifyRouterToken, async (req, res) => {
     res.send(await dbMidPoint.getMidPointsByID(db, req.query));
 })
@@ -169,6 +188,8 @@ app.listen(process.env.API_PORT, async () => {
     console.log(`App listening on port ${process.env.API_PORT}`);
 })
 
+// JWT verification functions
+// Verify user:password if new token can be returned
 function verifyCredentials(req, res, next) {
     const user = auth.parse(req.header('Authorization'));
     if (req.query.type === 'editor') {
@@ -210,6 +231,7 @@ function verifyCredentials(req, res, next) {
     }
 }
 
+// Verify token for editor exclusive API endpoints
 function verifyEditorToken(req, res, next) {
     const token = req.header('Authorization');
     if (!token) {
@@ -226,6 +248,7 @@ function verifyEditorToken(req, res, next) {
     }
 };
 
+// Verify token for router exclusive API endpoints
 function verifyRouterToken(req, res, next) {
     const token = req.header('Authorization');
     if (!token) {
@@ -242,6 +265,7 @@ function verifyRouterToken(req, res, next) {
     }
 };
 
+// Verify token for API endpoint
 function verifyToken(req, res, next) {
     const token = req.header('Authorization');
     if (!token) {

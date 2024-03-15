@@ -1,8 +1,14 @@
+/*
+ * API Waypoints handle functions
+ */
+
+// Get waypoint if exists between two stops
 async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     if (endCodeA === undefined || endCodeB === undefined) {
         return false;
     }
 
+    // Verify if stops exists
     let result, endStopA, endStopB;
     try {
         endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
@@ -18,6 +24,7 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
         return false;
     }
 
+    // Try to find waypoint between the stops
     try {
         result = await db.query("SELECT *, ST_AsGeoJSON(midpoints) FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE '" + endCodeA + "'=ANY(endCodesA) AND '" + endCodeB + "'=ANY(endCodesB)");
     } catch(err) {
@@ -35,6 +42,7 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     let points = [];
     let stops = [];
 
+    // Compute waypoint codes from DB, this codes will be used in routing
     points = JSON.parse(result.st_asgeojson).coordinates;
     for (let i = 0; i < points.length; i++) {
         let point;
@@ -57,6 +65,7 @@ async function getMidPointByTwoStopCodes(db, endCodeA, endCodeB) {
     return {'stopPoss': stops, 'points': points};
 }
 
+// Get all waypoints around some coords
 async function getMidPointsInRad(db, params) {
     if (params.geom === undefined) {
         return false;
@@ -118,6 +127,7 @@ async function getMidPointsInRad(db, params) {
     return result;
 }
 
+// Create new waypoint
 async function createMidPoint(db, params) {
     if (params.endCodesA === undefined || params.endCodesB === undefined || params.midPoints === undefined) {
         return false;
@@ -147,26 +157,7 @@ async function createMidPoint(db, params) {
     }
 }
 
-async function checkIfStopCodesExists(db, codes) {
-    for (const stopCode of codes) {
-        let stop;
-        try {
-            stop = await db.query("SELECT id FROM " + process.env.DB_SIGNS_TABLE +
-                " WHERE code=" + parseInt(stopCode.split('_')[0]) + " AND '" + stopCode.split('_')[1] + "'=ANY(subcodes)");
-        } catch(err) {
-            console.log(err);
-            return false;
-        }
-
-        if (stop.rows.length !== 1) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
+// Check if waypoint exists
 async function checkIfMidPointExists(db, codesA, codesB) {
     let query = "SELECT EXISTS (SELECT * FROM " + process.env.DB_MIDPOINTS_TABLE + " WHERE ";
     for (let i = 0; i < codesA.length; i++) {
@@ -196,6 +187,7 @@ async function checkIfMidPointExists(db, codesA, codesB) {
     return true;
 }
 
+// Update waypoint
 async function updateMidPoint(db, params) {
     if (params.id === undefined || params.midPoints === undefined) {
         return false;
@@ -226,6 +218,7 @@ async function updateMidPoint(db, params) {
     }
 }
 
+// Delete waypoint
 async function deleteMidPoint(db, params) {
     if (params.id === undefined) {
         return false;
@@ -250,6 +243,7 @@ async function deleteMidPoint(db, params) {
     }
 }
 
+// Used in export, get waypoints from DB by ID range
 async function getMidPointsByID(db, params) {
     if (params.id === undefined) {
         return false;
@@ -268,6 +262,26 @@ async function getMidPointsByID(db, params) {
         console.log(err);
         return false;
     }
+}
+
+// Check if stops exists
+async function checkIfStopCodesExists(db, codes) {
+    for (const stopCode of codes) {
+        let stop;
+        try {
+            stop = await db.query("SELECT id FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(stopCode.split('_')[0]) + " AND '" + stopCode.split('_')[1] + "'=ANY(subcodes)");
+        } catch(err) {
+            console.log(err);
+            return false;
+        }
+
+        if (stop.rows.length !== 1) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 module.exports = { getMidPointByTwoStopCodes, getMidPointsInRad, createMidPoint, updateMidPoint, deleteMidPoint, getMidPointsByID };

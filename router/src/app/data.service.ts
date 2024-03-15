@@ -1,3 +1,7 @@
+/*
+ * API handling service
+ */
+
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry, timeout } from 'rxjs';
@@ -192,6 +196,7 @@ export class DataService {
     }
 
     // Callable functions
+    // Get JWT token on app start
     getToken(name: string, password: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryLogIn(name, password).subscribe(response => {
@@ -206,7 +211,7 @@ export class DataService {
         });
     }
 
-    // Is DB connected to frontend?
+    // Try to connect do DB
     connectToDB(name: string, password: string): Promise<any> {
         return new Promise(async (resolve, reject) => {
             let token = await this.getToken(name, password);
@@ -320,6 +325,7 @@ export class DataService {
         });
     }
 
+    // Get line code, end stops
     getLinesInfo(): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetLinesInfo().subscribe(response => {
@@ -332,6 +338,7 @@ export class DataService {
         });
     }
 
+    // Get info about one line
     getWholeLine(code: number, dir: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetWholeLine(code, dir).subscribe(response => {
@@ -348,6 +355,7 @@ export class DataService {
         });
     }
 
+    // Get info about line routes
     getLineRoutesInfo(code: number): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetLineRoutesInfo(code).subscribe(response => {
@@ -360,6 +368,7 @@ export class DataService {
         });
     }
 
+    // Get info about line structure
     getWholeLineInfo(code: number, dir: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetWholeLineInfo(code, dir).subscribe(response => {
@@ -372,6 +381,7 @@ export class DataService {
         });
     }
 
+    // Update line route structure
     updateLineRouteInfo(code: number, dir: string, route: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryUpdateLineInfo(code, dir, route).subscribe(response => {
@@ -462,6 +472,7 @@ export class DataService {
         });
     }
 
+    // Start routing task for all lines in DB
     routing(reroute: boolean = false, cancel: boolean = false): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetRouting(reroute, cancel).subscribe(response => {
@@ -474,6 +485,7 @@ export class DataService {
         });
     }
 
+    // Get computed line geographically precise route
     getRoutedLine(code: number, dir: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetRoutedLine(code, dir).subscribe(response => {

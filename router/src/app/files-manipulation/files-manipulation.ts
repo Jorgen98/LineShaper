@@ -444,6 +444,7 @@ export class FilesManipulationComponent {
         this.progress = 100;
     }
 
+    // Fix error caused by iso-8859-2 encoding
     isoFix(input: string) {
         input = input.replaceAll('\u009a', "š");
         input = input.replaceAll('\u009e', "ž");

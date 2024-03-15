@@ -1,9 +1,14 @@
+/*
+ * API Map Points (net points) handle functions file
+ */
+
 let tables = {
     'rail': process.env.DB_RAIL_TABLE,
     'road': process.env.DB_ROAD_TABLE,
     'tram': process.env.DB_TRAM_TABLE
 }
 
+// Return net point by its GID
 async function getPoint(db, params) {
     let result;
     if (params.gid === undefined || params.gid === "") {
@@ -31,6 +36,7 @@ async function getPoint(db, params) {
     return result;
 }
 
+// Create new net point
 async function createPoint(db, params) {
     if (params.geom === undefined) {
         return false;
@@ -58,6 +64,7 @@ async function createPoint(db, params) {
     }
 }
 
+// Used in import use case, create more net points in one query
 async function createPoints(db, params) {
     if (tables[params.layer] === undefined) {
         return false;
@@ -97,6 +104,7 @@ async function createPoints(db, params) {
     }
 }
 
+// Update net point info
 async function updatePoint(db, params) {
     if (params.gid === undefined) {
         return false;
@@ -137,6 +145,7 @@ async function updatePoint(db, params) {
     }
 }
 
+// Delete point
 async function deletePoint(db, params) {
     if (params.gid === undefined) {
         return false;
@@ -165,6 +174,7 @@ async function deletePoint(db, params) {
     }
 }
 
+// Get all net points around some coordinates
 async function getPointsInRad(db, params) {
     if (tables[params.layer] === undefined || params.geom === undefined) {
         return false;
@@ -194,6 +204,7 @@ async function getPointsInRad(db, params) {
     }
 }
 
+// Remove all net points belong to one type of transport
 async function deleteLayer(db, params) {
     if (tables[params.layer] === undefined) {
         return false;
@@ -208,6 +219,7 @@ async function deleteLayer(db, params) {
     }
 }
 
+// Used in export use case, get net points from DB in GID range
 async function getPointsByGID(db, params) {
     if (tables[params.layer] === undefined) {
         return false;
@@ -232,6 +244,7 @@ async function getPointsByGID(db, params) {
     }
 }
 
+// Return actual DB stats
 async function getStats(db) {
     let stats = {};
     let keys = Object.keys(tables);
@@ -293,6 +306,7 @@ async function getStats(db) {
     return stats;
 }
 
+// Change direction of whole net section between two crossings
 async function changeDirection(db, params) {
     if (tables[params.layer] === undefined) {
         return false;
@@ -324,9 +338,11 @@ async function changeDirection(db, params) {
         return false;
     }
 
+    // Find actual section from crossing to crossing
     await next(db, params.layer, params.gidA, result);
     await next(db, params.layer, params.gidB, result);
 
+    // Remove connections between section net points
     for (let i = 0; i < result.length; i++) {
         let point = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[i] + "'")).rows[0];
 
@@ -366,6 +382,7 @@ async function changeDirection(db, params) {
         connected = true;
     }
 
+    // Set new connection directions between section net points
     if (connected && result.length > 2) {
         let pointA = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[0] + "'")).rows[0];
         let pointB = (await db.query("SELECT gid, conns FROM " + tables[params.layer] + " WHERE gid='" + result[result.length - 1] + "'")).rows[0];
@@ -441,6 +458,7 @@ async function next(db, layer, gid, result) {
     }
 }
 
+// Delete whole net section between two crossings
 async function deleteSection(db, params) {
     if (tables[params.layer] === undefined) {
         return false;

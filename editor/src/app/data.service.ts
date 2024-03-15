@@ -1,3 +1,7 @@
+/*
+ * API handling service
+ */
+
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, retry } from 'rxjs';
@@ -154,6 +158,7 @@ export class DataService {
     }
 
     // Callable functions
+    // Get JWT from API
     getToken(name: string, password: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryLogIn(name, password).subscribe(response => {

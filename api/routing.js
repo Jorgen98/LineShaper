@@ -1,9 +1,14 @@
+/*
+ * Main project file - routing algorithm
+ */
+
 let tables = {
     'rail': process.env.DB_RAIL_TABLE,
     'road': process.env.DB_ROAD_TABLE,
     'tram': process.env.DB_TRAM_TABLE
 }
 
+// Global configuration for every mode of transport
 let configs = [
     // Rail
     {
@@ -17,11 +22,11 @@ let configs = [
     // Road
     {
         'maxWorstJumps': 30,
-        'maxWorstJumpsWithTwoPoss': 30,
+        'maxWorstJumpsWithTwoPoss': 20,
         'stopsFindRadius': 120,
         'subNetRadius': 4,
         'maxIterations': 80,
-        'canReturn': true
+        'canReturn': false
     },
     // Tram
     {
@@ -30,7 +35,7 @@ let configs = [
         'stopsFindRadius': 200,
         'subNetRadius': 100,
         'maxIterations': 50,
-        'canReturn': true
+        'canReturn': false
     }
 ]
 let configIndex = 0;
@@ -38,6 +43,7 @@ let configIndex = 0;
 let numOfIter = 0;
 let numOfPoss = 0;
 
+// Main function
 async function computeRoute(db, stops, layer) {
     let result = [];
     const start = Date.now();
@@ -50,6 +56,7 @@ async function computeRoute(db, stops, layer) {
         configIndex = 2;
     }
 
+    // Get potencial route coordinates
     stops = await getStopsData(db, stops);
 
     console.log('Routing stats')
@@ -63,10 +70,13 @@ async function computeRoute(db, stops, layer) {
     let stepsBack = 0;
     let tempRoute = [];
  
+    // Routing State Machine
+    // By results from findConnection() function with route structure details the state is changing
+    // Every state represents some case from general heuristic, while state order is not hardcoded
     if (stops[stopBIndex] !== undefined && stops[stopBIndex].specCode === 'k') {
         state = 2;
     }
-    while (-1 < stopAIndex && 0 < stopBIndex && //35 > stopBIndex &&
+    while (-1 < stopAIndex && 0 < stopBIndex &&
         stopAIndex < (stops.length - 1) && stopBIndex < stops.length) {
         if (stops[stopAIndex].geom === stops[stopBIndex].geom) {
             stopAIndex = JSON.parse(JSON.stringify(stopBIndex));
@@ -79,6 +89,7 @@ async function computeRoute(db, stops, layer) {
             break;
         }
 
+        // Try to find connection between two stops, waypoint and stop
         let connection = await findConnection(db, stops[stopAIndex], stops[stopBIndex], layer);
 
         if (result.length > 1 && connection.length > 1) {
@@ -383,85 +394,8 @@ async function computeRoute(db, stops, layer) {
     return await decode(db, result, layer);
 }
 
-function addToRoute(result, newPart) {
-    if (result[result.length - 2] === newPart[0] &&
-        result[result.length - 1] === newPart[1]){
-        newPart.splice(0, 2);
-        result.push('s');
-        result = result.concat(newPart);
-    } else {
-        newPart.splice(0, 1);
-        result.push('s');
-        result = result.concat(newPart);
-    }
-
-    return result;
-}
-
-function addToRouteFromEnd(result, newPart) {
-    let i = newPart.length - 1;
-    result.push('s');
-    while (i > -1) {
-        result.push(newPart[i]);
-        i--;
-    }
-
-    return result;
-}
-
-function addReversePoints(result, stepsBack) {
-    result.push('s');
-    let i = result.length - 2;
-
-    while (stepsBack > 0) {
-        while (result[i] != 's' && i > -1) {
-            i--;
-        }
-        stepsBack--;
-        i--;
-    }
-
-    while (result[i] != 's' && i > -1) {
-        result.push(result[i]);
-        i--;
-    }
-
-    return result;
-}
-
-function addToRouteOnPosition(result, newPart, stepsBack) {
-    result.push('s');
-    let i = result.length - 2;
-
-    while (stepsBack > 0) {
-        while (result[i] != 's' && i > -1) {
-            i--;
-        }
-        stepsBack--;
-        i--;
-    }
-
-    let tmp = result.slice(i);
-    result.splice(i);
-
-    result = addToRoute(result, newPart);
-    result = addToRouteFromEnd(result, newPart);
-    result = addToRoute(result, tmp);
-
-    return result;
-}
-
-function removeHead(result) {
-    let i = result.length - 1;
-    while (result[i] != 's' && i > -1) {
-        result.splice(i, 1);
-        i--;
-    }
-    result.splice(i, 1);
-
-    return result;
-}
-
+// Main routing function
+// Tries to compute route from point to point
 async function findConnection(db, stopA, stopB, layer){
     let possibilities = await findInNet(db, stopA, layer, 'start');
     if (possibilities.length === 0) {
@@ -592,6 +526,8 @@ async function findConnection(db, stopA, stopB, layer){
                 possibilities[curIndx].toEnd = countDistance(subNet[possibilities[curIndx].current].pos, stopB.pos);
                 if (possibilities[curIndx].lastToEnd < possibilities[curIndx].toEnd) {
                     possibilities[curIndx].numOfWorstJumps++;
+                } else if (possibilities[curIndx].lastToEnd > possibilities[curIndx].toEnd) {
+                    possibilities[curIndx].numOfWorstJumps--;
                 }
 
                 possibilities[curIndx].lastToEnd = JSON.parse(JSON.stringify(possibilities[curIndx].toEnd));
@@ -652,6 +588,7 @@ async function findConnection(db, stopA, stopB, layer){
     }
 }
 
+// Prepare route stops data
 async function getStopsData(db, stops) {
     for (let i = 0; i < stops.length; i++) {
         let stop;
@@ -688,6 +625,7 @@ async function getStopsData(db, stops) {
     return stops;
 }
 
+// Find stop nearest net path
 async function findInNet(db, stop, layer, mode) {
     let response;
     try {
@@ -769,6 +707,7 @@ async function findInNet(db, stop, layer, mode) {
     }
 }
 
+// Get part of net in which the result route should be
 async function getSubNet(db, layer, stopA, stopB) {
     let response;
     let result = {};
@@ -794,6 +733,7 @@ async function getSubNet(db, layer, stopA, stopB) {
     return result;
 }
 
+// Geometric support functions
 function triangulation(edgeA, edgeB, point) {
     let angleCAB = getAngle(point, edgeA, edgeB);
     let angleCBA = getAngle(point, edgeB, edgeA);
@@ -806,7 +746,7 @@ function triangulation(edgeA, edgeB, point) {
 }
 
 function countDistance(pointA, pointB) {
-    // Výpočet vzdialenosti pomocou Haversine formuly
+    // Length computation with Haversine formula
     const R = 6371e3;
     let lat_1_rad = pointA[0] * Math.PI / 180;
     let lat_2_rad = pointB[0] * Math.PI / 180;
@@ -828,6 +768,8 @@ function getAngle(x, y, z) {
     return Math.acos((y_z * y_z + x_y * x_y - x_z * x_z) / (2 * y_z * x_y));
 }
 
+
+// Other support functions
 async function decode(db, codes, layer) {
     let result = [];
     for (let i = 0; i < codes.length; i++) {
@@ -848,6 +790,85 @@ async function decode(db, codes, layer) {
 
         result.push(JSON.parse(response.rows[0].st_asgeojson).coordinates);
     }
+
+    return result;
+}
+
+function addToRoute(result, newPart) {
+    if (result[result.length - 2] === newPart[0] &&
+        result[result.length - 1] === newPart[1]){
+        newPart.splice(0, 2);
+        result.push('s');
+        result = result.concat(newPart);
+    } else {
+        newPart.splice(0, 1);
+        result.push('s');
+        result = result.concat(newPart);
+    }
+
+    return result;
+}
+
+function addToRouteFromEnd(result, newPart) {
+    let i = newPart.length - 1;
+    result.push('s');
+    while (i > -1) {
+        result.push(newPart[i]);
+        i--;
+    }
+
+    return result;
+}
+
+function addReversePoints(result, stepsBack) {
+    result.push('s');
+    let i = result.length - 2;
+
+    while (stepsBack > 0) {
+        while (result[i] != 's' && i > -1) {
+            i--;
+        }
+        stepsBack--;
+        i--;
+    }
+
+    while (result[i] != 's' && i > -1) {
+        result.push(result[i]);
+        i--;
+    }
+
+    return result;
+}
+
+function addToRouteOnPosition(result, newPart, stepsBack) {
+    result.push('s');
+    let i = result.length - 2;
+
+    while (stepsBack > 0) {
+        while (result[i] != 's' && i > -1) {
+            i--;
+        }
+        stepsBack--;
+        i--;
+    }
+
+    let tmp = result.slice(i);
+    result.splice(i);
+
+    result = addToRoute(result, newPart);
+    result = addToRouteFromEnd(result, newPart);
+    result = addToRoute(result, tmp);
+
+    return result;
+}
+
+function removeHead(result) {
+    let i = result.length - 1;
+    while (result[i] != 's' && i > -1) {
+        result.splice(i, 1);
+        i--;
+    }
+    result.splice(i, 1);
 
     return result;
 }

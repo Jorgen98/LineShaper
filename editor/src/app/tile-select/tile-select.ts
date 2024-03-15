@@ -28,6 +28,7 @@ export class TileSelectComponent implements OnInit {
         }
     }
 
+    // Change map tiles
     changeTiles(id: number): void {
         for (let i = 0; i < this.tileIndx.length; i++) {
             if (i != id) {
@@ -39,6 +40,7 @@ export class TileSelectComponent implements OnInit {
         this.mapService.changeBaseMap(id);
     }
 
+    // Change visibility of selected features layer (road net, rail net, stops, etc ...)
     changeLayerVisibility(id: number) {
         if (id === 0) {
             this.mapService.flipBackgroundLayersState('rail');

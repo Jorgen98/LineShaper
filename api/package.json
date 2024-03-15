@@ -1,6 +1,6 @@
 {
-  "name": "kordis-lineshaper-api",
-  "version": "1.0.0",
+  "name": "lineShaper-api",
+  "version": "1.4.0",
   "description": "",
   "main": "app.js",
   "scripts": {

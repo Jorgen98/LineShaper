@@ -36,12 +36,14 @@ export class AppComponent implements OnInit {
         this.closeMenuItem();
         this.menuIndexBtn[2] = "";
 
+        // If authentication is not enabled, app will get clear JWT token
         if (await this.dataService.connectToDB('', '')) {
             this.loginScreen = false;
             this.mapService.cleanWhatIsOnMap();
         }
     }
 
+    // If authentication is enabled, login screen will be show and user need to log in to get JWT token
     async logIn() {
         let result = await this.dataService.connectToDB(this.logInName, this.logInPassword);
         if (result) {
@@ -60,6 +62,7 @@ export class AppComponent implements OnInit {
         this.mapService.zoomOut();
     }
 
+    // Open tool tab
     openMenuItem(id: number): void {
         this.closeMenuItem();
         if (this.menuIndexBtn[id] != "") {
@@ -89,6 +92,7 @@ export class AppComponent implements OnInit {
         viewContainerRef.clear();
     }
 
+    // Change app language
     changeLang() {
         if (this.acLang === 'EN') {
             this.acLang = 'CZ';

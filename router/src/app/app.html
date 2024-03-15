@@ -1,3 +1,4 @@
+<!-- Control -->
 <div id="control">
     <div id="head"></div>
     <div id="mainControl">
@@ -17,9 +18,9 @@
         </div>
     </div>
 </div>
-<div id="mapDisabled" [ngStyle]="{'z-index': (btnDisabled==true) ? 999 : 0}">
-</div>
+<!-- Leaflet map -->
 <map-component #appDashboard></map-component>
+<!-- LogIn screen -->
 <div id="login" *ngIf="loginScreen">
     <div class="outerMenu">
         <div class="innerMenu">
