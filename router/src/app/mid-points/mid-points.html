@@ -1,22 +1,22 @@
 <div class="content" [ngSwitch]="state">
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">Mezilehlé body na trase</p>
+    <p class="header" *ngSwitchCase="'menu'">{{ "mid-points.header" | translate }}</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="addMidPointStart()">Přidat nový mezilehlý bod</button>
+        <button (click)="addMidPointStart()">{{ "mid-points.addBtn" | translate }}</button>
     </div>
     <!-- Add new mid point screen 1 -->
-    <p class="header" *ngSwitchCase="'addMidPoint0'">Zvolte si výchozí zastávku.</p>
+    <p class="header" *ngSwitchCase="'addMidPoint0'">{{ "mid-points.firstStop" | translate }}</p>
     <div *ngSwitchCase="'addMidPoint0'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
     </div>
     <!-- Add new mid point screen 2 -->
-    <p class="header" *ngSwitchCase="'addMidPoint1'">Vyberte si konečnou zastávku.</p>
+    <p class="header" *ngSwitchCase="'addMidPoint1'">{{ "mid-points.finalStop" | translate }}</p>
     <div *ngSwitchCase="'addMidPoint1'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
     </div>
     <!-- Add new mid point screen warning -->
-    <p class="header" *ngSwitchCase="'addMidPointWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
+    <p class="header" *ngSwitchCase="'addMidPointWarning'">{{ "mid-points.error" | translate }}</p>
     <div *ngSwitchCase="'addMidPointWarning'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
     </div>
 </div>

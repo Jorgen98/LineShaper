@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import * as L from 'leaflet';
 import { MapService } from './map.service';
 import { DataService } from '../data.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'map-component',
@@ -72,7 +73,7 @@ export class MapComponent {
         })
     }
 
-    constructor(private mapService: MapService, private dataService: DataService) {
+    constructor(private mapService: MapService, private dataService: DataService, private translate: TranslateService) {
         this.mapService.zoomInEvent().subscribe(() => {
             this.map.zoomIn();
         })
@@ -101,15 +102,6 @@ export class MapComponent {
     async ngAfterViewInit() {
         this.initMap();
         this.setDefault();
-
-        // Routing test
-        /*let route = await this.dataService.getWholeLine(2, 'b');
-
-        if (!route) {
-            return;
-        }
-
-        this.createRoute(route);*/
     }
 
     setTiles(id: number): void {
@@ -408,6 +400,9 @@ export class MapComponent {
         this.renderedStops = [];
         for (let i = 0; i < input.stops.length; i++) {
             this.renderedStops.push(input.stops[i][0].toString() + input.stops[i][1].toString());
+            if (input.stopNames[i] === 'Medzibod') {
+                input.stopNames[i] = this.translate.instant('map.midpoint');
+            }
             this.createPoint(input.stops[i], 'route', {label: (i + 1) + ': ' + input.stopNames[i]});
         }
 
@@ -488,7 +483,7 @@ export class MapComponent {
         } else if (type === 'delete') {
             if (midPointData.points.length > 1) {
                 let btn = document.createElement("button");
-                btn.innerHTML = '<p class="mapBtnTxt">Smazat tento bod</p>';
+                btn.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.deletePoint") + '</p>';
                 btn.className = "mapBtnTxt";
                 btn.onclick = async function() {
                     await t.deleteOneMidPoint(pointIndex);
@@ -498,7 +493,7 @@ export class MapComponent {
             }
 
             let btnWhole = document.createElement("button");
-            btnWhole.innerHTML = '<p class="mapBtnTxt">Vymazat celou medzi sekci</p>';
+            btnWhole.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.wholeSection") + '</p>';
             btnWhole.className = "mapBtnTxt";
             btnWhole.onclick = async function() {
                 await t.deleteMidPoint();
@@ -538,7 +533,7 @@ export class MapComponent {
             div.appendChild(btn);
         } else if (type === 'delete') {
             let btn = document.createElement("button");
-            btn.innerHTML = '<p class="mapBtnTxt">Vymazat celou medzi sekci</p>';
+            btn.innerHTML = '<p class="mapBtnTxt">' + this.translate.instant("map.wholeSection") + '</p>';
             btn.className = "mapBtnTxt";
             btn.onclick = async function() {
                 await t.deleteMidPoint();

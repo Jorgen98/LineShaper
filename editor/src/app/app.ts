@@ -29,15 +29,6 @@ export class AppComponent implements OnInit {
     logInPassword = '';
 
     async ngOnInit() {
-        let lang = await this.dataService.getLang();
-        if (lang === 'en') {
-            this.acLang = 'CZ';
-            this.translate.use('en');
-        } else {
-            this.acLang = 'EN';
-            this.translate.use('cz');
-        }
-        
         this.openMenuItem(2);
         this.closeMenuItem();
         this.menuIndexBtn[2] = "";
@@ -111,11 +102,9 @@ export class AppComponent implements OnInit {
         if (this.acLang === 'EN') {
             this.acLang = 'CZ';
             this.translate.use('en');
-            this.dataService.setLang('en');
         } else {
             this.acLang = 'EN';
             this.translate.use('cz');
-            this.dataService.setLang('en');
         }
 
         this.loginWarning = false;

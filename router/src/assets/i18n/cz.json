@@ -2,5 +2,82 @@
     "header": "Trasování linek",
     "logIn": "Přihlásit se",
     "wrongCredentials": "Nesprávné uživatelské jméno nebo heslo",
-    "menu": "Menu"
+    "menu": "Menu",
+    "files-manipulation": {
+        "header": "Import a export linkového vedení",
+        "importBtn": "Načtení linkových podkladů",
+        "exportBtn": "Export uživatelem definovaných mezilehlých bodů",
+        "import": {
+            "header": "Import linkových podkladů",
+            "files": "Vstupní soubory",
+            "importData": "Importuj data",
+            "menu": "Menu",
+            "warning": "Pozor!",
+            "sameData": "Importem načtených souborů se přepíší aktuálně používaná data.",
+            "continue": "Pokračovat",
+            "cancel": "Zrušit",
+            "incorrectData": "Načtené soubory neobsahují správná data. Ujistěte se prosím, že nahráváte správné soubory.",
+            "cantLoad": "Vybraný soubor se nepodařilo načíst"
+        },
+        "menuBtn": "Menu",
+        "closeBtn": "Zavřít",
+        "replaceBtn": "Nahradit data",
+        "leaveBtn": "Ponechat stávající data",
+        "wrongFormat": "Chyba při načítání dat, vybraný soubor není ve správném formátu",
+        "processingData": "Zpracování dat",
+        "processingDone": "Zpracování dat je dokončeno",
+        "replace": {
+            "warning1": "Nově vložená data pro linku ",
+            "warning2": " se liší od aktuálně používaných dat. Chcete tato data nahradit?"
+        },
+        "export": "Export dat",
+        "exportDone": "Exportování dat je dokončeno"
+    },
+    "map": {
+        "deletePoint": "Smazat tento bod",
+        "wholeSection": "Vymazat celou medzi sekci",
+        "midpoint": "Medzibod"
+    },
+    "mid-points": {
+        "header": "Mezilehlé body na trase",
+        "addBtn": "Přidat nový mezilehlý bod",
+        "firstStop": "Zvolte si výchozí zastávku",
+        "cancelBtn": "Zrušit",
+        "finalStop": "Vyberte si konečnou zastávku",
+        "error": "Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku."
+    },
+    "routing": {
+        "header": "Linky",
+        "routeAll": {
+            "routeAllBtn": "Trasování všech linek",
+            "routeOneBtn": "Trasování jedné linky",
+            "routeStructBtn": "Úprava struktury linky",
+            "routeStopToStopBtn": "Trasování mezi dvěma zastávkami",
+            "downloadRoutes": "Stáhnout trasy linek"
+        },
+        "progress": {
+            "rewrite": "Novým trasováním se přepíší aktuálně vypočítaná data.",
+            "counting": "Probíhá výpočet trasy. Vyčkejte prosím.",
+            "countingRoutes": "Probíhá výpočet tras. Vyčkejte prosím.",
+            "cancel": "Trasování linek bylo zrušeno. Vyčkejte prosím."
+        },
+        "menuBtn": "Menu",
+        "cancelBtn": "Zrušit",
+        "recomputeRoutesBtn": "Znovu vypočítat trasy",
+        "computeRoutesBtn": "Vypočítat trasy",
+        "chooseLineBtn": "Zvolte si linku",
+        "chooseDirBtn": "Zvolte si směr",
+        "recomputeRouteBtn": "Znovu vypočítat trasu",
+        "computeRouteBtn": "Vypočítat trasu",
+        "exportOneBtn": "Exportovat vybraný směr trasy",
+        "exportAllBtn": "Exportovat všechny směry trasy",
+        "changeStructBtn": "Upravit strukturu trasy",
+        "closeBtn": "Zavřít",
+        "firstStop": "Zvolte si výchozí zastávku",
+        "finalStop": "Vyberte si konečnou zastávku",
+        "transportType": "Zvolte si druh dopravy",
+        "sameStops": "Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.",
+        "modifyRouteBtn": "Upravit trasu",
+        "dateValid": "Platnost údajů:"
+    }
 }

@@ -153,20 +153,6 @@ export class DataService {
           );
     }
 
-    queryGetLang() {
-        return this.httpClient.get(this.whoToAsk + "/lang")
-        .pipe(
-            retry(1)
-          );
-    }
-
-    querySetLang(lang: string) {
-        return this.httpClient.put(this.whoToAsk + "/lang?lang=" + lang, {})
-        .pipe(
-            retry(3)
-          );
-    }
-
     // Callable functions
     getToken(name: string, password: string): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -370,30 +356,6 @@ export class DataService {
                     resolve(response);
                 } else {
                     resolve({});
-                }
-            });
-        });
-    }
-
-    getLang(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.queryGetLang().subscribe(response => {
-                if (response) {
-                    resolve(response);
-                } else {
-                    resolve(false);
-                }
-            });
-        });
-    }
-
-    setLang(lang: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.querySetLang(lang).subscribe(response => {
-                if (response) {
-                    resolve(response);
-                } else {
-                    resolve(false);
                 }
             });
         });

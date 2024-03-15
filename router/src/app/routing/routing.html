@@ -1,55 +1,55 @@
 <div class="content" [ngSwitch]="state">
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">Linky</p>
+    <p class="header" *ngSwitchCase="'menu'">{{ "routing.header" | translate }}</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="routeAllRoutes()">Trasování všech linek</button>
-        <button (click)="routeOneLine()">Trasování jedné linky</button>
-        <button (click)="state='selectRoute'">Úprava struktury linky</button>
-        <button (click)="stopToStopRoutingStart()">Trasování mezi dvěma zastávkami</button>
+        <button (click)="routeAllRoutes()">{{ "routing.routeAll.routeAllBtn" | translate }}</button>
+        <button (click)="routeOneLine()">{{ "routing.routeAll.routeOneBtn" | translate }}</button>
+        <button (click)="state='selectRoute'">{{ "routing.routeAll.routeStructBtn" | translate }}</button>
+        <button (click)="stopToStopRoutingStart()">{{ "routing.routeAll.routeStopToStopBtn" | translate }}</button>
     </div>
     <!-- Route all lines screen -->
-    <p class="header" *ngSwitchCase="'routeAllRoutes'">Trasování všech linek</p>
+    <p class="header" *ngSwitchCase="'routeAllRoutes'">{{ "routing.routeAll.routeAllBtn" | translate }}</p>
     <div *ngSwitchCase="'routeAllRoutes'">
         <p *ngIf="dataAvailable" class="header">{{ progressText }}</p>
-        <button *ngIf="dataAvailable" (click)="state = 'routeAllRoutesConfirm'; progressText='Novým trasováním se přepíší aktuálně vypočítaná data.'">Znovu vypočítat trasy</button>
-        <button *ngIf="!dataAvailable" (click)="routeAll()">Vypočítat trasy</button>
-        <button *ngIf="dataAvailable" (click)="downloadData()">Stáhnout trasy linek</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button *ngIf="dataAvailable" (click)="newRouteAll()">{{ "routing.recomputeRoutesBtn" | translate }}</button>
+        <button *ngIf="!dataAvailable" (click)="routeAll()">{{ "routing.computeRoutesBtn" | translate }}</button>
+        <button *ngIf="dataAvailable" (click)="downloadData()">{{ "routing.routeAll.downloadRoutes" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
     <!-- Route all confirm screen -->
     <p class="header" *ngSwitchCase="'routeAllRoutesConfirm'">{{ progressText }}</p>
     <div *ngSwitchCase="'routeAllRoutesConfirm'">
-        <button (click)="routeAllRoutes()">Menu</button>
-        <button (click)="routeAll()">Znovu vypočítat trasy</button>
+        <button (click)="routeAllRoutes()">{{ "routing.menuBtn" | translate }}</button>
+        <button (click)="routeAll()">{{ "routing.recomputeRoutesBtn" | translate }}</button>
     </div>
     <!-- Route one screen -->
     <div *ngSwitchCase="'routeOneLine'">
-        <p class="header">Zvolte si linku</p>
+        <p class="header">{{ "routing.chooseLineBtn" | translate }}</p>
         <div class="option" (change)="setLineEnds()">
             <select2 [data]="curLines" [value]="curLine" (update)="setLineEnds($event)" styleMode="noStyle">
             </select2>
         </div>
-        <p class="header">Zvolte si směr</p>
+        <p class="header">{{ "routing.chooseDirBtn" | translate }}</p>
         <div class="option">
             <select [(ngModel)]="curDir">
                 <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
             </select>
         </div>
-        <button (click)="getRoute()">Vypočítat trasu</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="getRoute()">{{ "routing.computeRouteBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
     <!-- One route progress screen -->
     <div *ngSwitchCase="'routingProgress'">
-        <p class="header" *ngSwitchCase="'routingProgress'">Probíhá výpočet trasy. Vyčkejte prosím.</p>
+        <p class="header" *ngSwitchCase="'routingProgress'">{{ "routing.progress.counting" | translate }}</p>
     </div>
     <!-- Route one result screen -->
     <div *ngSwitchCase="'routeOneLineRes'">
         <p class="header">{{ progressText }}</p>
-        <button (click)="getRoute()">Znovu vypočítat trasu</button>
-        <button (click)="exportOneLine()">Exportovat vybraný směr trasy</button>
-        <button (click)="exportOneLine(true)">Exportovat všechny směry trasy</button>
-        <button (click)="editRoute()">Upravit strukturu trasy</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="getRoute()">{{ "routing.recomputeRouteBtn" | translate }}</button>
+        <button (click)="exportOneLine()">{{ "routing.exportOneBtn" | translate }}</button>
+        <button (click)="exportOneLine(true)">{{ "routing.exportAllBtn" | translate }}</button>
+        <button (click)="editRoute()">{{ "routing.changeStructBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
     <!-- Progress screen -->
     <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
@@ -57,21 +57,21 @@
         <div class="progress" [style.width]="progress+'%'" *ngIf="progress !== 100 && progress !== 0">
             {{ progress + '%'}}
         </div>
-        <button *ngIf="routing" (click)="defaultMenu()">Zavřít</button>
-        <button *ngIf="routing && progress !== 100 && progress !== 0" (click)="cancelRouting()">Zrušit</button>
+        <button *ngIf="routing" (click)="defaultMenu()">{{ "routing.closeBtn" | translate }}</button>
+        <button *ngIf="routing && progress !== 100 && progress !== 0" (click)="cancelRouting()">{{ "routing.cancelBtn" | translate }}</button>
     </div>
     <!-- Stop to stop routing screen 1 -->
-    <p class="header" *ngSwitchCase="'stopToStop0'">Zvolte si výchozí zastávku.</p>
+    <p class="header" *ngSwitchCase="'stopToStop0'">{{ "routing.firstStop" | translate }}</p>
     <div *ngSwitchCase="'stopToStop0'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
     </div>
     <!-- Stop to stop routing screen 2 -->
-    <p class="header" *ngSwitchCase="'stopToStop1'">Vyberte si konečnou zastávku.</p>
+    <p class="header" *ngSwitchCase="'stopToStop1'">{{ "routing.finalStop" | translate }}</p>
     <div *ngSwitchCase="'stopToStop1'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
     </div>
     <!-- Stop to stop routing screen 3 -->
-    <p class="header" *ngSwitchCase="'stopToStop2'">Zvolte si druh dopravy.</p>
+    <p class="header" *ngSwitchCase="'stopToStop2'">{{ "routing.transportType" | translate }}</p>
     <div *ngSwitchCase="'stopToStop2'">
         <div class="optionsGroup">
             <div class="option">
@@ -92,34 +92,34 @@
                 </div>
             </div>
         </div>
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
     </div>
     <!-- Stop to stop result screen -->
     <div *ngSwitchCase="'stopToStopRes'">
         <p class="header">{{ progressText }}</p>
-        <button (click)="getStopToStop()">Znovu vypočítat trasu</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="getStopToStop()">{{ "routing.recomputeRouteBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
     <!-- Stop to stop routing screen warning -->
-    <p class="header" *ngSwitchCase="'stopToStopWarning'">Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.</p>
+    <p class="header" *ngSwitchCase="'stopToStopWarning'">{{ "routing.sameStops" | translate }}</p>
     <div *ngSwitchCase="'stopToStopWarning'">
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
     </div>
     <!-- Choose route to edit screen -->
     <div *ngSwitchCase="'selectRoute'">
-        <p class="header">Zvolte si linku</p>
+        <p class="header">{{ "routing.chooseLineBtn" | translate }}</p>
         <div class="option" (change)="setLineEnds()">
             <select2 [data]="curLines" [value]="curLine" (update)="setLineEnds($event)" styleMode="noStyle">
             </select2>
         </div>
-        <p class="header">Zvolte si směr</p>
+        <p class="header">{{ "routing.chooseDirBtn" | translate }}</p>
         <div class="option">
             <select [(ngModel)]="curDir">
                 <option *ngFor="let item of curLineEnds" [value]="item.dir">{{ item.name }}</option>
             </select>
         </div>
-        <button (click)="editRoute()">Upravit trasu</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="editRoute()">{{ "routing.modifyRouteBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
     <div *ngSwitchCase="'editRoute'">
         <p class="header">{{ progressText }}</p>
@@ -135,7 +135,7 @@
             </div>
         </div>
         <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
-        <button (click)="getRoute()">Vypočítat trasu</button>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="getRoute()">{{ "routing.computeRouteBtn" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
 </div>

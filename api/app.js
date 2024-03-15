@@ -12,7 +12,6 @@ dotenv.config();
 app.use(cors());
 
 const secret = require('crypto').randomBytes(256).toString('base64');
-let lang = 'cz';
 
 const dbPoint = require('./mapPoint.js');
 const dbRoutingData = require('./routingData.js');
@@ -26,17 +25,6 @@ const db = new Pool({
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT
 });
-
-app.get('/api/lang', async (req, res) => {
-    res.send(JSON.stringify(lang));
-    });
-
-app.put('/api/lang', async (req, res) => {
-    if (req.query.lang !== undefined) {
-        lang = req.query.lang;
-    }
-    res.send();
-    });
 
 app.get('/api/login', async (req, res) => {
     verifyCredentials(req, res);

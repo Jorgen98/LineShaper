@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { DataService } from '../data.service';
-import { MapService } from '../map/map.service';
 import { formatDate } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'files-manipulation',
@@ -10,7 +10,7 @@ import { formatDate } from '@angular/common';
 })
 
 export class FilesManipulationComponent {
-    constructor(private dataService: DataService, private mapService: MapService) {}
+    constructor(private dataService: DataService, private translate: TranslateService) {}
     state = 'menu';
     warning = false;
     warningText = "";
@@ -41,7 +41,7 @@ export class FilesManipulationComponent {
     readFile(event: any) {
         if (event.target.files[0] === undefined) {
             this.warningType = true;
-            this.warningTypeText = "Vybraný soubor se nepodařilo načíst";
+            this.warningTypeText = this.translate.instant("files-manipulation.import.cantLoad");
             return;
         }
 
@@ -68,7 +68,7 @@ export class FilesManipulationComponent {
             try {
                 if (fileReader.result === null) {
                     this.warningType = true;
-                    this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
+                    this.warningTypeText = this.translate.instant("files-manipulation.wrongFormat");
                 } else {
                     if (type === 0) {
                         this.acLinesFileContent = fileReader.result;
@@ -82,7 +82,7 @@ export class FilesManipulationComponent {
                 }
             } catch {
                 this.warningType = true;
-                this.warningTypeText = "Chyba při načítání dat, vybraný soubor není ve správném formátu";
+                this.warningTypeText = this.translate.instant("files-manipulation.wrongFormat");
                 return;
             }
             this.warningType = false;
@@ -140,7 +140,7 @@ export class FilesManipulationComponent {
     async importStopsIntroDB() {
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Zpracování dat";
+        this.progressText = this.translate.instant("files-manipulation.processingData");
         await this.dataService.clearData('stops');
 
         let input = this.acStopsFileContent.split('\r\n');
@@ -210,7 +210,7 @@ export class FilesManipulationComponent {
             this.progress = Math.round(i / stops.length * 100);
         }
 
-        this.progressText = "Zpracování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
     }
 
@@ -218,8 +218,7 @@ export class FilesManipulationComponent {
     async importLinesIntroDB() {
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Zpracování dat";
-        //await this.dataService.clearData('lines');
+        this.progressText = this.translate.instant("files-manipulation.processingData");
 
         let content = this.acLinesFileContent.split('\r\n');
         let lines: any = [];
@@ -312,8 +311,8 @@ export class FilesManipulationComponent {
                 if (line.routeA !== undefined && curLine.a !== undefined) {
                     if (line.routeA.toString() !== curLine.a.toString()) {
                         this.replace = true;
-                        this.warningText = "Nově vložená data pro linku " + curLine.lc
-                            + " se liší od aktuálně používaných dat. Chcete tato data nahradit?";
+                        this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
+                            + this.translate.instant("files-manipulation.replace.warning2");
                         this.state = 'replaceDecision';
 
                         await this.waitForConfirm();
@@ -333,7 +332,7 @@ export class FilesManipulationComponent {
             this.progress = Math.round(i / lines.length * 100);
         }
 
-        this.progressText = "Zpracování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
     }
 
@@ -350,7 +349,7 @@ export class FilesManipulationComponent {
     async importLineCodesIntroDB() {
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Zpracování dat";
+        this.progressText = this.translate.instant("files-manipulation.processingData");
         await this.dataService.clearData('lineCodes');
 
         let content = this.acLineCodesFileContent.split('\r\n');
@@ -376,14 +375,14 @@ export class FilesManipulationComponent {
             this.progress = Math.round(i / lines.length * 100);
         }
 
-        this.progressText = "Zpracování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
     }
 
     async importMidPointsIntroDB() {
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Zpracování dat";
+        this.progressText = this.translate.instant("files-manipulation.processingData");
         await this.dataService.clearData('midpoints');
 
         let content = JSON.parse(this.acMidPointFileContent);
@@ -394,7 +393,7 @@ export class FilesManipulationComponent {
             }
         }
 
-        this.progressText = "Zpracování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
     }
 
@@ -406,7 +405,7 @@ export class FilesManipulationComponent {
         }
         this.state = 'progress';
         this.progress = 0;
-        this.progressText = "Export dat";
+        this.progressText = this.translate.instant("files-manipulation.export");
 
         let data = [];
         let id = 0;
@@ -441,7 +440,7 @@ export class FilesManipulationComponent {
         a.download = filename;
         a.click();
 
-        this.progressText = "Exportování dat je dokončeno"
+        this.progressText = this.translate.instant("files-manipulation.exportDone");
         this.progress = 100;
     }
 

@@ -10,9 +10,7 @@ import { environment } from '../environments/environment';
 export class DataService {
     private curTitleIndex = 0;
     private layerChangeObj = new Subject<any>();
-    private DBConnected: Boolean | undefined = false;
     private curLayer = '';
-    private DBGuard: NodeJS.Timer | undefined;
 
     private whoToAsk = environment.apiUrl;
     private headers = new HttpHeaders();
@@ -44,7 +42,7 @@ export class DataService {
 
     // Query functions
     queryIsDbAlive() {
-        return this.httpClient.get(this.whoToAsk + "/mapStats")
+        return this.httpClient.get(this.whoToAsk + "/mapStats", {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -188,20 +186,6 @@ export class DataService {
 
     queryGetRoutedLine(code: number, dir: string) {
         return this.httpClient.get(this.whoToAsk + "/routedLine?code=" + code + "&dir=" + dir, {headers: this.headers})
-        .pipe(
-            retry(3)
-          );
-    }
-
-    queryGetLang() {
-        return this.httpClient.get(this.whoToAsk + "/lang")
-        .pipe(
-            retry(1)
-          );
-    }
-
-    querySetLang(lang: string) {
-        return this.httpClient.put(this.whoToAsk + "/lang?lang=" + lang, {})
         .pipe(
             retry(3)
           );
@@ -493,30 +477,6 @@ export class DataService {
     getRoutedLine(code: number, dir: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.queryGetRoutedLine(code, dir).subscribe(response => {
-                if (response) {
-                    resolve(response);
-                } else {
-                    resolve(false);
-                }
-            });
-        });
-    }
-
-    getLang(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.queryGetLang().subscribe(response => {
-                if (response) {
-                    resolve(response);
-                } else {
-                    resolve(false);
-                }
-            });
-        });
-    }
-
-    setLang(lang: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.querySetLang(lang).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

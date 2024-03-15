@@ -1,37 +1,37 @@
 <div class="content" [ngSwitch]="state">
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">Import a export linkového vedení</p>
+    <p class="header" *ngSwitchCase="'menu'">{{ "files-manipulation.header" | translate }}</p>
     <div *ngSwitchCase="'menu'">
-        <button (click)="importData()">Načtení linkových podkladů</button>
-        <button (click)="exportMidPointData()">Export uživatelem definovaných mezilehlých bodů</button>
+        <button (click)="importData()">{{ "files-manipulation.importBtn" | translate }}</button>
+        <button (click)="exportMidPointData()">{{ "files-manipulation.exportBtn" | translate }}</button>
     </div>
     <!-- Import maps screen -->
-    <p class="header" *ngSwitchCase="'impData'">Import linkových podkladů</p>
+    <p class="header" *ngSwitchCase="'impData'">{{ "files-manipulation.import.header" | translate }}</p>
     <div *ngSwitchCase="'impData'">
         <div class="option">
-            <p class="option">Vstupní soubory</p>
+            <p class="option">{{ "files-manipulation.import.files" | translate }}</p>
             <input class="fileInput" type="file" (change)="readFile($event)" multiple>
         </div>
         <div *ngIf="warningType" class="warning">
             <p class="warning">{{ warningTypeText }}</p>
         </div>
-        <button class="mark" (click)="importData()">Importuj data</button>
+        <button class="mark" (click)="importData()">{{ "files-manipulation.import.importData" | translate }}</button>
         <div *ngIf="warning" class="warning">
             <p class="warning">{{ warningText }}</p>
         </div>
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.import.menu" | translate }}</button>
     </div>
     <!-- Import data screen warning -->
-    <p class="header" *ngSwitchCase="'impDataWar'">Pozor!</p>
-    <p class="header" *ngSwitchCase="'impDataWar'">Importem načtených souborů se přepíší aktuálně používaná data.</p>
+    <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.warning" | translate }}</p>
+    <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.sameData" | translate }}</p>
     <div *ngSwitchCase="'impDataWar'">
-        <button class="mark" (click)="importDataIntroDB()">Pokračovat</button>
-        <button (click)="defaultMenu()">Zrušit</button>
+        <button class="mark" (click)="importDataIntroDB()">{{ "files-manipulation.import.continue" | translate }}</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.import.cancel" | translate }}</button>
     </div>
     <!-- No data can be loaded from input files warning -->
-    <p class="header" *ngSwitchCase="'impNoDataWar'">Načtené soubory neobsahují správná data. Ujistěte se prosím, že nahráváte správné soubory.</p>
+    <p class="header" *ngSwitchCase="'impNoDataWar'">{{ "files-manipulation.import.incorrectData" | translate }}</p>
     <div *ngSwitchCase="'impNoDataWar'">
-        <button (click)="defaultMenu()">Menu</button>
+        <button (click)="defaultMenu()">{{ "files-manipulation.menuBtn" | translate }}</button>
     </div>
     <!-- Progress screen -->
     <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
@@ -39,12 +39,12 @@
         <div class="progress" [style.width]="progress+'%'">
             {{ progress + '%'}}
         </div>
-        <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">Zavřít</button>
+        <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">{{ "files-manipulation.closeBtn" | translate }}</button>
     </div>
     <!-- On route replace screen -->
     <p class="header" *ngSwitchCase="'replaceDecision'">{{ warningText }}</p>
     <div *ngSwitchCase="'replaceDecision'">
-        <button class="mark" (click)="waitForPress(true)">Nahradit data</button>
-        <button class="mark" (click)="waitForPress(false)">Ponechat stávající data</button>
+        <button class="mark" (click)="waitForPress(true)">{{ "files-manipulation.replaceBtn" | translate }}</button>
+        <button class="mark" (click)="waitForPress(false)">{{ "files-manipulation.leaveBtn" | translate }}</button>
     </div>
 </div>

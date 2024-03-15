@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { DataService } from '../data.service';
 import { MapService } from '../map/map.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'routing',
@@ -9,7 +10,7 @@ import { MapService } from '../map/map.service';
 })
 
 export class RoutingComponent implements OnInit {
-    constructor(private dataService: DataService, private mapService: MapService) {
+    constructor(private dataService: DataService, private mapService: MapService, private translate: TranslateService) {
         this.mapService.onStopClickEvent().subscribe((stop) => {
             if (this.stops.length === 0 || this.stops[0].label !== stop.label.toString()) {
                 this.stops.push(stop);
@@ -146,7 +147,7 @@ export class RoutingComponent implements OnInit {
         } else if (this.routingState.state === "data_available") {
             this.dataAvailable = true;
             let date = new Date(this.routingState.date);
-            this.progressText = 'Platnost údajů:\n' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            this.progressText = this.translate.instant('routing.dateValid') + '\n' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         } else {
             return;
         }
@@ -165,7 +166,12 @@ export class RoutingComponent implements OnInit {
         } else {
             this.progress = 1;
         }
-        this.progressText = 'Probíhá výpočet tras. Vyčkejte prosím.';
+        this.progressText = this.translate.instant('routing.progress.countingRoutes');
+    }
+
+    newRouteAll() {
+        this.state = 'routeAllRoutesConfirm';
+        this.progressText = this.translate.instant('routing.progress.rewrite');
     }
 
     async renewProgress() {
@@ -184,7 +190,7 @@ export class RoutingComponent implements OnInit {
         this.routing = false;
         this.dataAvailable = false;
         this.routingState = await this.dataService.routing(false, true);
-        this.progressText = "Trasování linek bylo zrušeno. Vyčkejte prosím.";
+        this.progressText = this.translate.instant('routing.progress.cancel');
     }
 
     async downloadData() {

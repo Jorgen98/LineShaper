@@ -2,5 +2,82 @@
     "header": "Line routing",
     "logIn": "Login",
     "wrongCredentials": "Wrong username or password",
-    "menu": "Menu"
+    "menu": "Menu",
+    "files-manipulation": {
+        "header": "Import and export of line routes",
+        "importBtn": "Import the line files",
+        "exportBtn": "Export of user-defined waypoints",
+        "import": {
+            "header": "Import the line files",
+            "files": "Input files",
+            "importData": "Import data",
+            "menu": "Menu",
+            "warning": "Attention!",
+            "sameData": "Importing loaded files overwrites the currently used data.",
+            "continue": "Continue",
+            "cancel": "Cancel",
+            "incorrectData": "The loaded files do not contain the correct data. Please make sure you are uploading the correct files.",
+            "cantLoad": "The selected file could not be loaded"
+        },
+        "menuBtn": "Menu",
+        "closeBtn": "Close",
+        "replaceBtn": "Replace data",
+        "leaveBtn": "Keep existing data",
+        "wrongFormat": "Error loading data, the selected file is not in the correct format",
+        "processingData": "Data processing",
+        "processingDone": "Data processing is complete",
+        "replace": {
+            "warning1": "New data inserted for the line ",
+            "warning2": " is different from the data currently in use. Do you want to replace this data?"
+        },
+        "export": "Exporting data",
+        "exportDone": "Data exporting is complete"
+    },
+    "map": {
+        "deletePoint": "Delete this point",
+        "wholeSection": "Delete the entire section",
+        "midpoint": "Waypoint"
+    },
+    "mid-points": {
+        "header": "Waypoints on the route",
+        "addBtn": "Add new waypoint",
+        "firstStop": "Choose starting stop",
+        "cancelBtn": "Cancel",
+        "finalStop": "Choose final stop",
+        "error": "The start and final stops cannot be the same. Choose a different final stop."
+    },
+    "routing": {
+        "header": "Lines",
+        "routeAll": {
+            "routeAllBtn": "Routing of all lines",
+            "routeOneBtn": "Single line routing",
+            "routeStructBtn": "Modification of the line structure",
+            "routeStopToStopBtn": "Routing between two stops",
+            "downloadRoutes": "Download line routes"
+        },
+        "progress": {
+            "rewrite": "The new routing overwrites the currently computed data.",
+            "counting": "Route calculation is in progress. Please stand by.",
+            "countingRoutes": "Routes are being calculated. Please stand by.",
+            "cancel": "The routing of the lines has been cancelled. Please stand by."
+        },
+        "menuBtn": "Menu",
+        "cancelBtn": "Cancel",
+        "recomputeRoutesBtn": "Recalculate routes",
+        "computeRoutesBtn": "Calculate routes",
+        "chooseLineBtn": "Choose a line",
+        "chooseDirBtn": "Choose direction",
+        "recomputeRouteBtn": "Recalculate the route",
+        "computeRouteBtn": "Calculate the route",
+        "exportOneBtn": "Export selected route direction",
+        "exportAllBtn": "Export both route directions",
+        "changeStructBtn": "Edit route structure",
+        "closeBtn": "Close",
+        "firstStop": "Choose starting stop",
+        "finalStop": "Choose final stop",
+        "transportType": "Choose mode of transport",
+        "sameStops": "The start and final stops cannot be the same. Choose a different final stop.",
+        "modifyRouteBtn": "Edit route structure",
+        "dateValid": "Data validity:"
+    }
 }
