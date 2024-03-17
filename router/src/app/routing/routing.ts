@@ -120,6 +120,11 @@ export class RoutingComponent implements OnInit {
         if (l !== undefined) {
             this.curLine = l.value;
         }
+
+        if (this.curLine === '' || this.curLines.length < 1) {
+            return;
+        }
+
         let idx = this.curLines.map((e: { code: any; }) => e.code).indexOf(parseInt(this.curLine));
         this.curLineEnds = [];
 

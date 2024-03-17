@@ -101,7 +101,6 @@ export class MapComponent {
 
     async ngAfterViewInit() {
         this.initMap();
-        this.setDefault();
     }
 
     setTiles(id: number): void {

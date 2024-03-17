@@ -143,7 +143,13 @@ export class FilesManipulationComponent {
         this.progressText = this.translate.instant("files-manipulation.processingData");
         await this.dataService.clearData('stops');
 
-        let input = this.acStopsFileContent.split('\r\n');
+        let input = [];
+        if (this.acStopsFileContent.includes()) {
+            input = this.acStopsFileContent.split('\r\n');
+        } else {
+            input = this.acStopsFileContent.split('\n');
+        }
+
         let stops: {code: number, name: string, signs: {[latLng: string]: string []}} [] = [];
 
         for (let i = 0; i < input.length;) {
@@ -220,7 +226,13 @@ export class FilesManipulationComponent {
         this.progress = 0;
         this.progressText = this.translate.instant("files-manipulation.processingData");
 
-        let content = this.acLinesFileContent.split('\r\n');
+        let content = [];
+        if (this.acLinesFileContent.includes('\r\n')) {
+            content = this.acLinesFileContent.split('\r\n');
+        } else {
+            content = this.acLinesFileContent.split('\n');
+        }
+
         let lines: any = [];
         let savedLines: any = [];
 
@@ -325,6 +337,8 @@ export class FilesManipulationComponent {
                     } else {
                         whatToSave.push(line);
                     }
+                } else {
+                    whatToSave.push(line);
                 }
             }
             await this.dataService.saveLines(whatToSave);
@@ -352,9 +366,14 @@ export class FilesManipulationComponent {
         this.progressText = this.translate.instant("files-manipulation.processingData");
         await this.dataService.clearData('lineCodes');
 
-        let content = this.acLineCodesFileContent.split('\r\n');
-        let lines: any = [];
+        let content = [];
+        if (this.acLineCodesFileContent.includes('\r\n')) {
+            content = this.acLineCodesFileContent.split('\r\n');
+        } else {
+            content = this.acLineCodesFileContent.split('\n');
+        }
 
+        let lines: any = [];
         for (let i = 0; i < content.length; i++) {
             let line = content[i].split(";");
             let record: any;

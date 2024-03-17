@@ -20,7 +20,7 @@ The tool consists of two parts:
 
 The **Map Editor** works with 3 separate transport networks, which can be created directly in the editor or imported from special .geojson files, examples of which are contained in the `exampleFiles/editor` folder.
 The **Line Router** works with two types of files:
- - Structural files containing a description of the transport system. The `Zastavky.txt` file contains the stops of the public transport system, the `LineOrder.csv` file contains the structure of the lines, and the optional `LineLabels.csv` file contains pairs of codes and actual labels for each line. Examples of all files are contained in the `exampleFiles/router` folder.
+ - Structural files containing a description of the transport system. Attention! Due to the nature of internal Kordis system, provided example files `Zastavky.txt`, `LineOrder.csv` and `LineLabels.csv` has atypical encoding `iso-8859-2`. Fell free to use your files with standard `UTF-8` encoding, but be careful about the files structure itself. The `Zastavky.txt` file contains the stops of the public transport system, the `LineOrder.csv` file contains the structure of the lines, and the optional `LineLabels.csv` file contains pairs of codes and actual labels for each line. Examples of all files are contained in the `exampleFiles/router` folder.
  - In addition to the system structure, the line router operates within the line structure editing with waypoints for more accurate routing. These waypoints can be imported or exported to the `midpoints.geojson` file. An example of this file can be found in the `exampleFiles/router` folder.
 
 The structure of all files is described in more detail in the attached user manual.

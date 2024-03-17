@@ -1,0 +1,151 @@
+01271 100 'Körnerova' 'Körnerova' 'Körnerova' 'Körnerova' 'Körnerova' 100 000 000
+  S01 +099719670 +295189680 S 000 '> Židenice' x
+  S02 +099717024 +295188912 S 000 '> mìsto' x
+  S04 +099717024 +295188912 S 000 '> muzejní noc' x
+01357 100 'Malinovského námìstí' 'Brno, Malinovského n.' 'Malinovského námìstí' 'Malinovského námìstí' 'Malinovského námìstí' 100 000 000
+  S01 +099683586 +295173000 S 000 'od Cejlu' s
+  S02 +099688764 +295170276 S 000 '>Cejl (Tuzex)' s
+  S03 +099677772 +295176432 S 000 '>Øeèkovice' s
+  S04 +099680460 +295173270 S 000 '>nádr.od Roos.' s
+  S05 +099686006 +295173244 S 000 '>Cejl pøed divadlem' s
+01146 100 'Hlavní nádraží' 'Brno, hl. nádr.' 'Nemocnice Milosrdných bratøí' 'Hlavní nádraží' 'Brno hl.n.' 100 000 000
+  S01 +099671274 +295147110 S 000 '1;1.kolej' s
+  S02 +099675288 +295148364 S 000 '2;2.kolej' s
+  S03 +099671832 +295146378 S 000 '3;3.kolej' s
+  S04 +099676044 +295147500 S 000 '4;4.kolej' s
+  S05 +099683538 +295152444 S 000 '5;ED Grand>viadukt' s
+  S06 +099682938 +295153284 S 000 '6;ED Grand>Malin.n' s
+  S07 +099680802 +295152780 S 000 '11;bus smyè.pøíj.' s
+  S08 +099680004 +295151358 S 000 '9;bus smyè.odj.' s
+  S09 +099681702 +295151100 S 000 '13;AD pod smyè.pøíj.' s
+  S10 +099681702 +295151100 S 000 '13;AD pod smyè.odj.' s
+  S11 +099682607 +295150365 S 000 '10;AD u zdi naproti smyè.' s
+  S21 +099687060 +295163142 S 000 '12;AD pøíj.Benešova (silnice)' s
+  S22 +099685178 +295162088 S 000 '12;AD odj.Benešova (silnice)' s
+  S23 +099687476 +295160270 S 000 'pøíj.Benešova Bnád' s
+  S24 +099686995 +295159365 S 000 'odj.Benešova Bnád' s
+  S25 +099666834 +295147308 S 000 '7;Tram rest.Padowetz' s
+  S26 +099664890 +295149258 S 000 '8;Tram u Krystalu' s
+  S27 +099662625 +295142332 S 000 '14;výstup V.nástupištì' s
+  S28 +099667654 +295144789 S 000 'úvra>pøed poštou' s
+  S31 +099683946 +295150890 S 000 '10;NAD u viaduktu' s
+  S32 +099664680 +295135704 S 000 ' ;NAD ÈD Uhelná' s
+  S33 +099681702 +295151100 S 000 '13;NAD pod smyè. TD pøíj.' s
+  S51 +099687060 +295163142 S 000 ' ;Azál gr.pøíjezd' s
+  S52 +099687060 +295163142 S 000 ' ;Azál gr.odjezd' s
+  S65 +099682104 +295152582 M 000 ' ;Tram gr.pøíj.od Masa' s
+  S77 +099702552 +295148982 S 000 ' ;výstup Rumištì' s
+  S78 +099702552 +295148982 S 000 ' ;odjezd Rumištì' s
+  S81 +099682104 +295152582 S 000 ' ;grafik>pøíjezd' s
+  S82 +000000000 +000000000 M 000 ' ;grafikon' s
+  S91 +099682104 +295152582 S 000 ' ;odst.místo pøíjezd' s
+  S92 +099682104 +295152582 S 000 ' ;odst.místo odjezd' *
+  S98 +099674052 +295142098 S 000 '-;vlak lichý' s
+  S99 +099674052 +295142098 S 000 '-;vlak sudý' s
+01436 100 'Nové sady' 'Nové sady' 'Nové sady' 'Nové sady' 'Nové sady' 100 000 000
+  S01 +099654150 +295140696 S 000 '1;1.kolej' s
+  S02 +099656418 +295141332 S 000 '2;2.kolej' s
+  S03 +099654600 +295140162 S 000 '3;3.kolej (smìr Renneská)' s
+  S04 +099656832 +295140822 S 000 '4;4.kolej (od Renneské)' s
+01176 100 'Hybešova' 'Hybešova' 'Hybešova' 'Hybešova' 'Hybešova' 100 000 000
+  S01 +099617175 +295135933 S 000 '>Václavská' x
+  S02 +099620184 +295135254 S 000 '>hl.nádraží' x
+01721 100 'Václavská' 'Václavská' 'Václavská' 'Václavská' 'Václavská' 100 000 000
+  S01 +099583302 +295132086 S 000 '>Mendl.nám.' x
+  S02 +099581268 +295132290 S 000 '>Hl.nádraží' x
+01378 100 'Mendlovo námìstí' 'Brno, Mendl.nám.' 'Mendlovo námìstí' 'Mendlovo námìstí' 'Mendlovo námìstí' 100 000 000
+  S01 +099553700 +295137955 S 000 '2;Tram > Pisárky' s
+  S02 +099563022 +295140204 S 000 '1;Tram > nádraží' s
+  S03 +099568686 +295141758 S 000 '3;Tram > Pekaøská' s
+  S04 +099565410 +295141224 S 000 '4;Tram od Pekaøské' s
+  S07 +099562122 +295139514 S 000 '7;AD+TD výstup, >Úvoz' s
+  S08 +099560555 +295138605 S 000 '8;AD>Poøíèí,Václavská' s
+  S09 +099558731 +295142737 S 000 '9;AD+TD>smìr Hlinky, pravé' s
+  S10 +099558577 +295142167 S 000 '10;AD+TD>smìr Hlinky (levé)' s
+  S11 +099559121 +295142212 S 000 '11;výstup u kl.zdi' s
+  S12 +099558493 +295143763 S 000 '10;Abus odjezd 400,405,406' s
+  S14 +099568278 +295140348 S 000 '12;Abus smìr Masaryk.ètvr u' s
+  S15 +099567636 +295143774 S 000 '5;Tram smyèka pøíjezd' s
+  S16 +099567372 +295142694 S 000 '5;Tram smyèka odjezd' s
+  S40 +099565270 +295135555 S 000 'V>Poøíèí' s
+  S51 +099564553 +295144802 S 000 ' ;Azál graf.pøíjezd' s
+  S52 +099564553 +295144802 S 000 ' ;Azál graf.odjezd' s
+  S81 +000000000 +000000000 M 000 ' ;grafikon' s
+01512 100 'Poøíèí' 'Poøíèí' 'Poøíèí' 'Poøíèí' 'Poøíèí' 100 000 000
+  S01 +099567798 +295123092 S 000 '>Modøice,St.Lísk.' x
+  S02 +099567072 +295124454 S 000 '>mìsto' x
+11009 101 'Brno-Starý Lískovec' 'Brno-Starý Lískovec' 'Brno-Starý Lískovec' 'Brno-Starý Lískovec' 'Brno-Starý Lískovec' 101 000 000
+  S21 +099423955 +294973295 S 000 'smìr Støelice'
+  S22 +099423955 +294973295 S 000 'smìr Brno'
+16444 652 'Žarošice, Silnièná, rozcestí Uhøice' 'Žarošice, Silnièná, rozcestí Uhøice' 'Žarošice, Silnièná, rozcestí Uhøice' 'Žarošice, Silnièná, rozcestí Uhøice' 'Žarošice, Silnièná, rozcestí Uhøice' 652 000 000
+  S01 +101718037 +294310870 S 000 'smìr Kyjov'
+  S02 +101718478 +294311002 S 000 'smìr Slavkov u Brna'
+  S03 +101713897 +294312120 S 000 'SMÌR 3 Žarošice'
+  S04 +101713478 +294312626 S 000 'smìr Uhøice'
+  S05 +101717308 +294315791 S 000 'SMÌR 5 Zdravá voda'
+11007 100 'Brno pøednádraží' 'Brno pøednádraží' 'Brno pøednádraží' 'Brno pøednádraží' 'Brno pøednádraží' 100 000 000
+  S01 +099643492 +295090948 S 000 'vlak'
+07530 100 'Dolní nádraží' 'Dolní nádraží' 'Dolní nádraží (pøestup na dálkové vlaky / change to trains railjet, EC, Ex, RegioJet, Rx, Sp)' 'Dolní nádraží' 'Brno Dolní nádraží' 100 000 000
+  S01 +099691207 +295098896 S 000 '>pøíjezd'
+  S02 +099693347 +295099750 S 000 '>odjezd'
+  S11 +099696400 +295099483 S 000 ' ; vlak smìr Modøice (prùjezd)'
+  S12 +099696400 +295099483 S 000 ' ; vlak smìr Židenice (prùjezd)'
+  S21 +099696400 +295099483 S 000 ' ; vlak smìr Bøeclav'
+  S22 +099696400 +295099483 S 000 ' ; vlak smìr Èeská Tøebová, Tišnov'
+  S31 +099693347 +295099750 S 000 'NAD ÈD'
+  S82 +000000000 +000000000 M 000 ' ;grafikon' s
+01816 100 'Žlutý kopec' 'Žlutý kopec' 'Žlutý kopec' 'Žlutý kopec' 'Žlutý kopec' 100 000 000
+  S01 +099523734 +295170900 S 000 '>Barvièova,Preslova' x
+  S02 +099529626 +295172208 S 000 '>mìsto' x
+01682 100 'Tvrdého' 'Tvrdého' 'Tvrdého' 'Tvrdého' 'Tvrdého' 100 000 000
+  S01 +099566178 +295178094 S 000 '>mìsto od Mendl.nám' z
+  S02 +099557370 +295181502 S 000 '>mìsto od Žl.kopce' z
+01712 100 'Úvoz' 'Úvoz' 'Úvoz' 'Úvoz' 'Úvoz' 100 000 000
+  S01 +099555900 +295189740 S 000 'Tram>Masaryk.ètvr' s
+  S02 +099559134 +295189650 S 000 'Tram>mìsto' s
+  S03 +099567491 +295190590 S 000 'bus od Komen.nám.' x
+  S04 +099571862 +295189586 S 000 'bus>Komen.nám.' x
+  S05 +099559661 +295196473 S 000 'Tbus od Koneè.nám.' s
+  S06 +099560244 +295196406 S 000 'Tbus>Koneè.nám.' s
+01442 100 'Obilní trh' 'Obilní trh' 'Obilní trh' 'Obilní trh' 'Obilní trh' 100 000 000
+  S01 +099584868 +295189326 S 000 '>Masarykova ètvr' x
+  S02 +099589290 +295188132 S 000 '>mìsto' x
+01257 100 'Komenského námìstí' 'Komenského námìstí' 'Komenského námìstí' 'Komenského námìstí' 'Komenského námìstí' 100 000 000
+  S01 +099611064 +295182282 S 000 'Tram > Masaryk.èt.' s
+  S02 +099615672 +295182810 S 000 'Tram > mìsto' s
+  S03 +099612342 +295182156 S 000 'Tbus pøíjezd' s
+  S61 +000000000 +000000000 S 000 'pøíj. úvra' s
+  S62 +000000000 +000000000 S 000 'odj. úvra' s
+  S71 +000000000 +000000000 S 000 'úvra>neveø' s
+  S82 +000000000 +000000000 M 000 'grafikon' s
+  S91 +099615672 +295182810 M 000 'Tram > pøíj. trojúhel' s
+  S92 +099615672 +295182810 M 000 'Tram > odj. trojúhel' s
+01397 100 'Moravské námìstí' 'Moravské námìstí' 'Moravské námìstí' 'Moravské námìstí' 'Moravské námìstí' 100 000 000
+  S01 +099647586 +295199760 S 000 'Tram smìr Královo Pole' s
+  S02 +099648402 +295195422 S 000 'Tram od Králova Pole' s
+  S03 +099654282 +295195854 S 000 'Tram smìr Milady Horákové' s
+  S04 +099652224 +295194954 S 000 'Tram od Milady Horákové' s
+  S08 +099653860 +295199831 S 000 'Abus smìr Úzká (na Kolišti)' s
+01193 100 'Janáèkovo divadlo' 'Janáèkovo divadlo' 'Janáèkovo divadlo' 'Janáèkovo divadlo' 'Janáèkovo divadlo' 100 000 000
+  S03 +099660204 +295188990 S 000 '67>Moravské námìstí' z
+  S04 +099661842 +295187982 S 000 '67>Malinovského námìstí' z
+01357 100 'Malinovského námìstí' 'Brno, Malinovského n.' 'Malinovského námìstí' 'Malinovského námìstí' 'Malinovského námìstí' 100 000 000
+  S01 +099683586 +295173000 S 000 'od Cejlu' s
+  S02 +099688764 +295170276 S 000 '>Cejl (Tuzex)' s
+  S03 +099677772 +295176432 S 000 '>Øeèkovice' s
+  S04 +099680460 +295173270 S 000 '>nádr.od Roos.' s
+  S05 +099686006 +295173244 S 000 '>Cejl pøed divadlem' s
+01746 100 'Vlhká' 'Vlhká' 'Vlhká' 'Vlhká' 'Vlhká' 100 000 000
+  S01 +099713854 +295151080 S 000 '>Líšeò' x
+  S02 +099714940 +295151110 S 000 '>mìsto' x
+01372 100 'Masná' 'Masná' 'Masná' 'Masná' 'Masná' 100 000 000
+  S01 +099753852 +295147464 S 000 'Tram smìr Líšeò' x
+  S02 +099747000 +295147698 S 000 'Tram smìr mìsto' x
+  S05 +099759297 +295147220 S 000 'bus>ZC' x
+  S06 +099756240 +295145863 S 000 '>Tržní v Masné' x
+11002 101 'Brno-Horní Heršpice' 'Brno-Horní Heršpice' 'Brno-Horní Heršpice' 'Brno-Horní Heršpice' 'Brno-Horní Heršpice' 101 000 000
+  S01 +099634008 +294995040 S 000 'NAD'
+  S10 +099641157 +295004421 S 000 'vlak smìr Brno'
+  S11 +099641157 +295004421 S 000 'vlak smìr Bøeclav, Støelice'
+  S20 +099641157 +295004421 S 000 'vlak smìr Brno-dolní'
+  S21 +099641157 +295004421 S 000 'vlak smìr Bøeclav, Støelice od Dolního'

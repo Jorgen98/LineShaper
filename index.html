@@ -63,20 +63,70 @@
             align-items: center;
             justify-content: center;
         }
+
+        #rightControl {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: calc(100vw - 4.01rem);
+        }
+
+        button.languageBtn {
+            margin: 0.5rem;
+            width: 3rem;
+            height: 3rem;
+            padding: 0;
+            border-radius: 0.5rem;
+            border: solid transparent 0.2rem;
+            background: none;
+            color: #f8f9fa;
+        }
+
+        button.languageBtn:hover {
+            border: solid #52b69a 0.2rem;
+        }
+
+        p.languageBtn {
+            font-size: large;
+            font-weight: 700;
+            margin: auto;
+        }
     </style>
     <body>
         <div style="display: flex; flex-direction: column; height: 100vh; width: 100%;">
             <div class="innerMenu">
                 <div class="title">
                     <p class="mainTitle"><i>LineShaper</i></p>
-                    <p class="version">1.1</p>
+                    <p class="version">1.3</p>
                 </div>
                 <div class="title">
-                    <p class="text">Interaktivní nástroj pro generování tras linek veřejné dopravy.</p>
+                    <p id="text" class="text">Interaktivní nástroj pro generování tras linek veřejné dopravy.</p>
                 </div>
-                <input id='aHref1' style="margin: 0.5rem auto 0.5rem auto;"  type="button" onclick="location.href='/mapEditor/'" value="Editor map" />
-                <input style="margin: 0 auto auto auto;" type="button" onclick="location.href='/lineRouter/'" value="Trasování linek" />
+                <input id='href1' style="margin: 0.5rem auto 0.5rem auto;"  type="button" onclick="location.href='/mapEditor/'" value="Editor map" />
+                <input id='href2' style="margin: 0 auto auto auto;" type="button" onclick="location.href='/lineRouter/'" value="Trasování linek" />
             </div>
         </div>
+        <div id="rightControl">
+            <button onclick="changeLang()" class="languageBtn"><p id="lang" class="languageBtn">EN</p></button>
+        </div>
     </body>
+    <script type="text/javascript">
+        function changeLang() {
+            let lang = document.getElementById("lang").innerHTML;
+            if (lang === 'EN') {
+                document.getElementById("href1").value = 'Map Editor';
+                document.getElementById("href2").value = 'Line Router';
+                document.getElementById("text").innerHTML = 'Interactive tool for generating public transport line routes.';
+
+                document.getElementById("lang").innerHTML = 'CZ';
+            } else {
+                document.getElementById("href1").value = 'Editor map';
+                document.getElementById("href2").value = 'Trasování linek';
+                document.getElementById("text").innerHTML = 'Interaktivní nástroj pro generování tras linek veřejné dopravy.';
+
+                document.getElementById("lang").innerHTML = 'EN';
+            }
+        }
+    </script>
 </html>

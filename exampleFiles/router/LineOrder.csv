@@ -1,0 +1,25 @@
+Linka;Trakce;Název zastávky;Smìr;Pasport;èíslo sloupku smìr A;èíslo sloupku smìr B
+2;Tram;Körnerova;koneèná;1271;2;1
+;;Malinovského námìstí;obousmìrná;1357;1,4;2
+;;Hlavní nádraží;koneèná;1146;1;2,26
+;;Nové sady;obousmìrná;1436;1;2
+;;Hybešova;obousmìrná;1176;1;2
+;;Václavská;obousmìrná;1721;1;2
+;;Mendlovo námìstí;koneèná;1378;4;1
+;;Poøíèí;koneèná;1512;1;2
+145;Vlak;Brno-Starý Lískovec;koneèná;11009;22;21
+;;Brno-Horní Heršpice;obousmìrná;11002;10;11
+;;Brno pøednádraží;obousmìrná;11007;1;1
+;;Dolní nádraží;koneèná;7530;22;
+;;Hlavní nádraží;koneèná;1146;99;98
+39;Trolej;Žlutý kopec;koneèná;1816;2;1
+;;Tvrdého;>Komenského námìstí;1682;2;
+;;Úvoz;obousmìrná;1712;4;3
+;;Obilní trh;obousmìrná;1442;2;1
+;;Komenského námìstí;koneèná;1257;3;2
+67;Bus;Moravské námìstí;koneèná;1397;4;3
+;;Janáèkovo divadlo;obousmìrná;1193;4;3
+;;Malinovského námìstí;obousmìrná;1357;4;3
+;;Hlavní nádraží;koneèná;1146;5,7;6,9
+;;Vlhká;obousmìrná;1746;1;2
+;;Masná;koneèná;1372;6;2
