@@ -14,7 +14,7 @@ The tool consists of two parts:
 	 - `make run noAuth` - Authentication is disabled
 	 - `make run editorAuth` - Authentication is enabled only for the map editor, line router is accessible without login
 	 - `make run routerAuth` - Authentication is enabled only for line router, the map editor is accessible without logging in
- 3. After build and startup, the application runs on port `9004`
+ 3. After build and startup, the application runs on `http://your_url:9001/lineShaper`
 
 ## Input Files
 

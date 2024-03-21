@@ -10,5 +10,5 @@ RUN npm run build
 
 FROM nginx:latest AS ng
 
-COPY --from=build /dist/src/app/dist/editor/ /usr/share/nginx/html/mapEditor/
+COPY --from=build /dist/src/app/dist/editor/ /usr/share/nginx/html/lineShaper/mapEditor/
 COPY /nginx-custom.conf  /etc/nginx/conf.d/default.conf

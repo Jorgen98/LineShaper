@@ -11,6 +11,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./index.html:/home/index.html
+      - ./router/src/favicon.ico:/home/favicon.ico
   editor:
     container_name: lineShaper-mapEditor
     build:
