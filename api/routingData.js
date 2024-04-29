@@ -172,7 +172,9 @@ async function getStopsGeom(db, stops) {
                         if (midpoint && stops[i].split('_')[3] !== 'd' && stops[i + 1].split('_')[3] !== 'd') {
                             stopsPoss = stopsPoss.concat(midpoint.stopPoss);
                             points = points.concat(midpoint.points);
-                            stopNames.push('Medzibod');
+                            for (let i = 0; i < midpoint.points.length; i++) {
+                                 stopNames.push('Medzibod');
+                            }
                         }
                     }
                 }
