@@ -39,7 +39,7 @@
             <input class="login loginText" type="text" [(ngModel)]="logInName">
             <input class="login loginText" type="password" [(ngModel)]="logInPassword">
             <button class="login" (click)="logIn()">{{ "logIn" | translate }}</button>
-            <input type="button" onclick="location.href='/'" value="{{ 'menu' | translate }}" class="login"/>
+            <input type="button" onclick="location.href='/lineShaper/'" value="{{ 'menu' | translate }}" class="login"/>
             <div class="warning" *ngIf="loginWarning">
                 <p class="warning">{{ "wrongCredentials" | translate }}</p>
             </div>

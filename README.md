@@ -8,13 +8,15 @@ The tool consists of two parts:
 
 ## Usage
 
-1. In the `api/.env` file, set the `DB_USER` and `DB_PASSWORD` variables. If you want to use authentication, also set the `EDITOR_USERS` and `ROUTER_USERS` variables.
+ 1. In the `api/.env` file, set the `DB_USER` and `DB_PASSWORD` variables. If you want to use authentication, also set the `EDITOR_USERS` and `ROUTER_USERS` variables.
  2. The tool can be run in 4 modes:
-	 - `make run fullAuth` - Authentication is enabled for both map editing and line router
-	 - `make run noAuth` - Authentication is disabled
-	 - `make run editorAuth` - Authentication is enabled only for the map editor, line router is accessible without login
-	 - `make run routerAuth` - Authentication is enabled only for line router, the map editor is accessible without logging in
+	 - `make fullAuth` - Authentication is enabled for both map editing and line router
+	 - `make noAuth` - Authentication is disabled
+	 - `make editorAuth` - Authentication is enabled only for the map editor, line router is accessible without login
+	 - `make routerAuth` - Authentication is enabled only for line router, the map editor is accessible without logging in
  3. After build and startup, the application runs on `http://your_url:9001/lineShaper`
+ 4. Application can be stopped by `make stop`
+ 5. If you want to run application on background, just add `Prod` to any configuration (e. `make fullAuthProd`)
 
 ## Input Files
 

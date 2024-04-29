@@ -78,7 +78,7 @@ services:
         max-file: "10"
   postgis:
     container_name: lineShaper-db
-    image: postgis/postgis
+    image: postgis/postgis:15-master
     volumes:
       - ./api/:/docker-entrypoint-initdb.d/
       - ./postgres-data:/var/lib/postgresql/data
@@ -89,6 +89,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
       PGPORT: ${DB_PORT}
+      PGUSER: ${DB_USER}
       TZ: "Europe/Bratislava"
     deploy:
       restart_policy:
@@ -99,7 +100,7 @@ services:
         max-size: "200k"
         max-file: "10"
     healthcheck:
-      test: ["CMD", "pg_isready", "--username=${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
