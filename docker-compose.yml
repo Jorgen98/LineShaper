@@ -78,7 +78,7 @@ services:
         max-file: "10"
   postgis:
     container_name: lineShaper-db
-    image: postgis/postgis:15-master
+    image: postgis/postgis:16-master
     volumes:
       - ./api/:/docker-entrypoint-initdb.d/
       - ./postgres-data:/var/lib/postgresql/data
