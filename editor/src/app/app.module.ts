@@ -28,7 +28,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     bootstrap: [AppComponent], imports: [CommonModule,
         BrowserModule,
         MatIconModule,
-        HttpClientModule,
         FormsModule,
         TranslateModule.forRoot({
             defaultLanguage: 'cz',
