@@ -11,7 +11,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppComponent } from './app';
 import { MapComponent } from './map/map';
 import { AppDirective } from './app.directive';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { RoutingComponent } from './routing/routing';
 import { MidPointsComponent } from './mid-points/mid-points';
@@ -20,32 +20,25 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    MapComponent,
-    AppDirective,
-    FilesManipulationComponent,
-    RoutingComponent,
-    MidPointsComponent
-  ],
-  imports: [
-    CommonModule,
-    BrowserModule,
-    MatIconModule,
-    HttpClientModule,
-    TranslateModule.forRoot({
-      defaultLanguage: 'cz',
-      loader: {
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [HttpClient]
-      }
-    }),
-    FormsModule,
-    Select2Module
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        MapComponent,
+        AppDirective,
+        FilesManipulationComponent,
+        RoutingComponent,
+        MidPointsComponent
+    ],
+    bootstrap: [AppComponent], imports: [CommonModule,
+        BrowserModule,
+        MatIconModule,
+        TranslateModule.forRoot({
+            defaultLanguage: 'cz',
+            loader: {
+                provide: TranslateLoader,
+                useFactory: HttpLoaderFactory,
+                deps: [HttpClient]
+            }
+        }),
+        FormsModule,
+        Select2Module], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

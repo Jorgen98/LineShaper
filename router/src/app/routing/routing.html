@@ -132,7 +132,7 @@
                     <mat-icon>keyboard_arrow_up</mat-icon></button>
                 <button class="routeStopsButton" [disabled]="last" (click)="switchStops(index, 'down')">
                     <mat-icon>keyboard_arrow_down</mat-icon></button>
-                <input class="routeStopsInput" [(checked)]="!stop.dis" type="checkbox" (change)="disableStop(index)">
+                <input class="routeStopsInput" [checked]="!stop.dis" (checkedChange)="stop.dis = $event" type="checkbox" (change)="disableStop(index)">
             </div>
         </div>
         <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
