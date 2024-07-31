@@ -10,7 +10,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppComponent } from './app';
 import { MapComponent } from './map/map';
 import { AppDirective } from './app.directive';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FilesManipulationComponent } from './files-manipulation/files-manipulation';
 import { LayerSelectComponent } from './layer-select/layer-select';
 
@@ -18,31 +18,24 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    MapComponent,
-    AppDirective,
-    FilesManipulationComponent,
-    LayerSelectComponent
-  ],
-  imports: [
-    CommonModule,
-    BrowserModule,
-    MatIconModule,
-    HttpClientModule,
-    FormsModule,
-    HttpClientModule,
-    TranslateModule.forRoot({
-      defaultLanguage: 'cz',
-      loader: {
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [HttpClient]
-      }
-    })
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        MapComponent,
+        AppDirective,
+        FilesManipulationComponent,
+        LayerSelectComponent
+    ],
+    bootstrap: [AppComponent], imports: [CommonModule,
+        BrowserModule,
+        MatIconModule,
+        HttpClientModule,
+        FormsModule,
+        TranslateModule.forRoot({
+            defaultLanguage: 'cz',
+            loader: {
+                provide: TranslateLoader,
+                useFactory: HttpLoaderFactory,
+                deps: [HttpClient]
+            }
+        })], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
