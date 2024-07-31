@@ -259,8 +259,8 @@ async function getMidPointsByID(db, params) {
 
             let endStopA, endStopB;
             endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
-                " WHERE code=" + parseInt(result.rows[i]['endcodesa'][1].split('_')[0]) + " AND '" +
-                parseInt(result.rows[i]['endcodesa'][1].split('_')[1]) + "'=ANY(subcodes)");
+                " WHERE code=" + parseInt(result.rows[i]['endcodesa'][0].split('_')[0]) + " AND '" +
+                parseInt(result.rows[i]['endcodesa'][0].split('_')[1]) + "'=ANY(subcodes)");
             endStopB = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
                 " WHERE code=" + parseInt(result.rows[i]['endcodesb'][0].split('_')[0]) + " AND '" +
                 parseInt(result.rows[i]['endcodesb'][0].split('_')[1]) + "'=ANY(subcodes)");
