@@ -256,6 +256,17 @@ async function getMidPointsByID(db, params) {
         for (let i = 0; i < result.rows.length; i++) {
             result.rows[i]['midpoints'] = JSON.parse(result.rows[i]['st_asgeojson']).coordinates;
             delete result.rows[i]['st_asgeojson'];
+
+            let endStopA, endStopB;
+            endStopA = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(result.rows[i]['endcodesa'][1].split('_')[0]) + " AND '" +
+                parseInt(result.rows[i]['endcodesa'][1].split('_')[1]) + "'=ANY(subcodes)");
+            endStopB = await db.query("SELECT ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
+                " WHERE code=" + parseInt(result.rows[i]['endcodesb'][0].split('_')[0]) + " AND '" +
+                parseInt(result.rows[i]['endcodesb'][0].split('_')[1]) + "'=ANY(subcodes)");
+
+            result.rows[i]['endstopageom'] = JSON.parse(endStopA.rows[0]['st_asgeojson']).coordinates;
+            result.rows[i]['endstopbgeom'] = JSON.parse(endStopB.rows[0]['st_asgeojson']).coordinates;
         }
         return result.rows;
     } catch(err) {
