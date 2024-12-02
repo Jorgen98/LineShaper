@@ -6,7 +6,8 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
     selector: 'routing',
     templateUrl: './routing.html',
-    styleUrls: ['./routing.css']
+    styleUrls: ['./routing.css'],
+    standalone: false
 })
 
 export class RoutingComponent implements OnInit {

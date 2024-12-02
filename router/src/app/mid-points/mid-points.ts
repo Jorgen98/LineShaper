@@ -5,7 +5,8 @@ import { MapService } from '../map/map.service';
 @Component({
     selector: 'mid-points',
     templateUrl: './mid-points.html',
-    styleUrls: ['./mid-points.css']
+    styleUrls: ['./mid-points.css'],
+    standalone: false
 })
 
 export class MidPointsComponent {

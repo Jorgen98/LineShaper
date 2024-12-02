@@ -7,7 +7,8 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
     selector: 'map-component',
     templateUrl: './map.html',
-    styleUrls: ['./map.css']
+    styleUrls: ['./map.css'],
+    standalone: false
 })
 
 export class MapComponent {

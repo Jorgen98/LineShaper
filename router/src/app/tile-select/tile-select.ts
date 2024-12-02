@@ -5,7 +5,8 @@ import { DataService } from '../data.service';
 @Component({
     selector: 'tile-select',
     templateUrl: './tile-select.html',
-    styleUrls: ['./tile-select.css']
+    styleUrls: ['./tile-select.css'],
+    standalone: false
 })
 
 export class TileSelectComponent implements OnInit {

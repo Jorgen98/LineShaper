@@ -6,7 +6,8 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
     selector: 'files-manipulation',
     templateUrl: './files-manipulation.html',
-    styleUrls: ['./files-manipulation.css']
+    styleUrls: ['./files-manipulation.css'],
+    standalone: false
 })
 
 export class FilesManipulationComponent {

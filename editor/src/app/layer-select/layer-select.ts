@@ -4,7 +4,8 @@ import { DataService } from '../data.service';
 @Component({
     selector: 'layer-select',
     templateUrl: './layer-select.html',
-    styleUrls: ['./layer-select.css']
+    styleUrls: ['./layer-select.css'],
+    standalone: false
 })
 
 export class LayerSelectComponent implements OnInit {
