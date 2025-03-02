@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DataService } from '../data.service';
 import { formatDate } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
@@ -10,7 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
     standalone: false
 })
 
-export class FilesManipulationComponent {
+export class FilesManipulationComponent implements OnInit {
     constructor(private dataService: DataService, private translate: TranslateService) {}
     state = 'menu';
     warning = false;
@@ -24,6 +24,13 @@ export class FilesManipulationComponent {
         {'name': this.translate.instant("layer-select.roadLayer"), 'id': 'road'},
         {'name': this.translate.instant("layer-select.tramLayer"), 'id': 'tram'}];
     curLayer = 'rail';
+    downloadAllowed = true;
+
+    async ngOnInit() {
+        if ((await this.dataService.getPointsByGid(0)).length < 1) {
+            this.downloadAllowed = false;
+        }
+    }
 
     async defaultMenu() {
         this.warning = false;

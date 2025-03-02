@@ -3,7 +3,7 @@
     <p class="header" *ngSwitchCase="'menu'">{{ "files-manipulation.header" | translate }}</p>
     <div *ngSwitchCase="'menu'">
         <button (click)="importMaps()">{{ "files-manipulation.importBtn" | translate }}</button>
-        <button (click)="exportMaps()">{{ "files-manipulation.exportBtn" | translate }}</button>
+        <button (click)="exportMaps()" *ngIf="downloadAllowed">{{ "files-manipulation.exportBtn" | translate }}</button>
     </div>
     <!-- Import maps screen -->
     <p class="header" *ngSwitchCase="'impMap'">{{ "files-manipulation.import.header" | translate }}</p>

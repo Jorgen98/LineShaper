@@ -66,6 +66,7 @@ services:
       TZ: "Europe/Bratislava"
       EDITOR_AUTH: $EDITOR_AUTH
       ROUTER_AUTH: $ROUTER_AUTH
+      NO_DOWNLOAD: $NO_DOWNLOAD
     deploy:
       restart_policy:
         condition: on-failure

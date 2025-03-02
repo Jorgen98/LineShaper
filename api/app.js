@@ -74,7 +74,11 @@ app.get(apiBaseUrl + 'pointsInRad', verifyToken, async (req, res) => {
 
 // Used in export use case
 app.get(apiBaseUrl + 'pointsByGid', verifyEditorToken, async (req, res) => {
-        res.send(await dbPoint.getPointsByGID(db, req.query));
+        if (process.env.NO_DOWNLOAD) {
+            res.send([]);
+        } else {
+            res.send(await dbPoint.getPointsByGID(db, req.query));
+        }
     })
 
 // Change direction of net section between two crossings

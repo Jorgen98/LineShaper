@@ -1,4 +1,4 @@
-FROM node:latest AS build
+FROM node:current AS build
 
 WORKDIR /dist/src/app
 
