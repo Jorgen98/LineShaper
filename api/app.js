@@ -28,8 +28,12 @@ const db = new Pool({
     host: process.env.HOST,
     database: process.env.DB_DATABASE,
     password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT
+    port: 5432
 });
+
+db.on('error', function(error) {
+    console.log(error);
+})
 
 const apiBaseUrl = '/lineShaper/api/';
 
@@ -181,7 +185,7 @@ app.get(apiBaseUrl + 'midPointsByGid', verifyRouterToken, async (req, res) => {
 })
 
 // Running API itself
-app.listen(process.env.API_PORT, async () => {
+app.listen(9004, async () => {
     // Try to connect
     try {
         await db.connect();
@@ -191,7 +195,7 @@ app.listen(process.env.API_PORT, async () => {
     }
 
     // API is ready
-    console.log(`App listening on port ${process.env.API_PORT}`);
+    console.log(`App listening on port 9004`);
 })
 
 // JWT verification functions

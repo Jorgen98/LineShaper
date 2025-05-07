@@ -1,0 +1,53 @@
+services:
+  line-shaper-api:
+    container_name: line-shaper-api
+    build:
+      context: ./api/
+      dockerfile: Dockerfile
+    depends_on:
+      line-shaper-db:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Bratislava"
+      EDITOR_AUTH: $EDITOR_AUTH
+      ROUTER_AUTH: $ROUTER_AUTH
+      NO_DOWNLOAD: $NO_DOWNLOAD
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    ports:
+      - 9004:9004
+  line-shaper-db:
+    container_name: line-shaper-db
+    image: postgis/postgis:16-master
+    volumes:
+      - ./api/:/docker-entrypoint-initdb.d/
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      PGUSER: ${DB_USER}
+      TZ: "Europe/Bratislava"
+    deploy:
+      restart_policy:
+        condition: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

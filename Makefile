@@ -19,4 +19,4 @@ editorAuthProd:
 routerAuthProd:
 	ROUTER_AUTH=true docker compose --env-file ./api/.env up --build -d
 stop:
-	docker container stop lineShaper-proxyServer lineShaper-mapEditor lineShaper-lineRouter lineShaper-api lineShaper-db
+	docker container stop line-shaper-proxy-server line-shaper-map-editor line-shaper-line-router line-shaper-api line-shaper-db

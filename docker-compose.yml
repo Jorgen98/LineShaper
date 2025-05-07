@@ -1,24 +1,25 @@
-version: '3.9'
 services:
-  nginx:
-    container_name: lineShaper-proxyServer
+  line-shaper-proxy-server:
+    container_name: line-shaper-proxy-server
     image: nginx:1.19
     depends_on:
-      postgis:
+      line-shaper-db:
         condition: service_healthy
     ports:
-      - 9001:80
+      - 80:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./index.html:/home/index.html
       - ./router/src/favicon.ico:/home/favicon.ico
-  editor:
-    container_name: lineShaper-mapEditor
+    networks:
+      - line-shaper-network
+  line-shaper-map-editor:
+    container_name: line-shaper-map-editor
     build:
       context: ./editor/
       dockerfile: Dockerfile
     depends_on:
-      postgis:
+      line-shaper-db:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
@@ -32,13 +33,15 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-  router:
-    container_name: lineShaper-lineRouter
+    networks:
+      - line-shaper-network
+  line-shaper-line-router:
+    container_name: line-shaper-line-router
     build:
       context: ./router/
       dockerfile: Dockerfile
     depends_on:
-      postgis:
+      line-shaper-db:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
@@ -52,15 +55,15 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-  api:
-    container_name: lineShaper-api
+    networks:
+      - line-shaper-network
+  line-shaper-api:
+    container_name: line-shaper-api
     build:
       context: ./api/
       dockerfile: Dockerfile
-    ports:
-      - ${API_PORT}:${API_PORT}
     depends_on:
-      postgis:
+      line-shaper-db:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
@@ -77,19 +80,18 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-  postgis:
-    container_name: lineShaper-db
+    networks:
+      - line-shaper-network
+  line-shaper-db:
+    container_name: line-shaper-db
     image: postgis/postgis:16-master
     volumes:
       - ./api/:/docker-entrypoint-initdb.d/
       - ./postgres-data:/var/lib/postgresql/data
-    ports:
-      - ${DB_PORT}:${DB_PORT}
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
-      PGPORT: ${DB_PORT}
       PGUSER: ${DB_USER}
       TZ: "Europe/Bratislava"
     deploy:
@@ -105,3 +107,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - line-shaper-network
+networks:
+  line-shaper-network:
+    name: line-shaper-network
