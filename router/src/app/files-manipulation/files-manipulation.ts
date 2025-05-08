@@ -26,6 +26,10 @@ export class FilesManipulationComponent {
     loadState = 0;
     waitForPressResolve: any;
     replace = true;
+    curRouteStops: {label: string, dis: boolean, code: string}[] = [];
+    routeStops: {label: string, dis: boolean, diff: boolean}[] = [];
+    newStopNames: {[code: number]: string} = {};
+    generalReplace: boolean = false;
 
     async defaultMenu() {
         this.warning = false;
@@ -142,6 +146,7 @@ export class FilesManipulationComponent {
         this.state = 'progress';
         this.progress = 0;
         this.progressText = this.translate.instant("files-manipulation.processingData");
+        this.newStopNames = {};
         await this.dataService.clearData('stops');
 
         let input = [];
@@ -200,6 +205,7 @@ export class FilesManipulationComponent {
                     }
                 } else if (Object.keys(stopSigns).length > 0) {
                     stops.push({code: stopCode, name: name.replaceAll("'", ""), signs: stopSigns});
+                    this.newStopNames[stopCode] = name.replaceAll("'", "");
                 }
             } else {
                 i++;
@@ -311,6 +317,7 @@ export class FilesManipulationComponent {
         }
         
         let upIndex = 5;
+        this.generalReplace = false;
         for (let i = 0; i < lines.length; i+=5) {
             if (upIndex > (lines.length - 1)) {
                 upIndex = lines.length;
@@ -320,9 +327,19 @@ export class FilesManipulationComponent {
 
             for (const line of lines.slice(i, upIndex)) {
                 let curLine = await this.dataService.getLineRoutesInfo(parseInt(line.lc));
+                let lineToSave = {'lc': String, 'type': String, 'routeA': [], 'routeB': []};
 
+                if (this.generalReplace) {
+                    whatToSave.push(line);
+                    continue;
+                }
+
+                lineToSave.lc = line.lc;
+                lineToSave.type = line.type;
+                // Line part A
                 if (line.routeA !== undefined && curLine.a !== undefined) {
                     if (line.routeA.toString() !== curLine.a.toString()) {
+                        await this.setUpRouteDifferenceData(line.routeA, parseInt(line.lc), 'a');
                         this.replace = true;
                         this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
                             + this.translate.instant("files-manipulation.replace.warning2");
@@ -331,16 +348,50 @@ export class FilesManipulationComponent {
                         await this.waitForConfirm();
 
                         if (this.replace) {
-                            whatToSave.push(line);
+                            lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
+                        } else {
+                            lineToSave.routeA = JSON.parse(JSON.stringify(curLine.a));
                         }
 
                         this.state = 'progress';
                     } else {
-                        whatToSave.push(line);
+                        lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
                     }
                 } else {
-                    whatToSave.push(line);
+                    lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
                 }
+
+                // Line part B
+                if (line.routeB !== undefined && curLine.b !== undefined) {
+                    if (line.routeB.toString() !== curLine.b.toString()) {
+                        await this.setUpRouteDifferenceData(line.routeB, parseInt(line.lc), 'b');
+                        this.replace = true;
+                        this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
+                            + this.translate.instant("files-manipulation.replace.warning2");
+                        this.state = 'replaceDecision';
+
+                        if (this.generalReplace) {
+                            this.replace = true;
+                        } else {
+                            await this.waitForConfirm();
+                        }
+
+                        if (this.replace) {
+                            lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                        } else {
+                            lineToSave.routeB = JSON.parse(JSON.stringify(curLine.b));
+                        }
+
+                        this.state = 'progress';
+                    } else {
+                        lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                    }
+                } else {
+                    lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                }
+
+                whatToSave.push(lineToSave);
+                this.progressText = this.translate.instant("files-manipulation.processingData");
             }
             await this.dataService.saveLines(whatToSave);
             upIndex += 5;
@@ -351,6 +402,35 @@ export class FilesManipulationComponent {
         this.progress = 100;
     }
 
+    async setUpRouteDifferenceData(newRoute: string[], acLineCode: number, dir: string) {
+        this.curRouteStops = [];
+        this.routeStops = [];
+
+        this.curRouteStops = await this.dataService.getWholeLineInfo(acLineCode, dir);
+        let idx = 0;
+        while (idx < this.curRouteStops.length) {
+            if (this.curRouteStops[idx].label === 'Medzibod') {
+                this.curRouteStops = this.curRouteStops.slice(idx, 1);
+                continue;
+            }
+            if (this.curRouteStops[idx].code.split('_')[3] === 'd') {
+                this.curRouteStops[idx].dis = true;
+            } else {
+                this.curRouteStops[idx].dis = false;
+            }
+
+            if (this.newStopNames[parseInt(this.curRouteStops[idx].code.split('_')[0])] === undefined) {
+                this.newStopNames[parseInt(this.curRouteStops[idx].code.split('_')[0])] = this.curRouteStops[idx].label;
+            }
+
+            idx++;
+        }
+        for (const [idx, stop] of newRoute.entries()) {
+            this.routeStops.push({label: this.newStopNames[parseInt(stop.split('_')[0])], dis: false, diff: stop !== this.curRouteStops[idx]?.code});
+        }
+
+        this.progressText = `${this.curRouteStops[0].label} -> ${this.curRouteStops[this.curRouteStops.length - 1].label}`;
+    }
 
     waitForConfirm() {
         return new Promise(resolve => this.waitForPressResolve = resolve);

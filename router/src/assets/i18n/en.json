@@ -31,7 +31,10 @@
             "warning2": " is different from the data currently in use. Do you want to replace this data?"
         },
         "export": "Exporting data",
-        "exportDone": "Data exporting is complete"
+        "exportDone": "Data exporting is complete",
+        "currentStops": "Actual data",
+        "newStops": "New data",
+        "replaceAll": "Replace all with new data"
     },
     "map": {
         "deletePoint": "Delete this point",

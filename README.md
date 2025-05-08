@@ -15,7 +15,7 @@ The tool consists of two parts:
 	 - `make editorAuth` - Authentication is enabled only for the map editor, line router is accessible without login
 	 - `make routerAuth` - Authentication is enabled only for line router, the map editor is accessible without logging in
 	 - `make noAuthNoDownload` - Authentication is disabled, transport layers export is disabled
- 3. After build and startup, the application runs on `http://your_url:9001/lineShaper`
+ 3. After build and startup, the application runs on `http://your_url/lineShaper`
  4. Application can be stopped by `make stop`
  5. If you want to run application on background, just add `Prod` to any configuration (e. `make fullAuthProd`)
 

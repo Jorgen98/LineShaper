@@ -86,3 +86,44 @@ select {
     max-width: calc(100% - 1rem);
     text-align: center;
 }
+
+.two-width {
+    width: 40vw;
+}
+
+.routeStopsElem {
+    display: flex;
+    margin: 0.25rem 0;
+}
+
+.routeStopsElemOdd {
+    background-color: var(--border);
+}
+
+.routeStopsInput {
+    margin: auto 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    accent-color: var(--mark);
+    border: solid var(--mark) 0.2rem;
+}
+
+.routeStopsName {
+    margin: auto auto auto 0;
+}
+
+.routesMainDiv {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0.5em;
+    column-gap: 1em;
+}
+
+.routeStopsGreen {
+    color: var(--mark);
+}
+
+.routeStopsHeader {
+    margin: 1em auto;
+    text-align: center;
+}

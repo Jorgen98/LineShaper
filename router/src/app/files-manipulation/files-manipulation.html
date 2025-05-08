@@ -1,50 +1,72 @@
-<div class="content" [ngSwitch]="state">
-    <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">{{ "files-manipulation.header" | translate }}</p>
-    <div *ngSwitchCase="'menu'">
-        <button (click)="importData()">{{ "files-manipulation.importBtn" | translate }}</button>
-        <button (click)="exportMidPointData()">{{ "files-manipulation.exportBtn" | translate }}</button>
-    </div>
-    <!-- Import maps screen -->
-    <p class="header" *ngSwitchCase="'impData'">{{ "files-manipulation.import.header" | translate }}</p>
-    <div *ngSwitchCase="'impData'">
-        <div class="option">
-            <p class="option">{{ "files-manipulation.import.files" | translate }}</p>
-            <input class="fileInput" type="file" (change)="readFile($event)" multiple>
+<div [ngSwitch]="state" style="height: 100%;">
+    <span class="content" [ngClass]="state === 'replaceDecision' ? 'two-width' : ''">
+        <!-- Default menu screen -->
+        <p class="header" *ngSwitchCase="'menu'">{{ "files-manipulation.header" | translate }}</p>
+        <div *ngSwitchCase="'menu'">
+            <button (click)="importData()">{{ "files-manipulation.importBtn" | translate }}</button>
+            <button (click)="exportMidPointData()">{{ "files-manipulation.exportBtn" | translate }}</button>
         </div>
-        <div *ngIf="warningType" class="warning">
-            <p class="warning">{{ warningTypeText }}</p>
+        <!-- Import maps screen -->
+        <p class="header" *ngSwitchCase="'impData'">{{ "files-manipulation.import.header" | translate }}</p>
+        <div *ngSwitchCase="'impData'">
+            <div class="option">
+                <p class="option">{{ "files-manipulation.import.files" | translate }}</p>
+                <input class="fileInput" type="file" (change)="readFile($event)" multiple>
+            </div>
+            <div *ngIf="warningType" class="warning">
+                <p class="warning">{{ warningTypeText }}</p>
+            </div>
+            <button class="mark" (click)="importData()">{{ "files-manipulation.import.importData" | translate }}</button>
+            <div *ngIf="warning" class="warning">
+                <p class="warning">{{ warningText }}</p>
+            </div>
+            <button (click)="defaultMenu()">{{ "files-manipulation.import.menu" | translate }}</button>
         </div>
-        <button class="mark" (click)="importData()">{{ "files-manipulation.import.importData" | translate }}</button>
-        <div *ngIf="warning" class="warning">
-            <p class="warning">{{ warningText }}</p>
+        <!-- Import data screen warning -->
+        <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.warning" | translate }}</p>
+        <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.sameData" | translate }}</p>
+        <div *ngSwitchCase="'impDataWar'">
+            <button class="mark" (click)="importDataIntroDB()">{{ "files-manipulation.import.continue" | translate }}</button>
+            <button (click)="defaultMenu()">{{ "files-manipulation.import.cancel" | translate }}</button>
         </div>
-        <button (click)="defaultMenu()">{{ "files-manipulation.import.menu" | translate }}</button>
-    </div>
-    <!-- Import data screen warning -->
-    <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.warning" | translate }}</p>
-    <p class="header" *ngSwitchCase="'impDataWar'">{{ "files-manipulation.import.sameData" | translate }}</p>
-    <div *ngSwitchCase="'impDataWar'">
-        <button class="mark" (click)="importDataIntroDB()">{{ "files-manipulation.import.continue" | translate }}</button>
-        <button (click)="defaultMenu()">{{ "files-manipulation.import.cancel" | translate }}</button>
-    </div>
-    <!-- No data can be loaded from input files warning -->
-    <p class="header" *ngSwitchCase="'impNoDataWar'">{{ "files-manipulation.import.incorrectData" | translate }}</p>
-    <div *ngSwitchCase="'impNoDataWar'">
-        <button (click)="defaultMenu()">{{ "files-manipulation.menuBtn" | translate }}</button>
-    </div>
-    <!-- Progress screen -->
-    <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
-    <div *ngSwitchCase="'progress'">
-        <div class="progress" [style.width]="progress+'%'">
-            {{ progress + '%'}}
+        <!-- No data can be loaded from input files warning -->
+        <p class="header" *ngSwitchCase="'impNoDataWar'">{{ "files-manipulation.import.incorrectData" | translate }}</p>
+        <div *ngSwitchCase="'impNoDataWar'">
+            <button (click)="defaultMenu()">{{ "files-manipulation.menuBtn" | translate }}</button>
         </div>
-        <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">{{ "files-manipulation.closeBtn" | translate }}</button>
-    </div>
-    <!-- On route replace screen -->
-    <p class="header" *ngSwitchCase="'replaceDecision'">{{ warningText }}</p>
-    <div *ngSwitchCase="'replaceDecision'">
-        <button class="mark" (click)="waitForPress(true)">{{ "files-manipulation.replaceBtn" | translate }}</button>
-        <button class="mark" (click)="waitForPress(false)">{{ "files-manipulation.leaveBtn" | translate }}</button>
-    </div>
+        <!-- Progress screen -->
+        <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
+        <div *ngSwitchCase="'progress'">
+            <div class="progress" [style.width]="progress+'%'">
+                {{ progress + '%'}}
+            </div>
+            <button class="mark" *ngIf="progress === 100" (click)="importDataIntroDB()">{{ "files-manipulation.closeBtn" | translate }}</button>
+        </div>
+        <!-- On route replace screen -->
+        <p class="header" *ngSwitchCase="'replaceDecision'">{{ warningText }}</p>
+        <p class="header" *ngSwitchCase="'replaceDecision'">{{ progressText }}</p>
+        <span class="routesMainDiv">
+            <div class="routeStopsMainDiv" *ngSwitchCase="'replaceDecision'">
+                <p class="routeStopsHeader">{{ "files-manipulation.currentStops" | translate }}</p>
+                <div *ngFor="let stop of curRouteStops; let index = index; let first = first; let last = last; let odd = odd"
+                    class="routeStopsElem" [ngClass]="{'routeStopsElemOdd': odd, 'routeStopsElemDis': stop.dis}">
+                    <p class="routeStopsName">{{ (index + 1) + ': ' + stop.label }}</p>
+                    <input class="routeStopsInput" [checked]="!stop.dis" disabled type="checkbox">
+                </div>
+            </div>
+            <div class="routeStopsMainDiv" *ngSwitchCase="'replaceDecision'">
+                <p class="routeStopsHeader">{{ "files-manipulation.newStops" | translate }}</p>
+                <div *ngFor="let stop of routeStops; let index = index; let first = first; let last = last; let odd = odd"
+                    class="routeStopsElem" [ngClass]="{'routeStopsElemOdd': odd, 'routeStopsElemDis': stop.dis}">
+                    <p class="routeStopsName" [ngClass]="stop.diff ? 'routeStopsGreen' : ''">{{ (index + 1) + ': ' + stop.label }}</p>
+                    <input class="routeStopsInput" [checked]="!stop.dis" disabled type="checkbox">
+                </div>
+            </div>
+        </span>
+        <div *ngSwitchCase="'replaceDecision'">
+            <button class="mark" (click)="waitForPress(true)">{{ "files-manipulation.replaceBtn" | translate }}</button>
+            <button class="mark" (click)="waitForPress(false)">{{ "files-manipulation.leaveBtn" | translate }}</button>
+            <button class="mark" (click)="generalReplace = true; waitForPress(true)">{{ "files-manipulation.replaceAll" | translate }}</button>
+        </div>
+    </span>
 </div>

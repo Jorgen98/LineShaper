@@ -31,7 +31,10 @@
             "warning2": " se liší od aktuálně používaných dat. Chcete tato data nahradit?"
         },
         "export": "Export dat",
-        "exportDone": "Exportování dat je dokončeno"
+        "exportDone": "Exportování dat je dokončeno",
+        "currentStops": "Aktuální data",
+        "newStops": "Nová data",
+        "replaceAll": "Nahradit vše novými daty"
     },
     "map": {
         "deletePoint": "Smazat tento bod",
