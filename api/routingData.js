@@ -197,19 +197,38 @@ async function saveLines(db, params) {
     let query = "";
 
     for (let i = 0; i < data.length; i++) {
+        let routesA = "";
+        let routesB = "";
+
+        for (const [idx, route] of data[i].routesA.entries()) {
+            if (idx > 0) {
+                routesA += `, "${route.toString()}"`;
+            } else {
+                routesA += `"${route.toString()}"`;
+            }
+        }
+
+        for (const [idx, route] of data[i].routesB.entries()) {
+            if (idx > 0) {
+                routesB += `, "${route.toString()}"`;
+            } else {
+                routesB += `"${route.toString()}"`;
+            }
+        }
+
         query += "(" + data[i].lc + ", '" + data[i].type +
-            "', '{" + data[i].routeA + "}', '{" + data[i].routeB + "}')";
+            "', '{" + routesA + "}', '{" + routesB + "}')";
 
         if (data.length > 0 && i < (data.length - 1)) {
             query += ",";
         }
-        
+
         await db.query("DELETE FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + data[i].lc);
     }
 
     try {
         await db.query("INSERT INTO " + process.env.DB_LINES_TABLE +
-        ' (code, layer, routeA, routeB) VALUES ' + query);
+        ' (code, layer, routesA, routesB) VALUES ' + query);
         return true;
     } catch(err) {
         console.log(err);
@@ -224,18 +243,18 @@ async function getLines(db) {
 
         for (let i = 0; i < result.rows.length; i++) {
             let route_start = undefined, route_end = undefined;
-            route_start = await getStopName(db, result.rows[i].routea, 0);
-            route_end = await getStopName(db, result.rows[i].routea, result.rows[i].routea.length - 1);
+            route_start = await getStopName(db, result.rows[i].routesa[0].split(','), 0);
+            route_end = await getStopName(db, result.rows[i].routesa[0].split(','), result.rows[i].routesa[0].split(',').length - 1);
 
-            delete result.rows[i]['routea'];
+            delete result.rows[i]['routesa'];
             if (route_start !== undefined && route_end !== undefined) {
                 result.rows[i]['routeA'] = {'s': route_start, 'e': route_end};
             }
 
-            route_start = await getStopName(db, result.rows[i].routeb, 0);
-            route_end = await getStopName(db, result.rows[i].routeb, result.rows[i].routeb.length - 1);
+            route_start = await getStopName(db, result.rows[i].routesb[0].split(','), 0);
+            route_end = await getStopName(db, result.rows[i].routesb[0].split(','), result.rows[i].routesb[0].split(',').length - 1);
 
-            delete result.rows[i]['routeb'];
+            delete result.rows[i]['routesb'];
             if (route_start !== undefined && route_end !== undefined) {
                 result.rows[i]['routeB'] = {'s': route_start, 'e': route_end};
             }
@@ -298,12 +317,14 @@ async function getLineRoute(db, params) {
     }
 
     let result;
-
+    let lineCodes = []
     if (params.dir === 'a') {
-        result = await getStopsGeom(db, line.rows[0].routea);
+        lineCodes = line.rows[0].routesa[0].split(',');
     } else if (params.dir === 'b') {
-        result = await getStopsGeom(db, line.rows[0].routeb);
+        lineCodes = line.rows[0].routesb[0].split(',');
     }
+
+    result = await getStopsGeom(db, lineCodes);
 
     if (result.points.length < 1) {
         return false;
@@ -328,36 +349,38 @@ async function getLineRouteInfo(db, params) {
         return false;
     }
 
+    let lineCodes = []
+    if (params.dir === 'a') {
+        for (const route of line.rows[0].routesa) {
+            lineCodes.push(route.split(','));
+        }
+    } else if (params.dir === 'b') {
+        for (const route of line.rows[0].routesb) {
+            lineCodes.push(route.split(','));
+        }
+    }
+
     let result = [];
     let stopNames;
 
-    if (params.dir === 'a') {
-        stopNames = (await getStopsGeom(db, line.rows[0].routea)).stopNames;
-    } else if (params.dir === 'b') {
-        stopNames = (await getStopsGeom(db, line.rows[0].routeb)).stopNames;
-    }
+    stopNames = (await getStopsGeom(db, lineCodes[0])).stopNames;
 
     if (stopNames.length < 1) {
         return false;
     }
 
     let idx = 0;
-    if (params.dir === 'a') {
-        for (const name of stopNames) {
-            if (name === 'Medzibod') {
-                continue;
-            }
-            result.push({code: line.rows[0].routea[idx], label: name});
-            idx++;
+    result[0] = [];
+    for (let name of stopNames) {
+        if (name === 'Medzibod') {
+            continue;
         }
-    } else {
-        for (let name of stopNames) {
-            if (name === 'Medzibod') {
-                continue;
-            }
-            result.push({code: line.rows[0].routeb[idx], label: name});
-            idx++;
-        }
+        result[0].push({code: lineCodes[0][idx], label: name});
+        idx++;
+    }
+
+    for (let i = 1; i < lineCodes.length; i++) {
+        result.push(lineCodes[i]);
     }
 
     return result;
@@ -373,7 +396,7 @@ async function updateLineRouteInfo(db, params) {
         return false;
     }
 
-    if (params.route === undefined) {
+    if (params.routes === undefined) {
         return false;
     }
 
@@ -383,12 +406,24 @@ async function updateLineRouteInfo(db, params) {
         return false;
     }
 
+    params.routes = JSON.parse(params.routes);
+
     try {
+        let routes = "";
+
+        for (const [idx, route] of params.routes.entries()) {
+            if (idx > 0) {
+                routes += `, "${route.toString()}"`;
+            } else {
+                routes += `"${route.toString()}"`;
+            }
+        }
+
         if (params.dir === 'a') {
-            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routea = '{" + JSON.parse(params.route) +
+            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routesa = '{" + routes +
             "}' WHERE code=" + params.code);
         } else {
-            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routeb = '{" + JSON.parse(params.route) +
+            await db.query("UPDATE " + process.env.DB_LINES_TABLE + " SET routesb = '{" + routes +
             "}' WHERE code=" + params.code);
         }
         return true;
@@ -416,14 +451,24 @@ async function getLineRoutesInfo(db, params) {
     } catch(err) {
         console.log(err);
     }
-    
+
     if (lineName.rows[0] !== undefined) {
         lineName = lineName.rows[0].name;
     } else {
         lineName = params.code;
     }
 
-    return {a: line.rows[0].routea, b: line.rows[0].routeb, lc: lineName};
+    let routesA = [];
+    for (const route of line.rows[0].routesa) {
+        routesA.push(route.split(","));
+    }
+
+    let routesB = [];
+    for (const route of line.rows[0].routesb) {
+        routesB.push(route.split(","));
+    }
+
+    return {a: routesA, b: routesB, lc: lineName};
 }
 
 // Main function, compute geographically precise routes for all lines in DB
@@ -474,7 +519,7 @@ async function routing(db, params) {
     
             const start = Date.now();
             for (let i = 0; i < result.rows.length; i++) {
-                if (result.rows[i].routea !== undefined && result.rows[i].routea.length > 1) {
+                if (result.rows[i].routesa !== undefined && result.rows[i].routesa[0].length > 1) {
                     let route = (await getLineRoute(db, {code: result.rows[i].code, dir: 'a'})).route;
                     try {
                         await db.query("INSERT INTO " + process.env.DB_ROUTES_TABLE + " (routeCode, points) VALUES ('" +
@@ -490,7 +535,7 @@ async function routing(db, params) {
                     return;
                 }
 
-                if (result.rows[i].routeb !== undefined && result.rows[i].routeb.length > 1) {
+                if (result.rows[i].routesb !== undefined && result.rows[i].routesb[0].length > 1) {
                     let route = (await getLineRoute(db, {code: result.rows[i].code, dir: 'b'})).route;
                     try {
                         await db.query("INSERT INTO " + process.env.DB_ROUTES_TABLE + " (routeCode, points) VALUES ('" +

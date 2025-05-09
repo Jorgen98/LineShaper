@@ -368,7 +368,7 @@ export class RoutingComponent implements OnInit {
 
     async editRoute() {
         if (this.state !== 'editRoute') {
-            this.curRouteStops = await this.dataService.getWholeLineInfo(parseInt(this.curLine), this.curDir);
+            this.curRouteStops = (await this.dataService.getWholeLineInfo(parseInt(this.curLine), this.curDir))[0];
 
             let idx = 0;
             while (idx < this.curRouteStops.length) {
@@ -412,7 +412,7 @@ export class RoutingComponent implements OnInit {
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);
         }
-        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify(codes));
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes]));
     }
 
     switchStops(idx: number, dir: string) {
@@ -430,6 +430,6 @@ export class RoutingComponent implements OnInit {
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);
         }
-        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify(codes));
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes]));
     }
 }

@@ -327,18 +327,18 @@ export class FilesManipulationComponent {
 
             for (const line of lines.slice(i, upIndex)) {
                 let curLine = await this.dataService.getLineRoutesInfo(parseInt(line.lc));
-                let lineToSave = {'lc': String, 'type': String, 'routeA': [], 'routeB': []};
+                let lineToSave = {'lc': String, 'type': String, 'routesA': [[]], 'routesB': [[]]};
 
                 if (this.generalReplace) {
-                    whatToSave.push(line);
+                    whatToSave.push({lc: line.lc, type: line.type, routesA: [line.routeA], routesB: [line.routeB]});
                     continue;
                 }
-
+                        console.log(curLine)
                 lineToSave.lc = line.lc;
                 lineToSave.type = line.type;
                 // Line part A
                 if (line.routeA !== undefined && curLine.a !== undefined) {
-                    if (line.routeA.toString() !== curLine.a.toString()) {
+                    if (line.routeA.toString() !== curLine.a[0].toString()) {
                         await this.setUpRouteDifferenceData(line.routeA, parseInt(line.lc), 'a');
                         this.replace = true;
                         this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
@@ -348,22 +348,22 @@ export class FilesManipulationComponent {
                         await this.waitForConfirm();
 
                         if (this.replace) {
-                            lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
+                            lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
                         } else {
-                            lineToSave.routeA = JSON.parse(JSON.stringify(curLine.a));
+                            lineToSave.routesA = JSON.parse(JSON.stringify(curLine.a));
                         }
 
                         this.state = 'progress';
                     } else {
-                        lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
+                        lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
                     }
                 } else {
-                    lineToSave.routeA = JSON.parse(JSON.stringify(line.routeA));
+                    lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
                 }
 
                 // Line part B
                 if (line.routeB !== undefined && curLine.b !== undefined) {
-                    if (line.routeB.toString() !== curLine.b.toString()) {
+                    if (line.routeB.toString() !== curLine.b[0].toString()) {
                         await this.setUpRouteDifferenceData(line.routeB, parseInt(line.lc), 'b');
                         this.replace = true;
                         this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
@@ -377,17 +377,17 @@ export class FilesManipulationComponent {
                         }
 
                         if (this.replace) {
-                            lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                            lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
                         } else {
-                            lineToSave.routeB = JSON.parse(JSON.stringify(curLine.b));
+                            lineToSave.routesB = JSON.parse(JSON.stringify(curLine.b));
                         }
 
                         this.state = 'progress';
                     } else {
-                        lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                        lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
                     }
                 } else {
-                    lineToSave.routeB = JSON.parse(JSON.stringify(line.routeB));
+                    lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
                 }
 
                 whatToSave.push(lineToSave);
@@ -406,7 +406,7 @@ export class FilesManipulationComponent {
         this.curRouteStops = [];
         this.routeStops = [];
 
-        this.curRouteStops = await this.dataService.getWholeLineInfo(acLineCode, dir);
+        this.curRouteStops = (await this.dataService.getWholeLineInfo(acLineCode, dir))[0];
         let idx = 0;
         while (idx < this.curRouteStops.length) {
             if (this.curRouteStops[idx].label === 'Medzibod') {

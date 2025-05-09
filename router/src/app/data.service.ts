@@ -124,8 +124,8 @@ export class DataService {
           );
     }
 
-    queryUpdateLineInfo(code: number, dir: string, route: string) {
-        return this.httpClient.get(this.whoToAsk + "/updateLineRouteInfo?code=" + code + "&dir=" + dir + "&route=" + route, {headers: this.headers})
+    queryUpdateLineInfo(code: number, dir: string, routes: string) {
+        return this.httpClient.get(this.whoToAsk + "/updateLineRouteInfo?code=" + code + "&dir=" + dir + "&routes=" + routes, {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -382,9 +382,9 @@ export class DataService {
     }
 
     // Update line route structure
-    updateLineRouteInfo(code: number, dir: string, route: string): Promise<any> {
+    updateLineRouteInfo(code: number, dir: string, routes: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryUpdateLineInfo(code, dir, route).subscribe(response => {
+            this.queryUpdateLineInfo(code, dir, routes).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {
