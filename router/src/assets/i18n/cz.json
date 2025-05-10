@@ -81,6 +81,8 @@
         "transportType": "Zvolte si druh dopravy",
         "sameStops": "Počáteční a koncová zastávka nemohou být stejné. Vyberte si jinou konečnou zastávku.",
         "modifyRouteBtn": "Upravit trasu",
-        "dateValid": "Platnost údajů:"
+        "dateValid": "Platnost údajů:",
+        "newAlternative": "Nová alternativní trasa",
+        "stopsHeader": "Zastávka"
     }
 }

@@ -333,7 +333,7 @@ export class FilesManipulationComponent {
                     whatToSave.push({lc: line.lc, type: line.type, routesA: [line.routeA], routesB: [line.routeB]});
                     continue;
                 }
-                        console.log(curLine)
+
                 lineToSave.lc = line.lc;
                 lineToSave.type = line.type;
                 // Line part A

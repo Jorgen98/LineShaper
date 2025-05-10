@@ -317,20 +317,39 @@ async function getLineRoute(db, params) {
     }
 
     let result;
-    let lineCodes = []
+    let lineCodes = [];
     if (params.dir === 'a') {
-        lineCodes = line.rows[0].routesa[0].split(',');
+        for (const alternative of line.rows[0].routesa) {
+            lineCodes.push(alternative.split(','));
+        }
     } else if (params.dir === 'b') {
-        lineCodes = line.rows[0].routesb[0].split(',');
+        for (const alternative of line.rows[0].routesb) {
+            lineCodes.push(alternative.split(','));
+        }
     }
 
-    result = await getStopsGeom(db, lineCodes);
+    let route = [];
+    for (const [idx, routePart] of lineCodes.entries()) {
+        let dataForRouting;
+        if (idx === 0) {
+            result = await getStopsGeom(db, routePart);
+            dataForRouting = result;
+        } else {
+            dataForRouting = await getStopsGeom(db, routePart);
+        }
 
-    if (result.points.length < 1) {
-        return false;
+        if (dataForRouting.points.length < 1) {
+            continue;
+        }
+
+        try {
+            route = route.concat(await computeRoute(db, dataForRouting.points, line.rows[0].layer));
+        } catch(err) {
+            console.log(err);
+        }
     }
 
-    return {'stops': result.stops, 'route': await computeRoute(db, result.points, line.rows[0].layer), 'stopNames': result.stopNames};
+    return {'stops': result.stops, 'route': route, 'stopNames': result.stopNames};
 }
 
 // Get info about whole line and all its routes

@@ -81,6 +81,8 @@
         "transportType": "Choose mode of transport",
         "sameStops": "The start and final stops cannot be the same. Choose a different final stop.",
         "modifyRouteBtn": "Edit route structure",
-        "dateValid": "Data validity:"
+        "dateValid": "Data validity:",
+        "newAlternative": "New alternative route",
+        "stopsHeader": "Stop name"
     }
 }

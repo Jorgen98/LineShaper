@@ -124,19 +124,35 @@
     <!-- Edit route struct screen -->
     <div *ngSwitchCase="'editRoute'">
         <p class="header">{{ progressText }}</p>
+        <!-- Header -->
+        <div class="routeStopsMainDiv">
+            <div class="routeStopsElemHeader">
+                <p class="routeStopsName">{{ "routing.stopsHeader" | translate }}</p>
+                <span class="routeStopsSpaceDiv"></span>
+                <span class="routeStopsButtonDiv">
+                    <button class="routeStopsButton routeStopsButtonHeader" (click)="removeAlternative(index)" *ngFor="let alternative of alternativeRoutes; let index = index">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <!-- Body -->
         <div class="routeStopsMainDiv">
             <div *ngFor="let stop of curRouteStops; let index = index; let first = first; let last = last; let odd = odd"
-                class="routeStopsElem" [ngClass]="{'routeStopsElemOdd': odd, 'routeStopsElemDis': stop.dis}">
-                <p class="routeStopsName">{{ (index + 1) + ': ' + stop.label }}</p>
+                class="routeStopsElem" [ngClass]="{'routeStopsElemOdd': odd}">
+                <p class="routeStopsName" [ngClass]="{'routeStopsElemDis': stop.dis}">{{ (index + 1) + ': ' + stop.label }}</p>
                 <button class="routeStopsButton"[disabled]="first" (click)="switchStops(index, 'up')">
                     <mat-icon>keyboard_arrow_up</mat-icon></button>
                 <button class="routeStopsButton" [disabled]="last" (click)="switchStops(index, 'down')">
                     <mat-icon>keyboard_arrow_down</mat-icon></button>
                 <input class="routeStopsInput" [checked]="!stop.dis" (checkedChange)="stop.dis = $event" type="checkbox" (change)="disableStop(index)">
+                <input class="routeStopsInput" [checked]="alternative[index] !== ''" *ngFor="let alternative of alternativeRoutes; let innerIndex = index"
+                        type="checkbox" (change)="saveAlternatives(innerIndex, index, alternative[index] === '' ? stop.code : '')">
             </div>
         </div>
         <p class="header" *ngSwitchCase="'progress'">{{ progressText }}</p>
         <button (click)="getRoute()">{{ "routing.computeRouteBtn" | translate }}</button>
+        <button *ngIf="alternativeRoutes.length < 3" (click)="addNewAlternativeRoute()">{{ "routing.newAlternative" | translate }}</button>
         <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>
     </div>
 </div>

@@ -141,7 +141,7 @@ img {
 }
 
 .routeStopsInput {
-    margin: auto 0;
+    margin: auto 0.25rem;
     width: 1.5rem;
     height: 1.5rem;
     accent-color: var(--mark);
@@ -155,4 +155,21 @@ img {
 mat-icon {
     margin: auto;
     display: flex;
+}
+
+.routeStopsElemHeader {
+    display: flex;
+}
+
+.routeStopsSpaceDiv {
+    flex-grow: 1;
+}
+
+.routeStopsButtonHeader {
+    margin: auto 0 !important;
+}
+
+.routeStopsButtonDiv {
+    display: flex;
+    flex-direction: row;
 }

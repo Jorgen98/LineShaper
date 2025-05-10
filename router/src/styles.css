@@ -60,7 +60,7 @@ button:disabled {
     margin: 0.5rem;
     display: flex;
     flex-direction: column;
-    width: 18vw;
+    width: 25vw;
     height: 100%;
     overflow: scroll;
     border-radius: 0.5rem;

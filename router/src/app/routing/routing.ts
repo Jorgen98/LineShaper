@@ -36,6 +36,7 @@ export class RoutingComponent implements OnInit {
     interval: any = undefined;
     dataAvailable: boolean = false;
     curRouteStops: any = [];
+    alternativeRoutes: (string)[][] = [];
 
     async ngOnInit() {
         if (Object.keys(this.mapService.getWhatIsOnMap()['line']).length === 2) {
@@ -368,7 +369,9 @@ export class RoutingComponent implements OnInit {
 
     async editRoute() {
         if (this.state !== 'editRoute') {
-            this.curRouteStops = (await this.dataService.getWholeLineInfo(parseInt(this.curLine), this.curDir))[0];
+            let loadedData = (await this.dataService.getWholeLineInfo(parseInt(this.curLine), this.curDir));
+            this.curRouteStops = loadedData[0];
+            this.alternativeRoutes = loadedData.splice(1, loadedData.length - 1);
 
             let idx = 0;
             while (idx < this.curRouteStops.length) {
@@ -406,13 +409,17 @@ export class RoutingComponent implements OnInit {
         } else {
             this.curRouteStops[idx].dis = true;
             this.curRouteStops[idx].code += 'd';
+
+            for (let alternative of this.alternativeRoutes) {
+                alternative[idx] = '';
+            }
         }
 
         let codes = [];
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);
         }
-        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes]));
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
     }
 
     switchStops(idx: number, dir: string) {
@@ -420,16 +427,55 @@ export class RoutingComponent implements OnInit {
             let tmp = JSON.parse(JSON.stringify(this.curRouteStops[idx - 1]));
             this.curRouteStops[idx - 1] = this.curRouteStops[idx];
             this.curRouteStops[idx] = tmp;
+
+            for (let alternative of this.alternativeRoutes) {
+                tmp = JSON.parse(JSON.stringify(alternative[idx - 1]));
+                alternative[idx - 1] = alternative[idx];
+                alternative[idx] = tmp;  
+            }
         } else {
             let tmp = JSON.parse(JSON.stringify(this.curRouteStops[idx + 1]));
             this.curRouteStops[idx + 1] = this.curRouteStops[idx];
             this.curRouteStops[idx] = tmp;
+
+            for (let alternative of this.alternativeRoutes) {
+                tmp = JSON.parse(JSON.stringify(alternative[idx + 1]));
+                alternative[idx + 1] = alternative[idx];
+                alternative[idx] = tmp;
+            }
         }
 
         let codes = [];
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);
         }
-        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes]));
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
+    }
+
+    addNewAlternativeRoute() {
+        this.alternativeRoutes.push(Array(this.curRouteStops.length).fill(''));
+        let codes = [];
+        for (const stop of this.curRouteStops) {
+            codes.push(stop.code);
+        }
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
+    }
+
+    saveAlternatives(alternativeIdx: number, stopIdx: number, stopCode: string) {
+        this.alternativeRoutes[alternativeIdx][stopIdx] = `${stopCode.split('_')[0]}_${stopCode.split('_')[1]}__`;
+        let codes = [];
+        for (const stop of this.curRouteStops) {
+            codes.push(stop.code);
+        }
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
+    }
+
+    removeAlternative(index: number) {
+        this.alternativeRoutes.splice(index, 1);
+        let codes = [];
+        for (const stop of this.curRouteStops) {
+            codes.push(stop.code);
+        }
+        this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
     }
 }

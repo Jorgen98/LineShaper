@@ -394,7 +394,9 @@ export class MapComponent {
         this.layers['route'].addTo(this.map);
 
         for (let i = 0; i < (input.route.length - 1); i++) {
-            this.createLine(input.route[i], input.route[i + 1], 'route', true);
+            if (this.map.distance(input.route[i], input.route[i + 1]) < 250) {
+                this.createLine(input.route[i], input.route[i + 1], 'route', true);
+            }
         }
 
         this.renderedStops = [];
