@@ -394,18 +394,24 @@ export class MapComponent {
         this.layers['route'].addTo(this.map);
 
         for (let i = 0; i < (input.route.length - 1); i++) {
-            if (this.map.distance(input.route[i], input.route[i + 1]) < 250) {
+            console.log(input.route[i][0] === 0)
+            if ((input.route[i][0] === 0 && input.route[i][1] === 0) || (input.route[i + 1][0] === 0 && input.route[i + 1][1] === 0)) {
+                continue;
+            } else {
                 this.createLine(input.route[i], input.route[i + 1], 'route', true);
             }
         }
 
         this.renderedStops = [];
+        let idx = 0;
         for (let i = 0; i < input.stops.length; i++) {
             this.renderedStops.push(input.stops[i][0].toString() + input.stops[i][1].toString());
             if (input.stopNames[i] === 'Medzibod') {
                 input.stopNames[i] = this.translate.instant('map.midpoint');
+            } else {
+                idx++;
             }
-            this.createPoint(input.stops[i], 'route', {label: (i + 1) + ': ' + input.stopNames[i]});
+            this.createPoint(input.stops[i], 'route', {label: (idx) + ': ' + input.stopNames[i]});
         }
 
         this.loadContext(this.map.getCenter());

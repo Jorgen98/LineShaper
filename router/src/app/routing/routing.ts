@@ -278,25 +278,33 @@ export class RoutingComponent implements OnInit {
                 let idx = 0;
                 if (result[lines[i].code].a !== undefined && result[lines[i].code].a.length > 0) {
                     for (let j = 0; j < result[lines[i].code].a.length; j++) {
-                        if (type === 0) {
-                            text += lines[i].name;
+                        if (result[lines[i].code].a[j][0] === 0 && result[lines[i].code].a[j][1] === 0) {
+                            continue;
                         } else {
-                            text += 'L' + lines[i].code + 'D99';
+                            if (type === 0) {
+                                text += lines[i].name;
+                            } else {
+                                text += 'L' + lines[i].code + 'D99';
+                            }
+                            text += ',' + result[lines[i].code].a[j][0] + ',' + result[lines[i].code].a[j][1] + ',' + idx + '\r\n';
+                            idx++;
                         }
-                        text += ',' + result[lines[i].code].a[j][0] + ',' + result[lines[i].code].a[j][1] + ',' + idx + '\r\n';
-                        idx++;
                     }
                 }
 
                 if (result[lines[i].code].b !== undefined && result[lines[i].code].b.length > 0) {
                     for (let j = 0; j < result[lines[i].code].b.length; j++) {
-                        if (type === 0) {
-                            text += lines[i].name;
+                        if (result[lines[i].code].b[j][0] === 0 && result[lines[i].code].b[j][1] === 0) {
+                            continue;
                         } else {
-                            text += 'L' + lines[i].code + 'D99';
+                            if (type === 0) {
+                                text += lines[i].name;
+                            } else {
+                                text += 'L' + lines[i].code + 'D99';
+                            }
+                            text += ',' + result[lines[i].code].b[j][0] + ',' + result[lines[i].code].b[j][1] + ',' + idx + '\r\n';
+                            idx++;
                         }
-                        text += ',' + result[lines[i].code].b[j][0] + ',' + result[lines[i].code].b[j][1] + ',' + idx + '\r\n';
-                        idx++;
                     }
                 }
             }

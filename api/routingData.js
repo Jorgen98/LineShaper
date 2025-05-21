@@ -147,6 +147,9 @@ async function getStopsGeom(db, stops) {
     let stopsPoss = [];
     let stopNames = [];
     for (let i = 0; i < stops.length; i++) {
+        if (stops[i] === '') {
+            continue;
+        }
         try {
             let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
                 " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND '" + stops[i].split('_')[1] + "'=ANY(subcodes)");
@@ -343,6 +346,7 @@ async function getLineRoute(db, params) {
         }
 
         try {
+            route.push([0, 0]);
             route = route.concat(await computeRoute(db, dataForRouting.points, line.rows[0].layer));
         } catch(err) {
             console.log(err);
