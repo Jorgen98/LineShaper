@@ -7,17 +7,17 @@ The tool consists of two parts:
  - **Line Router** - Based on imported data about the transit system structure, it generates geographically accurate complex route definitions for individual lines. It also allows modification of the structure of the lines themselves.
 
 ## Usage
-
- 1. In the `api/.env` file, set the `DB_USER` and `DB_PASSWORD` variables. If you want to use authentication, also set the `EDITOR_USERS` and `ROUTER_USERS` variables.
- 2. The tool can be run in 4 modes:
+ 1. Create `api/.env` file, example is located in `api/.example.env` directory.
+ 3. In the `api/.env` file, set the `DB_USER` and `DB_PASSWORD` variables. If you want to use authentication, also set the `EDITOR_USERS` and `ROUTER_USERS` variables.
+ 4. The tool can be run in 4 modes:
 	 - `make fullAuth` - Authentication is enabled for both map editing and line router
 	 - `make noAuth` - Authentication is disabled
 	 - `make editorAuth` - Authentication is enabled only for the map editor, line router is accessible without login
 	 - `make routerAuth` - Authentication is enabled only for line router, the map editor is accessible without logging in
 	 - `make noAuthNoDownload` - Authentication is disabled, transport layers export is disabled
- 3. After build and startup, the application runs on `http://your_url/lineShaper`
- 4. Application can be stopped by `make stop`
- 5. If you want to run application on background, just add `Prod` to any configuration (e. `make fullAuthProd`)
+ 5. After build and startup, the application runs on `http://your_url/lineShaper`
+ 6. Application can be stopped by `make stop`
+ 7. If you want to run application on background, just add `Prod` to any configuration (e. `make fullAuthProd`)
 
 ## Input Files
 
