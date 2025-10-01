@@ -10,8 +10,8 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/material": "^19.2.1",
-    "@angular/platform-browser-dynamic": "^19.2.0",
+    "@angular/material": "^20.2.5",
+    "@angular/platform-browser-dynamic": "^20.3.2",
     "@ngx-translate/core": "^15.0.0",
     "@ngx-translate/http-loader": "^8.0.0",
     "Buffer": "^0.0.0",
@@ -22,11 +22,11 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.0",
-    "@angular/cli": "^19.2.0",
-    "@angular/common": "^19.2.0",
-    "@angular/compiler": "^19.2.0",
-    "@angular/core": "^19.2.0",
+    "@angular/build": "^20.3.3",
+    "@angular/cli": "^20.3.3",
+    "@angular/common": "^20.3.2",
+    "@angular/compiler": "^20.3.2",
+    "@angular/core": "^20.3.2",
     "@types/leaflet": "^1.9.12"
   }
 }
