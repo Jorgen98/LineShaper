@@ -59,8 +59,6 @@ async function computeRoute(db, stops, layer) {
     // Get potencial route coordinates
     stops = await getStopsData(db, stops);
 
-    console.log('Routing stats')
-
     numOfIter = 0;
     numOfPoss = 0;
 
@@ -110,7 +108,7 @@ async function computeRoute(db, stops, layer) {
             stepsBack = 1;
         }
 
-        console.log(state, connection.length);
+        //console.log(state, connection.length);
         if (state === 1) {
             stopAIndex++;
             stopBIndex++;
@@ -389,7 +387,7 @@ async function computeRoute(db, stops, layer) {
     }
 
     const end = Date.now();
-    console.log(`Routing time: ${(end - start) / 1000} s`);
+    //console.log(`Routing time: ${(end - start) / 1000} s`);
     
     return await decode(db, result, layer);
 }
@@ -537,7 +535,7 @@ async function findConnection(db, stopA, stopB, layer){
                     nextHubs = [];
                 }
             }
-        } while (nextHubs.length === 1 && !possibilities[curIndx].finished);
+        } while (nextHubs.length === 1 && !possibilities[curIndx].finished && possibilities[curIndx].visited.length < 10000);
 
         // If we find the finish, there is no need to continue in search
         if (possibilities[curIndx].finished) {
@@ -573,7 +571,7 @@ async function findConnection(db, stopA, stopB, layer){
         possibilities[curIndx].toEnd = countDistance(subNet[nextHubs[0]].pos, stopB.pos);
         possibilities[curIndx].current = nextHubs[0];
     }
-    console.log(numOfIter + '\t' + itersNum + '\t' + numOfPoss + '\t' + possNum);
+    //console.log(numOfIter + '\t' + itersNum + '\t' + numOfPoss + '\t' + possNum);
 
     for (let j = 0; j < possibilities.length; j++) {
         possibilities[j].visited.push(possibilities[j].current);

@@ -12,8 +12,8 @@ import { MapService } from '../map/map.service';
 export class MidPointsComponent {
     constructor(private dataService: DataService, private mapService: MapService) {
         this.mapService.onStopClickEvent().subscribe((stop) => {
-            if (this.stops.length === 0 || this.stops[0].label !== stop.label.toString()) {
-                this.stops.push(stop);
+            if (this.midPointStops.length === 0 || this.midPointStops[0].label !== stop.label.toString()) {
+                this.midPointStops.push(stop);
             }
 
             if (this.state === 'addMidPoint0' || this.state === 'addMidPoint1' || this.state === 'addMidPointWarning') {
@@ -22,31 +22,31 @@ export class MidPointsComponent {
         })
     }
     state = 'menu';
-    stops: any = [];
+    midPointStops: any = [];
 
     defaultMenu() {
         this.state = 'menu';
-        this.stops = [];
+        this.midPointStops = [];
         this.mapService.visibilityUpdate();
     }
 
     addMidPointStart() {
         this.state = 'addMidPoint0';
-        this.stops = [];
+        this.midPointStops = [];
     }
 
     async addMidPoint() {
-        if (this.stops.length === 1 && this.state === 'addMidPoint0') {
+        if (this.midPointStops.length === 1 && this.state === 'addMidPoint0') {
             this.state = 'addMidPoint1';
             return;
-        } else if (this.stops.length === 1) {
+        } else if (this.midPointStops.length === 1) {
             this.state = 'addMidPointWarning';
             return;
         }
 
-        if (this.stops.length === 2) {
-            let midPoint = [[(this.stops[0].geom[0] + this.stops[1].geom[0]) / 2, (this.stops[0].geom[1] + this.stops[1].geom[1]) / 2]];
-            await this.dataService.addMidpoint(this.stops[0].keys, this.stops[1].keys, midPoint);
+        if (this.midPointStops.length === 2) {
+            let midPoint = [[(this.midPointStops[0].geom[0] + this.midPointStops[1].geom[0]) / 2, (this.midPointStops[0].geom[1] + this.midPointStops[1].geom[1]) / 2]];
+            await this.dataService.addMidpoint(this.midPointStops[0].keys, this.midPointStops[1].keys, midPoint);
         }
         
         this.defaultMenu();

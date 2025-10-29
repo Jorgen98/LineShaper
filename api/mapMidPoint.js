@@ -108,7 +108,7 @@ async function getMidPointsInRad(db, params) {
             return false;
         }
     
-        if (endStopB.rows.length !== 1) {
+        if (endStopA.rows.length !== 1 || endStopB.rows.length !== 1) {
             return false;
         }
 

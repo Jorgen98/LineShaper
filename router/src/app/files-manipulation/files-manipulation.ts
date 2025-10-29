@@ -406,7 +406,8 @@ export class FilesManipulationComponent {
         this.curRouteStops = [];
         this.routeStops = [];
 
-        this.curRouteStops = (await this.dataService.getWholeLineInfo(acLineCode, dir))[0];
+        this.curRouteStops = (await this.dataService.getWholeLineInfo(acLineCode, dir))[0] ?? [];
+
         let idx = 0;
         while (idx < this.curRouteStops.length) {
             if (this.curRouteStops[idx].label === 'Medzibod') {
@@ -429,7 +430,7 @@ export class FilesManipulationComponent {
             this.routeStops.push({label: this.newStopNames[parseInt(stop.split('_')[0])], dis: false, diff: stop !== this.curRouteStops[idx]?.code});
         }
 
-        this.progressText = `${this.curRouteStops[0].label} -> ${this.curRouteStops[this.curRouteStops.length - 1].label}`;
+        this.progressText = `${this.curRouteStops[0]?.label} -> ${this.curRouteStops[this.curRouteStops.length - 1]?.label}`;
     }
 
     waitForConfirm() {

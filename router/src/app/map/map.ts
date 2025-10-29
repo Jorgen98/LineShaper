@@ -394,7 +394,6 @@ export class MapComponent {
         this.layers['route'].addTo(this.map);
 
         for (let i = 0; i < (input.route.length - 1); i++) {
-            console.log(input.route[i][0] === 0)
             if ((input.route[i][0] === 0 && input.route[i][1] === 0) || (input.route[i + 1][0] === 0 && input.route[i + 1][1] === 0)) {
                 continue;
             } else {

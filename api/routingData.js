@@ -146,6 +146,7 @@ async function getStopsGeom(db, stops) {
     let points = [];
     let stopsPoss = [];
     let stopNames = [];
+    let newStopCodes = [];
     for (let i = 0; i < stops.length; i++) {
         if (stops[i] === '') {
             continue;
@@ -180,6 +181,7 @@ async function getStopsGeom(db, stops) {
                             }
                         }
                     }
+                    newStopCodes.push(stops[i]);
                 }
             }
         } catch(err) {
@@ -187,7 +189,7 @@ async function getStopsGeom(db, stops) {
         }
     }
 
-    return {stops: stopsPoss, points: points, stopNames: stopNames};
+    return {stops: stopsPoss, points: points, stopNames: stopNames, stopCodes: newStopCodes};
 }
 
 // Used in import use case, lines structure
@@ -386,10 +388,12 @@ async function getLineRouteInfo(db, params) {
     let result = [];
     let stopNames;
 
-    stopNames = (await getStopsGeom(db, lineCodes[0])).stopNames;
+    const stopGeom = (await getStopsGeom(db, lineCodes[0], true));
+    stopNames = stopGeom.stopNames;
+    lineCodes[0] = stopGeom.stopCodes;
 
     if (stopNames.length < 1) {
-        return false;
+        return [];
     }
 
     let idx = 0;
@@ -587,7 +591,7 @@ async function routing(db, params) {
             }
 
             const end = Date.now();
-            console.log(`Routing time: ${(end - start) / 1000} s`);
+            //console.log(`Routing time: ${(end - start) / 1000} s`);
         } catch(err) {
             console.log(err);
             return false;

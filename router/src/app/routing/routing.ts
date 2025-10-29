@@ -13,7 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 export class RoutingComponent implements OnInit {
     constructor(private dataService: DataService, private mapService: MapService, private translate: TranslateService) {
         this.mapService.onStopClickEvent().subscribe((stop) => {
-            if (this.stops.length === 0 || this.stops[0].label !== stop.label.toString()) {
+            if (this.stops.length === 0 || (this.stops[0].label !== stop.label.toString() && this.state !== 'stopToStopRes')) {
                 this.stops.push(stop);
             }
 
@@ -55,9 +55,9 @@ export class RoutingComponent implements OnInit {
 
         if (this.curLines.length > 0 && this.curLine === '') {
             this.curLine = this.curLines[0].value;
-
-            this.setLineEnds();
         }
+        
+        this.setLineEnds();
 
         if (Object.keys(this.mapService.getWhatIsOnMap()['line']).length === 2) {
             this.curLines.find((line: any) => {
@@ -139,6 +139,8 @@ export class RoutingComponent implements OnInit {
             this.curLineEnds.unshift({'name': this.curLines[idx].routeA.s + ' -> ' + this.curLines[idx].routeA.e, 'dir': 'a'});
             this.curDir = 'a';
         }
+
+        this.mapService.setWhatIsOnMap('line', {lineCode: this.curLine, dir: this.curDir});
     }
 
     async routeAllRoutes() {
@@ -427,6 +429,7 @@ export class RoutingComponent implements OnInit {
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);
         }
+
         this.dataService.updateLineRouteInfo(parseInt(this.curLine), this.curDir, JSON.stringify([codes].concat(this.alternativeRoutes)));
     }
 
