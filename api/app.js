@@ -146,8 +146,8 @@ app.get(apiBaseUrl + 'updateLineRouteInfo', verifyRouterToken, async (req, res) 
 })
 
 // Get info about all line routes based on its code
-app.get(apiBaseUrl + 'lineRoutesInfo', verifyRouterToken, async (req, res) => {
-    res.send(await dbRoutingData.getLineRoutesInfo(db, req.query));
+app.get(apiBaseUrl + 'linesRoutesInfo', verifyRouterToken, async (req, res) => {
+    res.send(await dbRoutingData.getLinesRoutesInfo(db, req.query));
 })
 
 // Start routing process for all lines

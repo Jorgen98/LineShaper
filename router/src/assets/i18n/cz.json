@@ -17,7 +17,10 @@
             "continue": "Pokračovat",
             "cancel": "Zrušit",
             "incorrectData": "Načtené soubory neobsahují správná data. Ujistěte se prosím, že nahráváte správné soubory.",
-            "cantLoad": "Vybraný soubor se nepodařilo načíst"
+            "cantLoad": "Vybraný soubor se nepodařilo načíst",
+            "lines": "Import linek",
+            "allLines": "Importovat a přepsat všechny linky",
+            "chooseLines": "Importovat jenom vybrané linky"
         },
         "menuBtn": "Menu",
         "closeBtn": "Zavřít",
@@ -28,7 +31,13 @@
         "processingDone": "Zpracování dat je dokončeno",
         "replace": {
             "warning1": "Nově vložená data pro linku ",
-            "warning2": " se liší od aktuálně používaných dat. Chcete tato data nahradit?"
+            "warning2": " se liší od aktuálně používaných dat. Chcete tato data nahradit?",
+            "compare": "Vyberte trasy, které chcete importovat",
+            "same": "Data beze změn",
+            "diff": "Data se liší",
+            "new": "Nová linka",
+            "route_a": "Trasa A",
+            "route_b": "Trasa B"
         },
         "export": "Export dat",
         "exportDone": "Exportování dat je dokončeno",

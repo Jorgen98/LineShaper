@@ -17,7 +17,10 @@
             "continue": "Continue",
             "cancel": "Cancel",
             "incorrectData": "The loaded files do not contain the correct data. Please make sure you are uploading the correct files.",
-            "cantLoad": "The selected file could not be loaded"
+            "cantLoad": "The selected file could not be loaded",
+            "lines": "Import lines",
+            "allLines": "Importovat and rewrite all lines",
+            "chooseLines": "Import only selected lines"
         },
         "menuBtn": "Menu",
         "closeBtn": "Close",
@@ -28,7 +31,13 @@
         "processingDone": "Data processing is complete",
         "replace": {
             "warning1": "New data inserted for the line ",
-            "warning2": " is different from the data currently in use. Do you want to replace this data?"
+            "warning2": " is different from the data currently in use. Do you want to replace this data?",
+            "compare": "Choose routes you want to import",
+            "same": "Data without changes",
+            "diff": "Data varies",
+            "new": "New line",
+            "route_a": "Route A",
+            "route_b": "Route B"
         },
         "export": "Exporting data",
         "exportDone": "Data exporting is complete",

@@ -131,8 +131,8 @@ export class DataService {
           );
     }
 
-    queryGetLineRoutesInfo(code: number) {
-        return this.httpClient.get(this.whoToAsk + "/lineRoutesInfo?code=" + code, {headers: this.headers})
+    queryGetLinesRoutesInfo(codes: number[]) {
+        return this.httpClient.get(this.whoToAsk + "/linesRoutesInfo?codes=" + JSON.stringify(codes), {headers: this.headers})
         .pipe(
             retry(3)
           );
@@ -355,10 +355,10 @@ export class DataService {
         });
     }
 
-    // Get info about line routes
-    getLineRoutesInfo(code: number): Promise<any> {
+    // Get info about lines routes
+    getLinesRoutesInfo(codes: number[]): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.queryGetLineRoutesInfo(code).subscribe(response => {
+            this.queryGetLinesRoutesInfo(codes).subscribe(response => {
                 if (response) {
                     resolve(response);
                 } else {

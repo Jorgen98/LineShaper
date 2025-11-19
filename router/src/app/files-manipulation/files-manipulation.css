@@ -32,6 +32,10 @@ button.warning:hover {
     border: solid var(--warning) 0.2rem;
 }
 
+.routeStopsButton {
+    width: auto;
+}
+
 input {
     padding: 0;
     width: -moz-available;
@@ -101,7 +105,7 @@ select {
 }
 
 .routeStopsInput {
-    margin: auto 0;
+    margin: auto 0.25rem;
     width: 1.5rem;
     height: 1.5rem;
     accent-color: var(--mark);
@@ -119,6 +123,12 @@ select {
     column-gap: 1em;
 }
 
+.routesCmpMainDiv {
+    display: grid;
+    margin: 0.5em;
+    column-gap: 1em;
+}
+
 .routeStopsGreen {
     color: var(--mark);
 }
@@ -126,4 +136,14 @@ select {
 .routeStopsHeader {
     margin: 1em auto;
     text-align: center;
+}
+
+.routeStopsMainDiv {
+    width: calc(100% - 1rem);
+}
+
+.routesLineElem {
+    display: grid;
+    grid-template-columns: 0.1fr 1fr 0.1fr 0.25fr 0.1fr 0.25fr;
+    column-gap: 0.5rem;
 }

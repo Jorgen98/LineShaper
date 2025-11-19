@@ -461,41 +461,48 @@ async function updateLineRouteInfo(db, params) {
 }
 
 // Get simplified info about whole line and all its routes
-async function getLineRoutesInfo(db, params) {
-    if (params.code === undefined) {
+async function getLinesRoutesInfo(db, params) {
+    if (params.codes === undefined) {
         return false;
     }
 
-    let line = await db.query("SELECT * FROM " + process.env.DB_LINES_TABLE + " WHERE code=" + params.code);
+    const lineCodes = JSON.parse(params.codes);
+    const lines = await db.query(`SELECT * FROM ${process.env.DB_LINES_TABLE} WHERE code IN (${lineCodes.join(',')})`);
 
-    if (line.rows === undefined || line.rows[0] === undefined) {
+    if (lines.rows === undefined || lines.rows.length < 1) {
         return false;
     }
 
-    let lineName;
+    let lineNames = [];
     try {
-        lineName = await db.query("SELECT code, name FROM " + process.env.DB_LINE_CODES_TABLE + " WHERE code=" + params.code);
+        lineNames = await db.query(`SELECT code, name FROM ${process.env.DB_LINE_CODES_TABLE} WHERE code IN (${lineCodes.join(',')})`);
     } catch(err) {
         console.log(err);
     }
 
-    if (lineName.rows[0] !== undefined) {
-        lineName = lineName.rows[0].name;
-    } else {
-        lineName = params.code;
+
+    const linesData = [];
+
+    for (const line of lines.rows) {
+        const route_a = [];
+        for (const route of line.routesa) {
+            route_a.push(route.split(","));
+        }
+
+        const route_b = [];
+        for (const route of line.routesb) {
+           route_b.push(route.split(","));
+        }
+
+        linesData.push({
+            a: route_a,
+            b: route_b,
+            lc: lineNames.rows?.find((code) => { return code.code === line.code })?.name ?? line.code.toString(),
+            code: line.code
+        })
     }
 
-    let routesA = [];
-    for (const route of line.rows[0].routesa) {
-        routesA.push(route.split(","));
-    }
-
-    let routesB = [];
-    for (const route of line.rows[0].routesb) {
-        routesB.push(route.split(","));
-    }
-
-    return {a: routesA, b: routesB, lc: lineName};
+    return linesData;
 }
 
 // Main function, compute geographically precise routes for all lines in DB
@@ -651,4 +658,4 @@ async function saveLineCodes(db, params) {
 }
 
 module.exports = { createStops, clearData, getStopsInRad, getRoute, saveLines, getLines, getLineRoute,
-    saveLineCodes, routing, getRoutedLine, getLineRouteInfo, updateLineRouteInfo, getLineRoutesInfo };
+    saveLineCodes, routing, getRoutedLine, getLineRouteInfo, updateLineRouteInfo, getLinesRoutesInfo };

@@ -30,6 +30,11 @@ export class FilesManipulationComponent {
     routeStops: {label: string, dis: boolean, diff: boolean}[] = [];
     newStopNames: {[code: number]: string} = {};
     generalReplace: boolean = false;
+    lines: any[] = [];
+    actualLines: any[] = [];
+    linesComp: {lc: number, code: string, label: string, diff_a: boolean, diff_b: boolean, chosen_a: boolean, chosen_b: boolean}[] = [];
+    actualDir: 'a' | 'b' = 'a';
+    actualCode: number = 0;
 
     async defaultMenu() {
         this.warning = false;
@@ -102,16 +107,9 @@ export class FilesManipulationComponent {
             return;
         }
 
-        let stats = await this.dataService.getStats();
-
         if (this.acStopsFileContent === undefined && this.acLinesFileContent === undefined
             && this.acLineCodesFileContent === undefined && this.acMidPointFileContent === undefined) {
             this.state = "impNoDataWar";
-            return;
-        }
-
-        if (stats['stops'] > 0 || stats['signs'] > 0 || stats['lines'] > 0 || stats['lineCodes'] > 0 || stats['midpoints'] > 0) {
-            this.state = "impDataWar";
             return;
         }
 
@@ -240,7 +238,7 @@ export class FilesManipulationComponent {
             content = this.acLinesFileContent.split('\n');
         }
 
-        let lines: any = [];
+        this.lines = [];
         let savedLines: any = [];
 
         for (let i = 1; i < content.length;) {
@@ -311,102 +309,121 @@ export class FilesManipulationComponent {
             }
 
             if (savedLines.indexOf(record.lc) === -1) {
-                lines.push(record);
+                this.lines.push(record);
                 savedLines.push(record.lc);
             }
         }
-        
-        let upIndex = 5;
+
         this.generalReplace = false;
-        for (let i = 0; i < lines.length; i+=5) {
-            if (upIndex > (lines.length - 1)) {
-                upIndex = lines.length;
+        let stats = await this.dataService.getStats();
+        this.generalReplace = false;
+        if (stats['lines'] > 0) {
+            this.state = 'impLineData';
+            await this.waitForConfirm();
+        } else {
+            this.generalReplace = true;
+        }
+
+        this.state = 'progress';
+        let whatToSave = [];
+
+        // Upload all lines
+        if (this.generalReplace) {
+            for (const line of this.lines) {
+                whatToSave.push({lc: line.lc, type: line.type, routesA: [line.routeA], routesB: [line.routeB]});
             }
-
-            let whatToSave = [];
-
-            for (const line of lines.slice(i, upIndex)) {
-                let curLine = await this.dataService.getLineRoutesInfo(parseInt(line.lc));
-                let lineToSave = {'lc': String, 'type': String, 'routesA': [[]], 'routesB': [[]]};
-
-                if (this.generalReplace) {
-                    whatToSave.push({lc: line.lc, type: line.type, routesA: [line.routeA], routesB: [line.routeB]});
-                    continue;
-                }
-
-                lineToSave.lc = line.lc;
-                lineToSave.type = line.type;
-                // Line part A
-                if (line.routeA !== undefined && curLine.a !== undefined) {
-                    if (line.routeA.toString() !== curLine.a[0].toString()) {
-                        await this.setUpRouteDifferenceData(line.routeA, parseInt(line.lc), 'a');
-                        this.replace = true;
-                        this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
-                            + this.translate.instant("files-manipulation.replace.warning2");
-                        this.state = 'replaceDecision';
-
-                        await this.waitForConfirm();
-
-                        if (this.replace) {
-                            lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
-                        } else {
-                            lineToSave.routesA = JSON.parse(JSON.stringify(curLine.a));
-                        }
-
-                        this.state = 'progress';
+        // Choose lines to upload
+        } else {
+            this.actualLines = [];
+            const linesToLoad = JSON.parse(JSON.stringify(this.lines.map((line: any) => { return line.lc })));
+            while(linesToLoad.length > 0) {
+                this.actualLines = this.actualLines.concat(await this.dataService.getLinesRoutesInfo(linesToLoad.splice(0, 100)));
+            }
+            
+            this.linesComp = [];
+            for (const line of this.lines) {
+                const actualLine = this.actualLines.find((acLine) => { return acLine.code === parseInt(line.lc) });
+                if (actualLine !== undefined) {
+                    if (line.routeA.toString() !== actualLine.a[0].toString() || actualLine.a.length > 1 ||
+                    line.routeB.toString() !== actualLine.b[0].toString() || actualLine.b.length > 1) {
+                        this.linesComp.push({
+                            lc: parseInt(line.lc),
+                            code: actualLine.lc,
+                            label: this.translate.instant("files-manipulation.replace.diff"),
+                            diff_a: (line.routeA.toString() !== actualLine.a[0].toString() || actualLine.a.length > 1),
+                            diff_b: (line.routeB.toString() !== actualLine.b[0].toString() || actualLine.b.length > 1),
+                            chosen_a: (line.routeA.toString() !== actualLine.a[0].toString() || actualLine.a.length > 1),
+                            chosen_b: (line.routeB.toString() !== actualLine.b[0].toString() || actualLine.b.length > 1)
+                        })
                     } else {
-                        lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
+                        this.linesComp.push({
+                            lc: parseInt(line.lc),
+                            code: actualLine.lc,
+                            label: this.translate.instant("files-manipulation.replace.same"),
+                            diff_a: false,
+                            diff_b: false,
+                            chosen_a: false,
+                            chosen_b: false
+                        })
                     }
                 } else {
-                    lineToSave.routesA = JSON.parse(JSON.stringify([line.routeA]));
+                    this.linesComp.push({
+                        lc: parseInt(line.lc),
+                        code: line.lc,
+                        label: this.translate.instant("files-manipulation.replace.new"),
+                        diff_a: false,
+                        diff_b: false,
+                        chosen_a: true,
+                        chosen_b: true
+                    })
                 }
-
-                // Line part B
-                if (line.routeB !== undefined && curLine.b !== undefined) {
-                    if (line.routeB.toString() !== curLine.b[0].toString()) {
-                        await this.setUpRouteDifferenceData(line.routeB, parseInt(line.lc), 'b');
-                        this.replace = true;
-                        this.warningText = this.translate.instant("files-manipulation.replace.warning1") + curLine.lc
-                            + this.translate.instant("files-manipulation.replace.warning2");
-                        this.state = 'replaceDecision';
-
-                        if (this.generalReplace) {
-                            this.replace = true;
-                        } else {
-                            await this.waitForConfirm();
-                        }
-
-                        if (this.replace) {
-                            lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
-                        } else {
-                            lineToSave.routesB = JSON.parse(JSON.stringify(curLine.b));
-                        }
-
-                        this.state = 'progress';
-                    } else {
-                        lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
-                    }
-                } else {
-                    lineToSave.routesB = JSON.parse(JSON.stringify([line.routeB]));
-                }
-
-                whatToSave.push(lineToSave);
-                this.progressText = this.translate.instant("files-manipulation.processingData");
             }
-            await this.dataService.saveLines(whatToSave);
+
+            this.linesComp.sort((a, b) => { return a.code.toLowerCase() > b.code.toLowerCase() ? 1 : -1 });
+
+            this.progressText = this.translate.instant("files-manipulation.replace.compare");
+            this.state = 'linesComp';
+            
+            await this.waitForConfirm();
+
+            whatToSave = [];
+            for (const line of this.linesComp) {
+                if (line.chosen_a || line.chosen_b) {
+                    const newLine = this.lines.find((acLine) => { return parseInt(acLine.lc) === line.lc });
+                    const actualLine = this.actualLines.find((acLine) => { return acLine.code === line.lc });
+                    whatToSave.push({
+                        lc: line.lc, type: newLine.type,
+                        routesA: line.chosen_a ? [newLine.routeA] : actualLine.a,
+                        routesB: line.chosen_b ? [newLine.routeB] : actualLine.b
+                    })
+                }
+            }
+        }
+
+        // Upload selected lines intro DB
+        this.state = 'progress';
+        let upIndex = 5;
+        for (let i = 0; i < whatToSave.length; i += 5) {
+            await this.dataService.saveLines(whatToSave.slice(i, upIndex));
             upIndex += 5;
-            this.progress = Math.round(i / lines.length * 100);
+            this.progress = Math.round(i / this.lines.length * 100);
         }
 
         this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
     }
 
-    async setUpRouteDifferenceData(newRoute: string[], acLineCode: number, dir: string) {
+    async showRouteDifference(lc: number, dir: string) {
+        const newLine = this.lines.find((line) => { return parseInt(line.lc) === lc});
+
+        this.state = 'replaceDecision';
+        this.warningText = this.translate.instant("files-manipulation.replace.warning1") + lc
+        + this.translate.instant("files-manipulation.replace.warning2");
+
         this.curRouteStops = [];
         this.routeStops = [];
 
-        this.curRouteStops = (await this.dataService.getWholeLineInfo(acLineCode, dir))[0] ?? [];
+        this.curRouteStops = (await this.dataService.getWholeLineInfo(lc, dir))[0] ?? [];
 
         let idx = 0;
         while (idx < this.curRouteStops.length) {
@@ -414,31 +431,45 @@ export class FilesManipulationComponent {
                 this.curRouteStops = this.curRouteStops.slice(idx, 1);
                 continue;
             }
-            if (this.curRouteStops[idx].code.split('_')[3] === 'd') {
-                this.curRouteStops[idx].dis = true;
-            } else {
-                this.curRouteStops[idx].dis = false;
-            }
+
 
             if (this.newStopNames[parseInt(this.curRouteStops[idx].code.split('_')[0])] === undefined) {
                 this.newStopNames[parseInt(this.curRouteStops[idx].code.split('_')[0])] = this.curRouteStops[idx].label;
             }
 
+            this.curRouteStops[idx].dis = this.curRouteStops[idx].code.split('_')[3] === 'd';
+
             idx++;
         }
-        for (const [idx, stop] of newRoute.entries()) {
+        for (const [idx, stop] of (dir === 'a' ? newLine.routeA.entries() : newLine.routeB.entries())) {
             this.routeStops.push({label: this.newStopNames[parseInt(stop.split('_')[0])], dis: false, diff: stop !== this.curRouteStops[idx]?.code});
         }
 
+        this.actualDir = dir === 'a' ? 'a' : 'b';
+        this.actualCode = lc;
         this.progressText = `${this.curRouteStops[0]?.label} -> ${this.curRouteStops[this.curRouteStops.length - 1]?.label}`;
+    }
+
+    closeRouteDifference(change: boolean) {
+        const lineToCmp = this.linesComp.find((line) => { return line.lc === this.actualCode});
+
+        if (lineToCmp) {
+            if (this.actualDir === 'a') {
+                lineToCmp.chosen_a = change;
+            } else {
+                lineToCmp.chosen_b = change;
+            }
+        }
+
+        this.progressText = this.translate.instant("files-manipulation.replace.compare");
+        this.state = 'linesComp';
     }
 
     waitForConfirm() {
         return new Promise(resolve => this.waitForPressResolve = resolve);
     }
 
-    waitForPress(decision: boolean) {
-        this.replace = decision;
+    waitForPress() {
         if (this.waitForPressResolve) this.waitForPressResolve();
     }
 
