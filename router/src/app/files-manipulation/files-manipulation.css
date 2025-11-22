@@ -146,4 +146,14 @@ select {
     display: grid;
     grid-template-columns: 0.1fr 1fr 0.1fr 0.25fr 0.1fr 0.25fr;
     column-gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.routeLineHeaderElem {
+    grid-column: span 2 / span 2;
+    margin: auto auto auto 0;
+}
+
+.routeLineHeaderElem:not(:first-child) {
+    margin: auto auto auto auto;
 }

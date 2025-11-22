@@ -52,16 +52,27 @@
         <p class="header" *ngSwitchCase="'linesComp'">{{ progressText }}</p>
         <span class="routesCmpMainDiv" *ngSwitchCase="'linesComp'">
             <div class="routeStopsMainDiv">
+                <div class="routesLineElem">
+                    <p class="routeLineHeaderElem">{{ "files-manipulation.replace.line" | translate }}</p>
+                    <p class="routeLineHeaderElem">{{ "files-manipulation.replace.route_a" | translate }}</p>
+                    <p class="routeLineHeaderElem">{{ "files-manipulation.replace.route_b" | translate }}</p>
+                </div>
+            </div>
+        </span>
+        <span class="routesCmpMainDiv" *ngSwitchCase="'linesComp'">
+            <div class="routeStopsMainDiv">
                 <div *ngFor="let line of linesComp; let index = index; let first = first; let last = last; let odd = odd"
                     class="routesLineElem" [ngClass]="{'routeStopsElemOdd': odd}">
                     <p class="routeStopsName" [ngClass]="line.diff_a || line.diff_b ? 'routeStopsGreen' : ''">{{ line.code }}</p>
                     <p class="routeStopsName" [ngClass]="line.diff_a || line.diff_b ? 'routeStopsGreen' : ''">{{ line.label }}</p>
-                    <input class="routeStopsInput" [checked]="line.chosen_a" [(ngModel)]="line.chosen_a" type="checkbox">
-                    <button class="routeStopsButton routeStopsButtonHeader" (click)="showRouteDifference(line.lc, 'a')" [disabled]="!line.diff_a">
+                    <input class="routeStopsInput" [checked]="line.chosen_a" [(ngModel)]="line.chosen_a" type="checkbox"
+                    [style.grid-column]="line.diff_a ? '' : 'span 2 / span 2'" [style.margin]="line.diff_a ? '' : 'auto'">
+                    <button class="routeStopsButton routeStopsButtonHeader" (click)="showRouteDifference(line.lc, 'a')" *ngIf="line.diff_a">
                         {{ "files-manipulation.replace.route_a" | translate }}
                     </button>
-                    <input class="routeStopsInput" [checked]="line.chosen_b" [(ngModel)]="line.chosen_b" type="checkbox">
-                    <button class="routeStopsButton routeStopsButtonHeader" (click)="showRouteDifference(line.lc, 'b')" [disabled]="!line.diff_b">
+                    <input class="routeStopsInput" [checked]="line.chosen_b" [(ngModel)]="line.chosen_b" type="checkbox"
+                    [style.grid-column]="line.diff_b ? '' : 'span 2 / span 2'" [style.margin]="line.diff_b ? '' : 'auto'">
+                    <button class="routeStopsButton routeStopsButtonHeader" (click)="showRouteDifference(line.lc, 'b')" *ngIf="line.diff_b">
                         {{ "files-manipulation.replace.route_b" | translate }}
                     </button>
                 </div>

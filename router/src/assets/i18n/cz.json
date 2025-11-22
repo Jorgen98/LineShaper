@@ -37,7 +37,8 @@
             "diff": "Data se liší",
             "new": "Nová linka",
             "route_a": "Trasa A",
-            "route_b": "Trasa B"
+            "route_b": "Trasa B",
+            "line": "Linka"
         },
         "export": "Export dat",
         "exportDone": "Exportování dat je dokončeno",

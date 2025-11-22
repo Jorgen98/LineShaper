@@ -37,7 +37,8 @@
             "diff": "Data varies",
             "new": "New line",
             "route_a": "Route A",
-            "route_b": "Route B"
+            "route_b": "Route B",
+            "line": "Line"
         },
         "export": "Exporting data",
         "exportDone": "Data exporting is complete",
