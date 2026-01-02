@@ -1,22 +1,40 @@
-<div class="content" [ngSwitch]="state">
+<div class="content">
+  @switch (state) {
     <!-- Default menu screen -->
-    <p class="header" *ngSwitchCase="'menu'">{{ "mid-points.header" | translate }}</p>
-    <div *ngSwitchCase="'menu'">
+    @case ('menu') {
+      <p class="header">{{ "mid-points.header" | translate }}</p>
+    }
+    @case ('menu') {
+      <div>
         <button (click)="addMidPointStart()">{{ "mid-points.addBtn" | translate }}</button>
-    </div>
+      </div>
+    }
     <!-- Add new mid point screen 1 -->
-    <p class="header" *ngSwitchCase="'addMidPoint0'">{{ "mid-points.firstStop" | translate }}</p>
-    <div *ngSwitchCase="'addMidPoint0'">
+    @case ('addMidPoint0') {
+      <p class="header">{{ "mid-points.firstStop" | translate }}</p>
+    }
+    @case ('addMidPoint0') {
+      <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
-    </div>
+      </div>
+    }
     <!-- Add new mid point screen 2 -->
-    <p class="header" *ngSwitchCase="'addMidPoint1'">{{ "mid-points.finalStop" | translate }}</p>
-    <div *ngSwitchCase="'addMidPoint1'">
+    @case ('addMidPoint1') {
+      <p class="header">{{ "mid-points.finalStop" | translate }}</p>
+    }
+    @case ('addMidPoint1') {
+      <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
-    </div>
+      </div>
+    }
     <!-- Add new mid point screen warning -->
-    <p class="header" *ngSwitchCase="'addMidPointWarning'">{{ "mid-points.error" | translate }}</p>
-    <div *ngSwitchCase="'addMidPointWarning'">
+    @case ('addMidPointWarning') {
+      <p class="header">{{ "mid-points.error" | translate }}</p>
+    }
+    @case ('addMidPointWarning') {
+      <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
-    </div>
+      </div>
+    }
+  }
 </div>
