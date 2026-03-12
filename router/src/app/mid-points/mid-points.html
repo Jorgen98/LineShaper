@@ -3,8 +3,6 @@
     <!-- Default menu screen -->
     @case ('menu') {
       <p class="header">{{ "mid-points.header" | translate }}</p>
-    }
-    @case ('menu') {
       <div>
         <button (click)="addMidPointStart()">{{ "mid-points.addBtn" | translate }}</button>
       </div>
@@ -12,8 +10,6 @@
     <!-- Add new mid point screen 1 -->
     @case ('addMidPoint0') {
       <p class="header">{{ "mid-points.firstStop" | translate }}</p>
-    }
-    @case ('addMidPoint0') {
       <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
       </div>
@@ -21,8 +17,6 @@
     <!-- Add new mid point screen 2 -->
     @case ('addMidPoint1') {
       <p class="header">{{ "mid-points.finalStop" | translate }}</p>
-    }
-    @case ('addMidPoint1') {
       <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
       </div>
@@ -30,8 +24,6 @@
     <!-- Add new mid point screen warning -->
     @case ('addMidPointWarning') {
       <p class="header">{{ "mid-points.error" | translate }}</p>
-    }
-    @case ('addMidPointWarning') {
       <div>
         <button (click)="defaultMenu()">{{ "mid-points.cancelBtn" | translate }}</button>
       </div>

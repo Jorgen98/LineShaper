@@ -3,8 +3,6 @@
     <!-- Default menu screen -->
     @case ('menu') {
       <p class="header">{{ "routing.header" | translate }}</p>
-    }
-    @case ('menu') {
       <div>
         <button (click)="routeAllRoutes()">{{ "routing.routeAll.routeAllBtn" | translate }}</button>
         <button (click)="routeOneLine()">{{ "routing.routeAll.routeOneBtn" | translate }}</button>
@@ -15,8 +13,6 @@
     <!-- Route all lines screen -->
     @case ('routeAllRoutes') {
       <p class="header">{{ "routing.routeAll.routeAllBtn" | translate }}</p>
-    }
-    @case ('routeAllRoutes') {
       <div>
         @if (dataAvailable) {
           <p class="header">{{ progressText }}</p>
@@ -36,8 +32,6 @@
     <!-- Route all confirm screen -->
     @case ('routeAllRoutesConfirm') {
       <p class="header">{{ progressText }}</p>
-    }
-    @case ('routeAllRoutesConfirm') {
       <div>
         <button (click)="routeAllRoutes()">{{ "routing.menuBtn" | translate }}</button>
         <button (click)="routeAll()">{{ "routing.recomputeRoutesBtn" | translate }}</button>
@@ -83,8 +77,6 @@
     <!-- Progress screen -->
     @case ('progress') {
       <p class="header">{{ progressText }}</p>
-    }
-    @case ('progress') {
       <div>
         @if (progress !== 100 && progress !== 0) {
           <div class="progress" [style.width]="progress+'%'">
@@ -102,8 +94,6 @@
     <!-- Stop to stop routing screen 1 -->
     @case ('stopToStop0') {
       <p class="header">{{ "routing.firstStop" | translate }}</p>
-    }
-    @case ('stopToStop0') {
       <div>
         <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
       </div>
@@ -111,8 +101,6 @@
     <!-- Stop to stop routing screen 2 -->
     @case ('stopToStop1') {
       <p class="header">{{ "routing.finalStop" | translate }}</p>
-    }
-    @case ('stopToStop1') {
       <div>
         <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
       </div>
@@ -120,8 +108,6 @@
     <!-- Stop to stop routing screen 3 -->
     @case ('stopToStop2') {
       <p class="header">{{ "routing.transportType" | translate }}</p>
-    }
-    @case ('stopToStop2') {
       <div>
         <div class="optionsGroup">
           <div class="option">
@@ -154,8 +140,6 @@
     <!-- Stop to stop routing screen warning -->
     @case ('stopToStopWarning') {
       <p class="header">{{ "routing.sameStops" | translate }}</p>
-    }
-    @case ('stopToStopWarning') {
       <div>
         <button (click)="defaultMenu()">{{ "routing.cancelBtn" | translate }}</button>
       </div>

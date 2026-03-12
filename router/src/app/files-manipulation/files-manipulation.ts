@@ -35,6 +35,7 @@ export class FilesManipulationComponent {
     linesComp: {lc: number, code: string, label: string, diff_a: boolean, diff_b: boolean, chosen_a: boolean, chosen_b: boolean}[] = [];
     actualDir: 'a' | 'b' = 'a';
     actualCode: number = 0;
+    expandMenu = false;
 
     async defaultMenu() {
         this.warning = false;
@@ -46,6 +47,7 @@ export class FilesManipulationComponent {
         this.acLineCodesFileContent = undefined;
         this.acMidPointFileContent = undefined;
         this.state = 'menu';
+        this.expandMenu = false;
     }
 
     readFile(event: any) {
@@ -340,6 +342,7 @@ export class FilesManipulationComponent {
                 this.actualLines = this.actualLines.concat(await this.dataService.getLinesRoutesInfo(linesToLoad.splice(0, 100)));
             }
             
+            this.expandMenu = true;
             this.linesComp = [];
             for (const line of this.lines) {
                 const actualLine = this.actualLines.find((acLine) => { return acLine.code === parseInt(line.lc) });
@@ -398,6 +401,7 @@ export class FilesManipulationComponent {
                     })
                 }
             }
+            this.expandMenu = false;
         }
 
         // Upload selected lines intro DB

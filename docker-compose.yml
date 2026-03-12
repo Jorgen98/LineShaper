@@ -5,6 +5,8 @@ services:
     depends_on:
       line-shaper-db:
         condition: service_healthy
+      line-shaper-api:
+        condition: service_healthy
     ports:
       - 80:80
     volumes:
@@ -80,6 +82,12 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "http://line-shaper-api:9004/lineShaper/api/mapStats/"]
+      interval: 5m
+      retries: 3
+      start_period: 30s
+      timeout: 5s
     networks:
       - line-shaper-network
   line-shaper-db:
