@@ -121,7 +121,7 @@ async function getStopsInRad(db, params) {
     }
 }
 
-// Get one route structure
+// Get route based on stop codes
 async function getRoute(db, params) {
     if (params.layer === undefined) {
         return false;
@@ -132,7 +132,7 @@ async function getRoute(db, params) {
     }
 
     let stops = JSON.parse(params.stops);
-    let result = await getStopsGeom(db, stops);
+    let result = await getStopsGeom(db, stops.filter((code) => { return code !== '' }));
 
     if (result.points.length < 1) {
         return false;
@@ -148,9 +148,6 @@ async function getStopsGeom(db, stops) {
     let stopNames = [];
     let newStopCodes = [];
     for (let i = 0; i < stops.length; i++) {
-        if (stops[i] === '') {
-            continue;
-        }
         try {
             let stop = await db.query("SELECT geom, ST_AsGeoJSON(geom) FROM " + process.env.DB_SIGNS_TABLE +
                 " WHERE code=" + parseInt(stops[i].split('_')[0]) + " AND '" + stops[i].split('_')[1] + "'=ANY(subcodes)");
@@ -172,7 +169,7 @@ async function getStopsGeom(db, stops) {
                     if (i < (stops.length - 1)) {
                         let midpoint = await getMidPointByTwoStopCodes(db, stops[i].split('_')[0] + '_' + stops[i].split('_')[1],
                             stops[i + 1].split('_')[0] + '_' + stops[i + 1].split('_')[1]);
-    
+
                         if (midpoint && stops[i].split('_')[3] !== 'd' && stops[i + 1].split('_')[3] !== 'd') {
                             stopsPoss = stopsPoss.concat(midpoint.stopPoss);
                             points = points.concat(midpoint.points);
@@ -334,13 +331,24 @@ async function getLineRoute(db, params) {
     }
 
     let route = [];
-    for (const [idx, routePart] of lineCodes.entries()) {
+    for (let [idx, routePart] of lineCodes.entries()) {
         let dataForRouting;
+        routePart = routePart.filter((code) => {
+            return (code !== '' && code.split('_')[3] !== 'd')
+        });
+
         if (idx === 0) {
             result = await getStopsGeom(db, routePart);
-            dataForRouting = result;
+            dataForRouting = JSON.parse(JSON.stringify(result));
         } else {
             dataForRouting = await getStopsGeom(db, routePart);
+
+            for (const [idx, acStop] of dataForRouting.stops.entries()) {
+                if (result.stops.findIndex((stop) => { return stop.toString() === acStop.toString() }) === -1) {
+                    result.stops.push(acStop);
+                    result.stopNames.push(dataForRouting.stopNames[idx]);
+                }
+            }
         }
 
         if (dataForRouting.points.length < 1) {
@@ -388,7 +396,7 @@ async function getLineRouteInfo(db, params) {
     let result = [];
     let stopNames;
 
-    const stopGeom = (await getStopsGeom(db, lineCodes[0], true));
+    const stopGeom = (await getStopsGeom(db, lineCodes[0].filter((code) => { return code !== '' }), true));
     stopNames = stopGeom.stopNames;
     lineCodes[0] = stopGeom.stopCodes;
 

@@ -473,7 +473,7 @@ export class RoutingComponent implements OnInit {
     }
 
     saveAlternatives(alternativeIdx: number, stopIdx: number, stopCode: string) {
-        this.alternativeRoutes[alternativeIdx][stopIdx] = `${stopCode.split('_')[0]}_${stopCode.split('_')[1]}__`;
+        this.alternativeRoutes[alternativeIdx][stopIdx] = stopCode !== '' ? `${stopCode.split('_')[0]}_${stopCode.split('_')[1]}__` : '';
         let codes = [];
         for (const stop of this.curRouteStops) {
             codes.push(stop.code);

@@ -410,7 +410,7 @@ export class MapComponent {
             } else {
                 idx++;
             }
-            this.createPoint(input.stops[i], 'route', {label: (idx) + ': ' + input.stopNames[i]});
+            this.createPoint(input.stops[i], 'route', {label: input.stopNames[i]});
         }
 
         this.loadContext(this.map.getCenter());
