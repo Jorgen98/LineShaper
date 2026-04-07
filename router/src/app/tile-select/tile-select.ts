@@ -49,8 +49,10 @@ export class TileSelectComponent implements OnInit {
             this.mapService.flipBackgroundLayersState('tram');
         } else if (id == 3) {
             this.mapService.flipBackgroundLayersState('midPoint');
-        } else {
+        } else if (id == 4) {
             this.mapService.flipBackgroundLayersState('stops');
+        } else {
+            this.mapService.flipBackgroundLayersState('routeStops');
         }
 
         if (this.netLayers[id] === "") {

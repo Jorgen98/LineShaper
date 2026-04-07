@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="50"
+   height="50"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="routeStops.svg"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="5.6568543"
+     inkscape:cx="36.681164"
+     inkscape:cy="35.885669"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <g
+     id="g3"
+     transform="translate(-0.70710684,-2.9814002)">
+    <g
+       id="g2"
+       transform="translate(-1.237437,-10.204124)">
+      <rect
+         id="rect1"
+         height="13.91801"
+         width="41.923851"
+         y="18.168848"
+         x="5.9826183"
+         stroke="#000000"
+         fill="none"
+         style="stroke-width:1;stroke-dasharray:none" />
+      <text
+         xml:space="preserve"
+         style="font-weight:600;font-size:8px;line-height:0;font-family:Bahnschrift;-inkscape-font-specification:'Bahnschrift Semi-Bold';text-align:center;text-decoration-color:#000000;letter-spacing:0.6px;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke-width:0.755906;stroke-linecap:round;stroke-linejoin:round;paint-order:markers stroke fill"
+         x="10.27345"
+         y="27.967697"
+         id="text2"><tspan
+           sodipodi:role="line"
+           id="tspan2"
+           x="10.27345"
+           y="27.967697"
+           style="line-height:0;letter-spacing:0.6px">IDS JMK</tspan></text>
+    </g>
+    <path
+       id="path2"
+       d="m 25,24.31552 c -3.633985,0 -6.580125,2.946139 -6.580125,6.580125 0,3.634855 6.580125,15.89847 6.580125,15.89847 0,0 6.580124,-12.263599 6.580124,-15.89847 0,-3.633986 -2.945269,-6.580125 -6.580124,-6.580125 z m 0,9.724545 c -1.736277,0 -3.144421,-1.407274 -3.144421,-3.14442 0,-1.737147 1.408144,-3.144421 3.144421,-3.144421 1.736277,0 3.14442,1.408144 3.14442,3.144421 0,1.736277 -1.408143,3.14442 -3.14442,3.14442 z"
+       stroke="#000000"
+       fill="none"
+       style="stroke-width:1.61126" />
+  </g>
+</svg>

@@ -24,7 +24,8 @@ export class MapService {
         'road': false,
         'tram': false,
         'midPoint': true,
-        'stops': true
+        'stops': true,
+        'routeStops': true
     }
 
     private whatIsOnMap: {[name: string]: any } = {

@@ -42,6 +42,7 @@ export class MapComponent {
     private selMidPointIndx: any = 0;
     private renderedStops: any = [];
     private move = false;
+    private showedRoutePoints: any = [];
 
     private initMap(): void {
         this.map = L.map('map', {
@@ -274,6 +275,16 @@ export class MapComponent {
         let keys = Object.keys(backgroundLayers);
 
         for (let i = 0; i < keys.length; i++) {
+            if (keys[i] === 'routeStops') {
+                for (const point of this.showedRoutePoints) {
+                    if (!backgroundLayers[keys[i]]) {
+                        point.closeTooltip();
+                    } else {
+                        point.openTooltip();
+                    }
+                }
+            }
+
             if (!backgroundLayers[keys[i]] || keys[i] === 'midPoint') {
                 continue;
             }
@@ -338,9 +349,11 @@ export class MapComponent {
                     L.DomEvent.stop(event);
                 });
         } else if (layer === 'route') {
-            point.addTo(this.layers['route'])
-                .bindTooltip(props.label)
-                .openTooltip();
+            this.showedRoutePoints.push(point.addTo(this.layers['route'])
+                .bindTooltip(props.label, { permanent: true }));
+            if (this.mapService.getBackgroundLayersState()['routeStops']) {
+                this.showedRoutePoints[this.showedRoutePoints.length - 1].openTooltip();
+            }
         } else {
             point.addTo(this.layers['background']);
         }
@@ -387,6 +400,7 @@ export class MapComponent {
 
     createRoute(input: any) {
         if (this.layers['route'] !== undefined) {
+            this.showedRoutePoints = [];
             this.map.removeLayer(this.layers['route']);
         }
 
@@ -402,13 +416,10 @@ export class MapComponent {
         }
 
         this.renderedStops = [];
-        let idx = 0;
         for (let i = 0; i < input.stops.length; i++) {
             this.renderedStops.push(input.stops[i][0].toString() + input.stops[i][1].toString());
-            if (input.stopNames[i] === 'Medzibod') {
-                input.stopNames[i] = this.translate.instant('map.midpoint');
-            } else {
-                idx++;
+            if (input.stopNames[i].split(':')[2] === ' map.midpoint') {
+                input.stopNames[i] = `${input.stopNames[i].split(':')[0]}:${input.stopNames[i].split(':')[1]}: ${this.translate.instant('map.midpoint')}`
             }
             this.createPoint(input.stops[i], 'route', {label: input.stopNames[i]});
         }
@@ -418,6 +429,7 @@ export class MapComponent {
 
     clearRouteData() {
         if (this.layers['route'] !== undefined) {
+            this.showedRoutePoints = [];
             this.map.removeLayer(this.layers['route']);
         }
         this.loadContext(this.map.getCenter());
