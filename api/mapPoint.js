@@ -156,7 +156,7 @@ async function deletePoint(db, params) {
     }
 
     try {
-        let result = await db.query("SELECT EXISTS (SELECT * FROM " + tables[params.layer] + " WHERE gid='" + params.gid + "')");
+        let result = await db.query(`SELECT EXISTS (SELECT * FROM ${tables[params.layer]} WHERE gid=$1)`, [params.gid]);
         if (!result.rows[0].exists) {
             return false;
         }
@@ -166,7 +166,8 @@ async function deletePoint(db, params) {
     }
 
     try {
-        await db.query("DELETE FROM " + tables[params.layer] + " WHERE gid='" + params.gid + "'");
+        await db.query(`DELETE FROM ${process.env.DB_POINTS_CACHE_TABLE} WHERE $1 = ANY(sequence);`, [params.gid]);
+        await db.query(`DELETE FROM ${tables[params.layer]} WHERE gid=$1`, [params.gid]);
         return true;
     } catch(err) {
         console.log(err);
@@ -211,7 +212,8 @@ async function deleteLayer(db, params) {
     }
 
     try {
-        await db.query("TRUNCATE TABLE " + tables[params.layer] + " RESTART IDENTITY");
+        await db.query(`TRUNCATE TABLE ${tables[params.layer]} RESTART IDENTITY;`);
+        await db.query(`DELETE FROM ${process.env.DB_POINTS_CACHE_TABLE} WHERE key LIKE '${params.layer}_%';`);
         return true;
     } catch(err) {
         console.log(err);
@@ -513,6 +515,7 @@ async function deleteSection(db, params) {
             }
         } else {
             try {
+                await db.query(`DELETE FROM ${process.env.DB_POINTS_CACHE_TABLE} WHERE $1 = ANY(sequence);`, [point.gid]);
                 await db.query("DELETE FROM " + tables[params.layer] + " WHERE gid='" + point.gid + "'");
             } catch(err) {
                 console.log(err);

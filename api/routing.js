@@ -108,7 +108,6 @@ async function computeRoute(db, stops, layer) {
             stepsBack = 1;
         }
 
-        //console.log(state, connection.length);
         if (state === 1) {
             stopAIndex++;
             stopBIndex++;
@@ -387,14 +386,26 @@ async function computeRoute(db, stops, layer) {
     }
 
     const end = Date.now();
-    //console.log(`Routing time: ${(end - start) / 1000} s`);
     
     return await decode(db, result, layer);
 }
 
 // Main routing function
 // Tries to compute route from point to point
-async function findConnection(db, stopA, stopB, layer){
+async function findConnection(db, stopA, stopB, layer) {
+    // Cache DB key, used for storing routed path between two stops
+    const key = `${layer}_${stopA.geom}_${stopA.code}_${stopB.geom}_${stopB.code}`;
+
+    // Get routed path between two stops if exists
+    try {
+        const cache = (await db.query(`SELECT sequence FROM ${process.env.DB_POINTS_CACHE_TABLE} WHERE key=$1;`, [key])).rows;
+        if (cache.length > 0 && cache[0].sequence && cache[0].sequence.length > 0) {
+            return cache[0].sequence;
+        }
+    } catch(err) {
+        console.log(err);
+    }
+
     let possibilities = await findInNet(db, stopA, layer, 'start');
     if (possibilities.length === 0) {
         return [];
@@ -567,11 +578,9 @@ async function findConnection(db, stopA, stopB, layer){
             numOfPoss ++;
             possNum ++;
         }
-        //possibilities[curIndx].length += countDistance(subNet[possibilities[curIndx].current].pos, subNet[nextHubs[0]].pos);
         possibilities[curIndx].toEnd = countDistance(subNet[nextHubs[0]].pos, stopB.pos);
         possibilities[curIndx].current = nextHubs[0];
     }
-    //console.log(numOfIter + '\t' + itersNum + '\t' + numOfPoss + '\t' + possNum);
 
     for (let j = 0; j < possibilities.length; j++) {
         possibilities[j].visited.push(possibilities[j].current);
@@ -580,6 +589,14 @@ async function findConnection(db, stopA, stopB, layer){
     possibilities.sort((a, b) => b.finished - a.finished || a.score - b.score || a.length - b.length);
 
     if (possibilities[0] !== undefined && possibilities[0].finished) {
+        // Store routed path for next routing
+        try {
+            await db.query(`INSERT INTO ${process.env.DB_POINTS_CACHE_TABLE} (key, sequence) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET sequence = EXCLUDED.sequence;`, [key,possibilities[0].visited] );
+        } catch(err) {
+            console.log(err);
+            return [];
+        }
+
         return possibilities[0].visited;
     } else {
         return [];

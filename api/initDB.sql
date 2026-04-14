@@ -8,3 +8,6 @@ CREATE TABLE IF NOT EXISTS lines (id SERIAL PRIMARY KEY, code INT, layer TEXT, r
 CREATE TABLE IF NOT EXISTS lineCodes (id SERIAL PRIMARY KEY, code INT, name TEXT);
 CREATE TABLE IF NOT EXISTS midpoints (id SERIAL PRIMARY KEY, endCodesA TEXT[], endCodesB TEXT[], midpoints GEOMETRY);
 CREATE TABLE IF NOT EXISTS routes (id SERIAL PRIMARY KEY, routeCode TEXT, points TEXT[]);
+
+CREATE TABLE pointsCache (key TEXT PRIMARY KEY, sequence INT[]);
+CREATE INDEX idxPointsCache ON pointsCache USING GIN (sequence);
