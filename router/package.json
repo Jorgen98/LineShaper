@@ -10,23 +10,26 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/material": "^21.0.5",
-    "@angular/platform-browser-dynamic": "^21.0.6",
+    "@angular/cdk": "^21.2.11",
+    "@angular/material": "^21.2.11",
+    "@angular/common": "^21.2.13",
+    "@angular/core": "^21.2.13",
+    "@angular/platform-browser": "^21.2.13",
+    "@angular/platform-browser-dynamic": "^21.2.13",
+    "@angular/compiler": "^21.2.13",
+    "@angular/forms": "^21.2.13",
+    "@angular/router": "^21.2.13",
     "@ngx-translate/core": "^15.0.0",
     "@ngx-translate/http-loader": "^8.0.0",
-    "Buffer": "^0.0.0",
     "leaflet": "^1.9.4",
     "ng-select2-component": "^15.0.1",
     "rxjs": "~7.8.1",
-    "typescript": "^5.5.4",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.6",
-    "@angular/cli": "^21.0.4",
-    "@angular/common": "^21.0.6",
-    "@angular/compiler": "^21.0.6",
-    "@angular/core": "^21.0.6",
-    "@types/leaflet": "^1.9.12"
+    "@angular/build": "^21.2.11",
+    "@angular/cli": "^21.2.11",
+    "@types/leaflet": "^1.9.12",
+    "typescript": "^5.5.4"
   }
 }
