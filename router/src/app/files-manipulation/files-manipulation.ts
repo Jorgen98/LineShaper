@@ -382,7 +382,9 @@ export class FilesManipulationComponent {
                 }
             }
 
-            this.linesComp.sort((a, b) => { return a.code.toLowerCase() > b.code.toLowerCase() ? 1 : -1 });
+            this.linesComp.sort((a, b) =>
+                a.code.localeCompare(b.code, undefined, { numeric: true })
+            );
 
             this.progressText = this.translate.instant("files-manipulation.replace.compare");
             this.state = 'linesComp';

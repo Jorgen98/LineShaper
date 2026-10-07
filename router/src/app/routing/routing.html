@@ -1,4 +1,4 @@
-<div class="content">
+<div class="content" [style.width]="(25 + alternativeRoutes.length * 2) + 'vw'">
   @switch (state) {
     <!-- Default menu screen -->
     @case ('menu') {
@@ -201,7 +201,7 @@
               }
             </div>
             <button (click)="getRoute()">{{ "routing.computeRouteBtn" | translate }}</button>
-            @if (alternativeRoutes.length < 3) {
+            @if (alternativeRoutes.length < 10) {
               <button (click)="addNewAlternativeRoute()">{{ "routing.newAlternative" | translate }}</button>
             }
             <button (click)="defaultMenu()">{{ "routing.menuBtn" | translate }}</button>

@@ -173,3 +173,7 @@ mat-icon {
     display: flex;
     flex-direction: row;
 }
+
+.two-width {
+    width: 40vw;
+}
