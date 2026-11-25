@@ -9,45 +9,40 @@ services:
         condition: service_healthy
     environment:
       TZ: "Europe/Bratislava"
-      EDITOR_AUTH: $EDITOR_AUTH
-      ROUTER_AUTH: $ROUTER_AUTH
-      NO_DOWNLOAD: $NO_DOWNLOAD
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 3s
-        max_attempts: 3
+      EDITOR_AUTH: ${EDITOR_AUTH}
+      ROUTER_AUTH: ${ROUTER_AUTH}
+      NO_DOWNLOAD: ${NO_DOWNLOAD}
+    restart: on-failure:3
     logging:
       driver: "json-file"
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: "10m"
+        max-file: "3"
     ports:
-      - 9004:9004
+      - "127.0.0.1:9004:9004"
   line-shaper-db:
     container_name: line-shaper-db
-    image: postgis/postgis:16-master
+    image: postgis/postgis:16-3.7
     volumes:
-      - ./api/:/docker-entrypoint-initdb.d/
+      - ./api/initDB.sql:/docker-entrypoint-initdb.d/initDB.sql
       - ./postgres-data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
       PGUSER: ${DB_USER}
       TZ: "Europe/Bratislava"
-    deploy:
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
