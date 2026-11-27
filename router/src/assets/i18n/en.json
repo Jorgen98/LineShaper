@@ -38,7 +38,8 @@
             "new": "New line",
             "route_a": "Route A",
             "route_b": "Route B",
-            "line": "Line"
+            "line": "Line",
+            "chooseAll": "Choose all lines"
         },
         "export": "Exporting data",
         "exportDone": "Data exporting is complete",

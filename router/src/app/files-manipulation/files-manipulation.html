@@ -66,6 +66,16 @@
         <p class="header">{{ progressText }}</p>
         <span class="routesCmpMainDiv" >
           <div class="routeStopsMainDiv">
+            <div class="routesLineElem" style="grid-template-columns: 0.1fr 1fr 0.1fr 0.5fr 0.05fr 0.05fr;">
+              <span></span>
+              <span></span>
+              <input class="routeStopsInput" [(ngModel)]="chooseAllLinesOnImpost" (change)="onChooseAllLinesOnImport()" type="checkbox">
+              <p class="routeStopsName">{{ "files-manipulation.replace.chooseAll" | translate }}</p>
+            </div>
+          </div>
+        </span>
+        <span class="routesCmpMainDiv" >
+          <div class="routeStopsMainDiv">
             <div class="routesLineElem">
               <p class="routeLineHeaderElem">{{ "files-manipulation.replace.line" | translate }}</p>
               <p class="routeLineHeaderElem">{{ "files-manipulation.replace.route_a" | translate }}</p>

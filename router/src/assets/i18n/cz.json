@@ -38,7 +38,8 @@
             "new": "Nová linka",
             "route_a": "Trasa A",
             "route_b": "Trasa B",
-            "line": "Linka"
+            "line": "Linka",
+            "chooseAll": "Vybrat všechny linky"
         },
         "export": "Export dat",
         "exportDone": "Exportování dat je dokončeno",

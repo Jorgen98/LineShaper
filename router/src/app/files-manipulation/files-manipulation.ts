@@ -36,6 +36,7 @@ export class FilesManipulationComponent {
     actualDir: 'a' | 'b' = 'a';
     actualCode: number = 0;
     expandMenu = false;
+    chooseAllLinesOnImpost = false;
 
     async defaultMenu() {
         this.warning = false;
@@ -388,7 +389,8 @@ export class FilesManipulationComponent {
 
             this.progressText = this.translate.instant("files-manipulation.replace.compare");
             this.state = 'linesComp';
-            
+
+            this.chooseAllLinesOnImpost = false;
             await this.waitForConfirm();
 
             whatToSave = [];
@@ -417,6 +419,13 @@ export class FilesManipulationComponent {
 
         this.progressText = this.translate.instant("files-manipulation.processingDone");
         this.progress = 100;
+    }
+
+    onChooseAllLinesOnImport() {
+        for (const line of this.linesComp) {
+            line.chosen_a = this.chooseAllLinesOnImpost;
+            line.chosen_b = this.chooseAllLinesOnImpost;
+        }
     }
 
     async showRouteDifference(lc: number, dir: string) {
